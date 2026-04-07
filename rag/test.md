@@ -1,0 +1,1 @@
+python rag/pdf_demo.py "C:\Users\asus\Desktop\zc.pdf"

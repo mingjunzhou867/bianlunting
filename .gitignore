@@ -1,0 +1,33 @@
+# 环境变量（含 API Key，绝对不能提交）
+config/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.pytest_cache/
+.test_tmp/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 评测结果（数据量大，按需提交）
+evaluation/results/
+
+# 日志
+*.log
+*.lnk
+
+# Frontend local env
+frontend/.venv/
+
+.codex/
+.claude/

@@ -1,0 +1,26 @@
+{
+  "name": "INSURER_STATUS",
+  "description": "社保缴费身份状态",
+  "total_count": 2,
+  "common_values": [
+    "101",
+    "102"
+  ],
+  "source_refs": [
+    {
+      "table": "social_insurance_payment",
+      "field": "insurer_status",
+      "role": "payment_status_code"
+    }
+  ],
+  "aliases": [
+    "缴费身份状态"
+  ],
+  "notes": [
+    "用于区分单位缴纳与灵活就业人员缴纳。"
+  ],
+  "values": {
+    "101": "单位缴纳",
+    "102": "灵活就业人员缴纳"
+  }
+}

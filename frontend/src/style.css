@@ -1,0 +1,98 @@
+:root {
+  --bg-base: #f0f2f5;
+  --bg-card: #ffffff;
+  --bg-card-alt: #f8fafc;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-amber: #f59e0b;
+  --accent-indigo: #6366f1;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--bg-base) !important;
+}
+
+.el-container {
+  height: 100%;
+}
+
+.el-main {
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+.el-aside {
+  background: var(--bg-base);
+  border-right: 1px solid var(--border-color);
+}
+
+.el-card {
+  --el-card-bg-color: var(--bg-card);
+  --el-card-border-color: var(--border-color);
+  border-radius: 12px;
+}
+
+.el-card__header {
+  border-bottom-color: var(--border-color);
+}
+
+.el-input__wrapper {
+  background: var(--bg-card-alt) !important;
+  box-shadow: 0 0 0 1px var(--border-color) inset !important;
+}
+
+.el-input__inner {
+  color: var(--text-primary) !important;
+}
+
+.el-input__inner::placeholder {
+  color: var(--text-dim) !important;
+}
+
+.el-divider {
+  border-color: var(--border-color);
+  --el-text-color-placeholder: var(--text-muted);
+}
+
+.el-alert {
+  --el-alert-bg-color: var(--bg-card-alt);
+  --el-alert-text-color: var(--text-primary);
+  border-radius: 10px;
+}
+
+.el-alert__title,
+.el-alert__description,
+.el-progress__text,
+.el-empty__description p {
+  color: var(--text-primary) !important;
+}
+
+.el-tag {
+  border-radius: 999px;
+}
+
+.el-scrollbar__thumb {
+  background: var(--border-color);
+}
+
+.el-button.is-plain {
+  border-color: var(--border-color) !important;
+}

@@ -1,0 +1,170 @@
+{
+  "policy_id": "POLICY_003",
+  "policy_name": "企业社会保险补贴主动服务（增员筛查）",
+  "policy_type": "主动服务",
+  "effective_date": null,
+  "expiry_date": null,
+  "description": "按用户选择的时间段筛选企业增员名单，识别已认定就业困难人员及疑似困难人员，核查失业登记与就业登记状态并给出提醒，支持以企业为维度汇总与明细筛选查看。",
+  "keywords": [
+    "企业社保补贴",
+    "增员筛查",
+    "就业困难人员",
+    "疑似困难人员",
+    "失业登记",
+    "就业登记",
+    "主动服务",
+    "4050人员",
+    "零就业家庭",
+    "高校毕业生",
+    "脱贫劳动力",
+    "建档立卡"
+  ],
+  "aliases": [
+    "主动服务",
+    "企业社保主动服务",
+    "增员与困难人员识别"
+  ],
+  "intent_patterns": [
+    "企业.*社保.*主动服务",
+    "增员.*筛查",
+    "识别.*就业困难.*人员",
+    "筛选.*增员.*名单",
+    "判断.*失业.*登记",
+    "判断.*就业.*登记",
+    "疑似.*困难.*人员"
+  ],
+  "policy_source_files": [
+    "docs\\policy\\POLICY_003_企业社保主动服务.txt"
+  ],
+  "policy_text": "# =============================================================================\n# 政策原始文件 | policy-source-v1\n# 说明：本文件为「唯一业务源」；后续规则抽取、入库、Prompt 注入均以此为准。\n# 编码：UTF-8\n# =============================================================================\n---\nformat: policy-source-v1\npolicy_id: POLICY_003\npolicy_name: 企业社会保险补贴主动服务（增员筛查）\npolicy_short_name: 主动服务\nsource_title: 企业社保主动服务（增员与困难人员识别）\nmigrated_from: 文件2-企业社保主动服务.txt\nversion: 1.0\n---\n\n# ---------------------------------------------------------------------------\n# 1. 业务目标（business_goal）\n# ---------------------------------------------------------------------------\ngoal_summary: |\n  按用户选择的时间段筛选企业增员名单；\n  在名单内识别已认定就业困难人员、疑似困难人员；\n  核查失业登记与就业登记状态并给出提醒；\n  支持以企业为维度汇总与明细筛选查看。\n\n# ---------------------------------------------------------------------------\n# 2. 流程与规则（steps）\n# 说明：PROACT_* 与 text2sql/sql_templates.py 中主动服务 SQL 对齐，便于取证映射。\n# ---------------------------------------------------------------------------\n\n## STEP-01 增员名单筛选\nstep_id: STEP-01\ntitle: 用户选择增员时间段，筛选增员名单\nrules:\n  - id: R-01-01\n    text: 判断单位注册地是否为孝感市范围内；是 → 标记【本市企业】；否 → 【非本市企业】。\n  - id: R-01-02\n    text: 单位增员时间在用户选择的时间段内。\n\ncode_hint: PROACT_001  # 近期待增员/全日制用工等扫描（与实现一致时绑定）\n\n# ---------------------------------------------------------------------------\n\n## STEP-02 已认定就业困难人员\nstep_id: STEP-02\ntitle: 筛选已做就业困难认定的人员并标记类别\nrules:\n  - id: R-02-01\n    text: |\n      已做有效就业困难人员认定，且属于下列就业困难人员类别之一（码值以业务系统为准）：\n\nhardship_category_codes:\n  - code: \"070\"\n    label: 城镇零就业家庭成员\n  - code: \"060\"\n    label: 残疾人\n  - code: \"050\"\n    label: 大龄就业困难人员\n  - code: \"041\"\n    label: 享受城镇居民最低生活保障的人员\n  - code: \"040\"\n    label: 连续失业1年以上的人员\n  - code: \"993\"\n    label: 离校2年内未就业的高校毕业生\n  - code: \"992\"\n    label: 毕业年度高校毕业生\n  - code: \"991\"\n    label: 离校1年内未就业的高校毕业生\n  - code: \"120\"\n    label: 贫困劳动力\n  - code: \"110\"\n    label: 各级社会福利机构供养的成年孤儿和社会成年孤儿\n  - code: \"100\"\n    label: 毕业一年以上未就业的高校毕业生\n  - code: \"091\"\n    label: 建档立卡贫困人员\n  - code: \"080\"\n    label: 生活困难的失地农民（失地农民）\n  - code: \"090\"\n    label: 农村零转移就业贫困家庭成员\n\noutput_markers:\n  - 【已困难认定】\n  - 【就业困难人员的类别】\n\ncode_hint: PROACT_002  # 与实现中困难认定/扫描逻辑对齐时绑定\n\n# ---------------------------------------------------------------------------\n\n## STEP-03 疑似困难人群\nstep_id: STEP-03\ntitle: 筛选疑似困难人群，标记疑似类别与原因\nrules:\n  - id: R-03-01\n    text: 符合条件则标记【疑似困难】【疑似类别】，并说明原因（示例：【疑似困难】【疑似4050人员】）。\n\nsuspected_rules:\n  - id: SUSPECT-01\n    name: \"4050人员\"\n    text: 女性年满 40 周岁或男性年满 50 周岁。\n  - id: SUSPECT-02\n    name: 连续失业1年以上的人员\n    text: 1 年内查询不到企业为个人缴纳的社保缴纳记录。\n  - id: SUSPECT-03\n    name: 失地农民\n    text: 无系统数据源（有农民证等纸质材料）。\n  - id: SUSPECT-04\n    name: 城镇零就业家庭或低保人员\n    text: 无系统数据源（低保证等纸质材料）。\n  - id: SUSPECT-05\n    name: 农村零转移就业贫困家庭成员\n    text: 无系统数据源（纸质材料）。\n  - id: SUSPECT-06\n    name: 毕业1年以上未就业的高校毕业生\n    text: 毕业时间距今 1 年以上，且查询不到任何企业为个人缴纳的社保记录。\n  - id: SUSPECT-07\n    name: 残疾人\n    text: 重度残疾相关标识。\n  - id: SUSPECT-08\n    name: 脱贫劳动力（原建档立卡贫困户）\n    text: 有省就业平台接口；无本地数据源时以外部为准。\n  - id: SUSPECT-09\n    name: 各级社会福利机构供养的成年孤儿及社会成年孤儿\n    text: （按业务系统标识）\n  - id: SUSPECT-10\n    name: 离校2年内未就业的高校毕业生\n    text: 毕业时间距今 2 年内，且查询不到任何企业为个人缴纳的社保记录。\n  - id: SUSPECT-11\n    name: 毕业年度的高校毕业生\n    text: 毕业时间为当前年，且查询不到任何企业为个人缴纳的社保记录。\n\nnote_typo_fix: |\n  原文「查询不到任何企业未个人缴纳」按语义更正为「为个人缴纳」。\n\ncode_hint: PROACT_003\n\n# ---------------------------------------------------------------------------\n\n## STEP-04 失业登记与就业登记\nstep_id: STEP-04\ntitle: 失业登记与就业登记判断与提醒\nrules:\n  - id: R-04-01\n    text: 判断失业登记 → 标记【已失业登记】；未做 → 提醒【提醒失业登记】。\n  - id: R-04-02\n    text: 判断就业登记 → 标记【已就业登记】；未做 → 提醒【提醒就业登记】。\n\nregistration_definitions:\n  unemployment:\n    text: 有失业登记记录（不需要判断状态）。\n  employment:\n    text: |\n      有就业登记记录，且就业登记时间为当前年，且就业单位是该增员单位。\n\ncode_hint: PROACT_004\n\n# ---------------------------------------------------------------------------\n\n## STEP-05 结果展示\nstep_id: STEP-05\ntitle: 以企业为单位查看结果，详情中动态筛选各类人群\nrules:\n  - id: R-05-01\n    text: 以企业为单位查看结果；点击详情可动态筛选查看各类人群。\n\n# ---------------------------------------------------------------------------\n# 3. 全文原文备份（表格转写，便于检索）\n# ---------------------------------------------------------------------------\nraw_table_summary: |\n  流程1：选增员时间段 → 增员名单（本市/非本市企业；增员时间在范围内）。\n  流程2：筛就业困难人员 → 已认定类别。\n  流程3：筛疑似困难 → 11 类疑似规则。\n  流程4：失业/就业登记标记与提醒。\n  流程5：企业维度汇总与筛选。\n",
+  "structured_rules": {
+    "basic_conditions": [
+      {
+        "rule_id": "BASIC_001",
+        "description": "判断单位注册地是否为孝感市范围内",
+        "check_fields": [
+          "单位注册地"
+        ],
+        "pass_condition": "单位注册地为孝感市范围内，标记为【本市企业】",
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": null,
+        "sql_template_ref": "PROACT_001"
+      },
+      {
+        "rule_id": "BASIC_002",
+        "description": "单位增员时间在用户选择的时间段内",
+        "check_fields": [
+          "单位增员时间",
+          "用户选择时间段"
+        ],
+        "pass_condition": "增员时间在用户选择的时间段范围内",
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": null,
+        "sql_template_ref": "PROACT_001"
+      },
+      {
+        "rule_id": "BASIC_003",
+        "description": "已做有效就业困难人员认定",
+        "check_fields": [
+          "就业困难人员认定状态",
+          "hardship_category_codes"
+        ],
+        "pass_condition": "已做有效认定且类别码值在指定列表中(070, 060, 050, 041, 040, 993, 992, 991, 120, 110, 100, 091, 080, 090)",
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": null,
+        "sql_template_ref": "PROACT_002"
+      }
+    ],
+    "exclusion_conditions": [],
+    "inference_rules": [
+      {
+        "rule_id": "INFER_001",
+        "description": "识别疑似4050人员",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "女性年满40周岁或男性年满50周岁，标记【疑似困难】【疑似4050人员】",
+        "formula": null,
+        "sql_template_ref": "PROACT_003"
+      },
+      {
+        "rule_id": "INFER_002",
+        "description": "识别疑似连续失业1年以上人员",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "1年内查询不到企业为个人缴纳的社保缴纳记录",
+        "formula": null,
+        "sql_template_ref": "PROACT_003"
+      },
+      {
+        "rule_id": "INFER_003",
+        "description": "识别疑似毕业1年以上未就业高校毕业生",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "毕业时间距今1年以上，且查询不到任何企业为个人缴纳的社保记录",
+        "formula": null,
+        "sql_template_ref": "PROACT_003"
+      },
+      {
+        "rule_id": "INFER_004",
+        "description": "识别疑似离校2年内未就业高校毕业生",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "毕业时间距今2年内，且查询不到任何企业为个人缴纳的社保记录",
+        "formula": null,
+        "sql_template_ref": "PROACT_003"
+      },
+      {
+        "rule_id": "INFER_005",
+        "description": "识别疑似毕业年度高校毕业生",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "毕业时间为当前年，且查询不到任何企业为个人缴纳的社保记录",
+        "formula": null,
+        "sql_template_ref": "PROACT_003"
+      },
+      {
+        "rule_id": "INFER_006",
+        "description": "判断失业登记状态",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "有失业登记记录则标记【已失业登记】，否则提醒【提醒失业登记】",
+        "formula": null,
+        "sql_template_ref": "PROACT_004"
+      },
+      {
+        "rule_id": "INFER_007",
+        "description": "判断就业登记状态",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "有就业登记记录，且就业登记时间为当前年，且就业单位是该增员单位，则标记【已就业登记】，否则提醒【提醒就业登记】",
+        "formula": null,
+        "sql_template_ref": "PROACT_004"
+      }
+    ],
+    "calculation_rules": []
+  },
+  "evidence_plan_template": {
+    "qualification_check": [
+      "BASIC_001",
+      "BASIC_002",
+      "BASIC_003"
+    ],
+    "amount_calculation": []
+  },
+  "notes": [
+    "疑似困难人群识别中，失地农民、城镇零就业家庭或低保人员、农村零转移就业贫困家庭成员等类别无系统数据源，需依赖纸质材料（农民证、低保证等）。",
+    "脱贫劳动力（原建档立卡贫困户）识别以省就业平台接口数据为准。",
+    "原文中「查询不到任何企业未个人缴纳」已按语义更正为「为个人缴纳」。",
+    "就业困难人员类别码值以业务系统为准，政策中列出了14种标准码值。"
+  ]
+}

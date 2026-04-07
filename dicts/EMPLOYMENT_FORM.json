@@ -1,0 +1,25 @@
+{
+  "name": "EMPLOYMENT_FORM",
+  "description": "就业形式",
+  "total_count": 3,
+  "common_values": [
+    "灵活就业",
+    "单位就业"
+  ],
+  "source_refs": [
+    {
+      "table": "employment_registration",
+      "field": "employment_form",
+      "role": "registration_mode"
+    }
+  ],
+  "aliases": [
+    "就业方式"
+  ],
+  "notes": [],
+  "values": {
+    "灵活就业": "灵活就业",
+    "单位就业": "单位就业",
+    "创业": "创业"
+  }
+}

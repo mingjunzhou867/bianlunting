@@ -1,0 +1,164 @@
+{
+  "policy_id": "POLICY_001",
+  "policy_name": "灵活就业社保补贴",
+  "policy_type": "金额计算",
+  "effective_date": null,
+  "expiry_date": null,
+  "description": "在人员已通过资格认定的前提下，计算本次可领取月数、补贴金额及剩余可享受月数，并提供补缴建议。",
+  "keywords": [
+    "灵活就业",
+    "社保补贴",
+    "额度计算",
+    "剩余月数",
+    "补缴建议",
+    "离校未就业高校毕业生",
+    "就业困难"
+  ],
+  "aliases": [
+    "灵活就业补贴",
+    "社保补贴",
+    "4555补贴",
+    "就业困难人员社保补贴"
+  ],
+  "intent_patterns": [
+    "灵活就业.*补贴.*领多少",
+    "社保补贴.*计算",
+    "补贴.*剩余月数",
+    "灵活就业.*补缴",
+    "能领.*个月",
+    "还剩.*个月.*补贴"
+  ],
+  "policy_source_files": [
+    "docs\\policy\\POLICY_002_灵活就业社保补贴月数计算.txt"
+  ],
+  "policy_text": "# =============================================================================\n# 政策原始文件 | policy-source-v1\n# 说明：与《POLICY_001_灵活就业社保补贴_资格认定.txt》为同一政策的两部分：\n#       本文件仅描述「领多少、剩多少、补缴建议」；是否具备领取资格见另一文件。\n# 编码：UTF-8\n# =============================================================================\n---\nformat: policy-source-v1\npolicy_id: POLICY_001\npolicy_name: 灵活就业社保补贴\ndocument_part: 额度与月数计算\npolicy_short_name: 灵活就业补贴\nsource_title: 孝感AI数据栈业务需求（灵活就业困难人员社保补贴）\nmigrated_from: 文件1-灵活就业补贴资格.txt\npair_document: POLICY_001_灵活就业社保补贴_资格认定.txt\nversion: 1.1\n---\n\n# ---------------------------------------------------------------------------\n# 1. 业务目标（本卷）\n# ---------------------------------------------------------------------------\ngoal_summary: |\n  在人员已通过本轮「资格认定」业务判断的前提下，\n  计算本次可领取月数、本次可领取金额、以及领取前/领取后的剩余可享受月数；\n  在申领时段内社保未缴足时，给出补缴月数等业务提醒（具体算法可持续调研完善）。\n\nprerequisite: |\n  本卷所有计算与输出，均以《资格认定》卷的结论为前置：不符合领取条件的人员，不适用本卷核算。\n\n# ---------------------------------------------------------------------------\n# 2. 本次可领取月数与剩余可享受月数\n# ---------------------------------------------------------------------------\ncalculation_intro: |\n  以下四种情形分别计算「未领本次补贴时」的剩余可享受月数，再取其中的最小值，作为本次可领取月数。\n\ncase_1:\n  title: 距法定退休年龄大于 5 年\n  condition_hint: 以退休日期与出生日期推算，间隔大于 5 年\n  steps: |\n    查询累计享受补贴明细及历史已领取补贴月数。\n    未领本次补贴时的剩余可享受月数 = 36 个月（三年） − 历史已领取补贴月数。\n\ncase_2:\n  title: 距法定退休年龄不足 5 年\n  condition_hint: 以退休日期与出生日期推算，间隔不足 5 年\n  steps: |\n    未领本次补贴时的剩余可享受月数 = 法定退休日期所在月与申领时段开始月之间的月数（按业务约定取整）。\n\ncase_3:\n  title: 就业困难人员类别为「离校 2 年内未就业的高校毕业生」\n  steps: |\n    查询累计享受补贴及历史已领取月数。\n    未领本次补贴时的剩余可享受月数 = 24 个月（两年） − 历史已领取补贴月数。\n\ncase_4:\n  title: 申领时段内本人已缴纳灵活就业社保的月数\n  steps: |\n    未领本次补贴时的剩余可享受月数 = 上述期间内已缴纳灵活就业社保的月数。\n\naggregate_rule: |\n  对上述四种情形分别得到的「未领本次补贴时的剩余可享受月数」取最小值，即为本次可领取月数。\n\npost_grant_remaining: |\n  对适用情形 1～3 的人员，在算出「未领本次补贴时的剩余可享受月数」并获得「本次可领取月数」后：\n  领取本次补贴后的剩余可享受月数 = 未领本次补贴时的剩余可享受月数 − 本次可领取月数。\n\n# ---------------------------------------------------------------------------\n# 3. 补贴金额（业务占位）\n# ---------------------------------------------------------------------------\namount_note: |\n  具体补贴金额口径（如按缴费基数比例、封顶规则等）由当地政策执行文件约定；\n  本补充需求强调与「月数」联动输出：审批通过人员需能展示本次享受月数、对应补贴金额、领取后剩余可享受月数。\n\n# ---------------------------------------------------------------------------\n# 4. AI 辅助：建议补缴社保月数（待细化）\n# ---------------------------------------------------------------------------\nsupplement_hint: |\n  资格已符合，但申领时段内未足额缴纳灵活就业社保时，\n  可由系统辅助推断需补缴多少个月的全额社保后方能适用本补贴；\n  用于提醒经办人员联系申请人补缴，并记录补缴反馈。（实现与规则可持续调研完善）\n\n# ---------------------------------------------------------------------------\n# 5. 输出要求（与本卷相关部分）\n# ---------------------------------------------------------------------------\noutput_approved_calculation: |\n  审批通过人员需输出或支撑输出：\n  初次享受年月（与资格卷认定口径一致）、本次可享受月数、补贴金额、剩余可享受月数；\n  以及补缴提醒（补缴月份）、补缴反馈录入。\n\noutput_rejected_with_topup: |\n  审批不通过人员，若业务上仍需提示补缴可能性的，输出不通过原因及补缴相关提醒（与资格卷口径衔接）。\n\noutput_cross_check_link: |\n  涉及「先查企业职工社会保险、再查个人医保」的交叉核对及对补缴提示的影响，业务规则详见《资格认定》卷「输出—交叉核对」；\n  本卷在金额与月数上与该结果衔接。\n",
+  "structured_rules": {
+    "basic_conditions": [
+      {
+        "rule_id": "BASIC_001",
+        "description": "前置资格认定",
+        "check_fields": [
+          "qualification_status"
+        ],
+        "pass_condition": "人员必须已通过本轮「资格认定」业务判断，不符合领取条件的人员不适用本卷核算。",
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": null,
+        "sql_template_ref": "BASIC_001"
+      }
+    ],
+    "exclusion_conditions": [],
+    "inference_rules": [
+      {
+        "rule_id": "INFER_001",
+        "description": "推断距法定退休年龄是否大于5年",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "根据退休日期与出生日期推算，判断间隔是否大于5年，用于区分适用情形1或情形2。",
+        "formula": null,
+        "sql_template_ref": "INFER_001"
+      },
+      {
+        "rule_id": "INFER_002",
+        "description": "推断是否为离校2年内未就业高校毕业生",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "检查就业困难人员类别是否为「离校2年内未就业的高校毕业生」，用于适用情形3。",
+        "formula": null,
+        "sql_template_ref": "INFER_002"
+      },
+      {
+        "rule_id": "INFER_003",
+        "description": "推断补缴建议",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": "当资格符合但申领时段内未足额缴纳灵活就业社保时，推断需补缴的全额社保月数。",
+        "formula": null,
+        "sql_template_ref": "INFER_003"
+      }
+    ],
+    "calculation_rules": [
+      {
+        "rule_id": "CALC_001",
+        "description": "情形一：距法定退休年龄大于5年的剩余月数计算",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": "未领本次补贴时的剩余可享受月数 = 36个月 - 历史已领取补贴月数",
+        "sql_template_ref": "CALC_001"
+      },
+      {
+        "rule_id": "CALC_002",
+        "description": "情形二：距法定退休年龄不足5年的剩余月数计算",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": "未领本次补贴时的剩余可享受月数 = 法定退休日期所在月 - 申领时段开始月（按业务约定取整）",
+        "sql_template_ref": "CALC_002"
+      },
+      {
+        "rule_id": "CALC_003",
+        "description": "情形三：离校2年内未就业高校毕业生的剩余月数计算",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": "未领本次补贴时的剩余可享受月数 = 24个月 - 历史已领取补贴月数",
+        "sql_template_ref": "CALC_003"
+      },
+      {
+        "rule_id": "CALC_004",
+        "description": "情形四：申领时段内已缴纳社保月数计算",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": "未领本次补贴时的剩余可享受月数 = 申领时段内已缴纳灵活就业社保的月数",
+        "sql_template_ref": "CALC_004"
+      },
+      {
+        "rule_id": "CALC_005",
+        "description": "本次可领取月数聚合计算",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": "本次可领取月数 = MIN(情形一结果, 情形二结果, 情形三结果, 情形四结果)",
+        "sql_template_ref": "CALC_005"
+      },
+      {
+        "rule_id": "CALC_006",
+        "description": "领取后剩余可享受月数计算",
+        "check_fields": null,
+        "pass_condition": null,
+        "fail_condition": null,
+        "check_logic": null,
+        "formula": "领取后剩余可享受月数 = 未领本次补贴时的剩余可享受月数 - 本次可领取月数",
+        "sql_template_ref": "CALC_006"
+      }
+    ]
+  },
+  "evidence_plan_template": {
+    "qualification_check": [
+      "BASIC_001"
+    ],
+    "amount_calculation": [
+      "CALC_001",
+      "CALC_002",
+      "CALC_003",
+      "CALC_004",
+      "CALC_005",
+      "CALC_006"
+    ]
+  },
+  "notes": [
+    "本文件仅描述「领多少、剩多少、补缴建议」，资格认定详见《POLICY_001_灵活就业社保补贴_资格认定.txt》。",
+    "具体补贴金额口径由当地政策执行文件约定。",
+    "补缴建议算法待细化，需持续调研完善。"
+  ]
+}

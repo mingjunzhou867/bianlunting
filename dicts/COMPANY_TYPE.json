@@ -1,0 +1,25 @@
+{
+  "name": "COMPANY_TYPE",
+  "description": "工商主体类型",
+  "total_count": 3,
+  "common_values": [
+    "企业",
+    "个体工商户"
+  ],
+  "source_refs": [
+    {
+      "table": "company_info",
+      "field": "company_type",
+      "role": "entity_type"
+    }
+  ],
+  "aliases": [
+    "主体类型"
+  ],
+  "notes": [],
+  "values": {
+    "企业": "企业",
+    "个体工商户": "个体工商户",
+    "事业单位": "事业单位"
+  }
+}

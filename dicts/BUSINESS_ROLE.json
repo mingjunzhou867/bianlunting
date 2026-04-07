@@ -1,0 +1,26 @@
+{
+  "name": "BUSINESS_ROLE",
+  "description": "人员工商角色",
+  "total_count": 3,
+  "common_values": [
+    "普通居民",
+    "个体工商户",
+    "企业法人"
+  ],
+  "source_refs": [
+    {
+      "table": "person",
+      "field": "business_role",
+      "role": "person_business_identity"
+    }
+  ],
+  "aliases": [
+    "工商身份"
+  ],
+  "notes": [],
+  "values": {
+    "普通居民": "普通居民",
+    "个体工商户": "个体工商户",
+    "企业法人": "企业法人"
+  }
+}
