@@ -42,6 +42,7 @@ class EvidencePlanItem(BaseModel):
     question_type: QuestionType | None = None
     evidence_targets: list[str] = Field(default_factory=list)
     relevant_fields: list[str] = Field(default_factory=list)
+    allowed_fields: list[str] = Field(default_factory=list)
     entity_scope: list[str] = Field(default_factory=list)
     time_window_or_time_rule: str = ""
     expected_answer_shape: str = ""
@@ -100,6 +101,63 @@ class EvidencePlanner:
         )
 
     def _build_plan_item_from_rule(self, rule: PolicyRule) -> EvidencePlanItem:
+        allowed_fields: list[str] = []
+        relevant_fields: list[str] = []
+        evidence_targets: list[str] = []
+        notes_for_query_generation: list[str] = []
+
+        if rule.rule_id == "P001_MUST_003":
+            allowed_fields = [
+                "hardship_certification.id_card",
+                "hardship_certification.hardship_category",
+                "hardship_certification.hardship_category_code",
+                "hardship_certification.hardship_policy_match",
+                "hardship_certification.apply_date",
+                "hardship_certification.certify_org",
+                "hardship_certification.is_valid",
+            ]
+            relevant_fields = list(allowed_fields)
+            evidence_targets = [
+                "hardship_certification",
+                "person",
+            ]
+            notes_for_query_generation = [
+                "This is a detail query. Use only real columns from the schema.",
+                "Prefer field-level facts over COUNT(*).",
+                "If hardship_certification lacks a needed field, fall back to the closest real fields and do not invent columns.",
+            ]
+        elif rule.rule_id == "P001_FLEX_002":
+            allowed_fields = [
+                "hardship_certification.id_card",
+                "hardship_certification.hardship_category",
+                "hardship_certification.hardship_category_code",
+                "hardship_certification.hardship_policy_match",
+                "hardship_certification.apply_date",
+                "hardship_certification.certify_org",
+                "hardship_certification.is_valid",
+            ]
+            relevant_fields = list(allowed_fields)
+            evidence_targets = ["hardship_certification", "person"]
+            notes_for_query_generation = [
+                "This is a detail query. Use only real columns from the schema.",
+                "Return actual hardship category facts or closest valid evidence.",
+            ]
+        elif rule.rule_id in {"P001_FLEX_004", "P001_FLEX_005"}:
+            allowed_fields = [
+                "social_insurance_payment.id_card",
+                "social_insurance_payment.pay_month",
+                "social_insurance_payment.insurance_type",
+                "social_insurance_payment.pay_base",
+                "social_insurance_payment.insurer_status",
+                "subsidy_payment_history.id_card",
+                "subsidy_payment_history.policy_code",
+                "subsidy_payment_history.apply_start_month",
+                "subsidy_payment_history.apply_end_month",
+                "subsidy_payment_history.grant_months",
+                "subsidy_payment_history.grant_amount",
+            ]
+            evidence_targets = ["social_insurance_payment", "subsidy_payment_history"]
+
         return EvidencePlanItem(
             plan_item_id=f"plan_{rule.rule_id.lower()}",
             rule_id=rule.rule_id,
@@ -109,6 +167,10 @@ class EvidencePlanner:
             sql_template=rule.sql_template,
             priority=rule.priority,
             scenario_category=rule.scenario_category,
+            relevant_fields=relevant_fields,
+            allowed_fields=list(allowed_fields),
+            evidence_targets=evidence_targets,
+            notes_for_query_generation=notes_for_query_generation,
         )
 
     def _build_plan_item(

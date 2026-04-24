@@ -10,6 +10,23 @@ from loguru import logger
 from policy.policy_router import list_policies
 
 
+_KEYWORD_MAP = {
+    "灵活就业": "灵活就业",
+    "补贴": "补贴",
+    "社保": "社会保险",
+    "保险": "社会保险",
+    "资格认定": "资格认定",
+    "认定": "认定",
+    "金额": "金额计算",
+    "补发": "金额计算",
+    "月数": "金额计算",
+    "历史": "历史查询",
+    "查询": "历史查询",
+    "人员": "疑似人员识别",
+    "疑似": "疑似人员识别",
+}
+
+
 def _extract_json(text: str) -> str:
     """从LLM输出中提取JSON字符串"""
     match = re.search(r'```(?:json)?\s*\n?(.*?)\n?\s*```', text, re.DOTALL)
@@ -28,6 +45,72 @@ def _normalize_action_type(value: Any) -> str:
         if value:
             return value
     return "资格认定"
+
+
+def _build_fallback_intent(user_query: str) -> PolicyIntent:
+    query = user_query.strip()
+    policies = list_policies()
+    scored: list[dict[str, Any]] = []
+
+    for idx, policy in enumerate(policies):
+        haystack = " ".join([
+            policy.get("policy_name", ""),
+            policy.get("policy_type", ""),
+            policy.get("description", ""),
+            " ".join(policy.get("keywords") or []),
+            " ".join(policy.get("aliases") or []),
+        ])
+        score = 0.05
+        reasons: list[str] = []
+
+        for keyword, action in _KEYWORD_MAP.items():
+            if keyword in query and keyword in haystack:
+                score += 0.18
+                reasons.append(f"命中关键词“{keyword}”")
+
+        if policy.get("policy_name") and policy["policy_name"] in query:
+            score += 0.28
+            reasons.append("命中政策名称")
+        if policy.get("policy_type") and policy["policy_type"] in query:
+            score += 0.12
+            reasons.append("命中政策类型")
+
+        if any(k in query for k in ("社保", "补贴", "灵活就业")) and any(k in haystack for k in ("社保", "补贴", "灵活就业")):
+            score += 0.15
+            reasons.append("业务主题一致")
+
+        scored.append({
+            "policy_id": policy["policy_id"],
+            "policy_name": policy["policy_name"],
+            "match_score": min(score, 0.99),
+            "match_reason": "；".join(reasons) if reasons else "基于规则进行粗匹配",
+            "order": idx,
+        })
+
+    scored.sort(key=lambda x: (-x["match_score"], x["order"]))
+    top = scored[:3]
+    best = top[0] if top else None
+    confidence = best["match_score"] if best else 0.0
+    need_confirmation = confidence < 0.8
+
+    return PolicyIntent(
+        policy_id=best["policy_id"] if best else None,
+        policy_name=best["policy_name"] if best else None,
+        action_type="资格认定",
+        confidence=confidence,
+        reasoning="LLM不可用或超时，已使用关键词规则兜底识别",
+        ambiguities=[] if confidence >= 0.8 else ["系统已使用规则兜底识别，建议确认政策名称"],
+        need_confirmation=need_confirmation,
+        candidate_policies=[
+            CandidatePolicy(
+                policy_id=item["policy_id"],
+                policy_name=item["policy_name"],
+                match_reason=item["match_reason"],
+                match_score=item["match_score"],
+            )
+            for item in top
+        ],
+    )
 
 
 class IntentUnderstandingAgent:
@@ -134,20 +217,11 @@ match_score 取值范围 0.0~1.0 的浮点数，代表该政策与用户需求�
 
         except json.JSONDecodeError as e:
             logger.error(f"[IntentAgent] JSON解析失败: {e}, 原始输出: {result_text}")
-            return PolicyIntent(
-                policy_id=None,
-                policy_name=None,
-                action_type="资格认定",
-                confidence=0.0,
-                reasoning=f"系统解析失败: {str(e)}",
-                ambiguities=["系统无法理解您的需求,请重新描述"],
-                need_confirmation=True,
-                candidate_policies=[]
-            )
+            return _build_fallback_intent(user_query)
 
         except Exception as e:
             logger.error(f"[IntentAgent] 意图理解失败: {e}")
-            raise
+            return _build_fallback_intent(user_query)
 
     def batch_understand(self, queries: list[str]) -> list[PolicyIntent]:
         """

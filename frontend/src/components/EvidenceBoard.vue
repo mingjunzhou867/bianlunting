@@ -3,34 +3,54 @@ defineProps({
   items: { type: Array, default: () => [] },
 })
 
-const DIAGNOSTIC_META = {
-  ok: { type: 'success', text: '✅ 查询成功', cls: 'tag-success' },
-  empty_result: { type: 'info', text: '⚪ 正确表中无结果', cls: 'tag-info' },
-  missing_column: { type: 'warning', text: '🟠 字段缺失', cls: 'tag-warning' },
-  missing_table: { type: 'danger', text: '❌ 表不存在或查错表', cls: 'tag-danger' },
-  table_corrupted: { type: 'danger', text: '💥 表损坏', cls: 'tag-danger' },
-  sql_error: { type: 'danger', text: '❌ SQL 错误', cls: 'tag-danger' },
-  db_connection_error: { type: 'danger', text: '🔌 数据库连接异常', cls: 'tag-danger' },
-  query_error: { type: 'danger', text: '❌ 查询执行异常', cls: 'tag-danger' },
-  unknown_error: { type: 'warning', text: '⚠️ 未知异常', cls: 'tag-warning' },
+const tagByDiagnostic = {
+  missing_column: { type: 'danger', text: '查询失败' },
+  missing_table: { type: 'danger', text: '查询失败' },
+  table_corrupted: { type: 'danger', text: '查询失败' },
+  sql_error: { type: 'danger', text: '查询失败' },
+  db_connection_error: { type: 'danger', text: '查询失败' },
+  query_error: { type: 'danger', text: '查询失败' },
+  unknown_error: { type: 'danger', text: '查询失败' },
 }
-
-const resolveDiagnosticMeta = (item) => DIAGNOSTIC_META[item.diagnostic_code] || DIAGNOSTIC_META.unknown_error
 
 const resolveResultMeta = (item) => {
-  if (item.exec_status === 'failed' || item.exec_status === 'field_missing' || item.exec_status === 'no_data') {
-    return resolveDiagnosticMeta(item)
+  const execStatus = String(item?.exec_status || '')
+  const diagnosticCode = String(item?.diagnostic_code || '')
+
+  if (execStatus === 'no_data' || diagnosticCode === 'empty_result') {
+    return { type: 'info', text: '查询成功但无结果' }
   }
-  if (item.supports_conclusion === true) return { type: 'success', text: '✅ 支持结论', cls: 'tag-success' }
-  if (item.supports_conclusion === false) return { type: 'danger', text: '⛔ 反向证据', cls: 'tag-danger' }
-  return { type: 'warning', text: '⚠️ 中性证据', cls: 'tag-warning' }
+
+  if (execStatus === 'failed' || execStatus === 'field_missing') {
+    return { type: 'danger', text: '错误查询' }
+  }
+
+  if (tagByDiagnostic[diagnosticCode]) {
+    return tagByDiagnostic[diagnosticCode]
+  }
+
+  if (item?.supports_conclusion === true) {
+    return { type: 'success', text: '支持证据' }
+  }
+
+  if (item?.supports_conclusion === false) {
+    return { type: 'danger', text: '反对证据' }
+  }
+
+  return { type: 'warning', text: '中性证据' }
 }
 
-const categoryColor = (category) => {
-  if (category?.includes('必须满足') || category?.includes('基础')) return 'cat-must'
-  if (category?.includes('排斥')) return 'cat-excl'
-  if (category?.includes('灵活') || category?.includes('主动服务')) return 'cat-flex'
-  return 'cat-default'
+const SEMANTIC_CATEGORY_CLASS = {
+  basic: 'cat-must',
+  exclusion: 'cat-excl',
+  flexible: 'cat-flex',
+  inference: 'cat-flex',
+  calculation: 'cat-default',
+}
+
+const getCategoryClass = (item) => {
+  const semanticCategory = String(item?.semantic_category || '').toLowerCase()
+  return SEMANTIC_CATEGORY_CLASS[semanticCategory] || 'cat-default'
 }
 
 const getResultColumns = (resultRaw) => {
@@ -39,9 +59,10 @@ const getResultColumns = (resultRaw) => {
 }
 
 const resolveEmptyText = (item) => {
-  if (item.diagnostic_detail) return item.diagnostic_detail
-  if (item.exec_status === 'field_missing') return '查询依赖字段缺失，当前结果不可用。'
-  if (item.exec_status === 'failed') return 'SQL 执行失败，无法获取数据。'
+  if (item?.diagnostic_detail) return item.diagnostic_detail
+  if (item?.exec_status === 'field_missing') return '查询依赖字段缺失，当前结果不可用。'
+  if (item?.exec_status === 'failed') return 'SQL 执行失败，无法获取数据。'
+  if (item?.exec_status === 'no_data') return 'SQL 正常执行，但未返回匹配记录。'
   return '查询结果为空，没有匹配记录。'
 }
 </script>
@@ -55,9 +76,9 @@ const resolveEmptyText = (item) => {
     >
       <div class="evidence-head">
         <div class="head-left">
-          <span class="category-badge" :class="categoryColor(item.category)">{{ item.category }}</span>
+          <span class="category-badge" :class="getCategoryClass(item)">{{ item.category }}</span>
           <div class="evidence-title">{{ item.target }}</div>
-          <div class="evidence-sub">Rule: {{ item.rule_id }}</div>
+          <div class="evidence-sub">条款编号：{{ item.rule_id }}</div>
         </div>
         <el-tag
           :type="resolveResultMeta(item).type"
@@ -73,7 +94,7 @@ const resolveEmptyText = (item) => {
         <div class="step">
           <div class="step-badge step-1">1</div>
           <div class="step-body">
-            <div class="step-label">核查目标 <span class="step-type">Natural Language</span></div>
+            <div class="step-label">核查目标 <span class="step-type">自然语言</span></div>
             <div class="step-content step-text">{{ item.target }}</div>
           </div>
         </div>
@@ -90,7 +111,7 @@ const resolveEmptyText = (item) => {
           <div class="step-badge step-3">3</div>
           <div class="step-body">
             <div class="step-label">
-              SQL 执行结果 <span class="step-type">Raw Data</span>
+              SQL 执行结果 <span class="step-type">原始数据</span>
               <span v-if="item.result_raw && item.result_raw.length" class="row-count">{{ item.result_raw.length }} 行</span>
             </div>
 
@@ -124,7 +145,7 @@ const resolveEmptyText = (item) => {
         <div class="step">
           <div class="step-badge step-4">4</div>
           <div class="step-body">
-            <div class="step-label">智能摘要结论 <span class="step-type">Summary</span></div>
+            <div class="step-label">智能摘要结论 <span class="step-type">摘要</span></div>
             <div class="step-content step-summary">{{ item.result_summary || '暂无摘要。' }}</div>
           </div>
         </div>

@@ -1,0 +1,87 @@
+{
+  "policy_id": "POLICY_001",
+  "policy_version": "1.1",
+  "category_dictionary": {
+    "ED_001": "大龄失业人员",
+    "ED_002": "家庭零就业人员",
+    "ED_003": "离校2年内未就业的高校毕业生",
+    "ED_004": "就业困难边界待核验",
+    "ED_005": "财政供养/事业单位临聘边界待核验",
+    "ED_006": "退休边界待核验",
+    "ED_007": "身份状态异常/待人工核验"
+  },
+  "people": [
+    {
+      "id_card": "42090219800101000A",
+      "name": "张完美",
+      "employment_difficult_recognition_status": "已认定",
+      "employment_difficult_category_code": "ED_001",
+      "employment_difficult_policy_match": true,
+      "employment_difficult_reason": "已存在有效就业困难人员认定，类别为大龄失业人员，符合当前政策限制。"
+    },
+    {
+      "id_card": "42090219850505000B",
+      "name": "李老板",
+      "employment_difficult_recognition_status": "已认定",
+      "employment_difficult_category_code": "ED_002",
+      "employment_difficult_policy_match": true,
+      "employment_difficult_reason": "虽存在就业困难认定记录，但后续股东/经营身份构成排斥，认定结果仅作为表层证据保留。"
+    },
+    {
+      "id_card": "42090219680401000C",
+      "name": "王精算",
+      "employment_difficult_recognition_status": "已认定",
+      "employment_difficult_category_code": "ED_001",
+      "employment_difficult_policy_match": true,
+      "employment_difficult_reason": "大龄失业人员认定有效，且类别与当前政策限制匹配。"
+    },
+    {
+      "id_card": "42090219760310000D",
+      "name": "赵争议",
+      "employment_difficult_recognition_status": "待核验",
+      "employment_difficult_category_code": "ED_004",
+      "employment_difficult_policy_match": false,
+      "employment_difficult_reason": "存在就业登记与社保切换窗口争议，认定类别与当前判定窗口无法稳定对齐。"
+    },
+    {
+      "id_card": "42090219780815000E",
+      "name": "陈灰色",
+      "employment_difficult_recognition_status": "已认定",
+      "employment_difficult_category_code": "ED_001",
+      "employment_difficult_policy_match": true,
+      "employment_difficult_reason": "有有效就业困难认定，类别符合当前政策；历史个体户状态仅作为边界风险保留。"
+    },
+    {
+      "id_card": "42090219710321000F",
+      "name": "吴边界",
+      "employment_difficult_recognition_status": "已认定",
+      "employment_difficult_category_code": "ED_006",
+      "employment_difficult_policy_match": true,
+      "employment_difficult_reason": "认定为大龄失业相关类别，但同时触发退休边界核验，需要结合退休口径复核。"
+    },
+    {
+      "id_card": "42090219820620000G",
+      "name": "孙迷雾",
+      "employment_difficult_recognition_status": "已认定",
+      "employment_difficult_category_code": "ED_005",
+      "employment_difficult_policy_match": false,
+      "employment_difficult_reason": "认定记录有效，但历史事业单位临聘与当前灵活就业状态存在财政供养边界争议，需要政策口径复核。"
+    },
+    {
+      "id_card": "42090220010901000H",
+      "name": "郑重叠",
+      "employment_difficult_recognition_status": "已认定",
+      "employment_difficult_category_code": "ED_003",
+      "employment_difficult_policy_match": true,
+      "employment_difficult_reason": "离校2年内未就业的高校毕业生认定有效，类别符合当前政策限制。"
+    },
+    {
+      "id_card": "42090219700505000I",
+      "name": "钱幽灵",
+      "employment_difficult_recognition_status": "待人工核验",
+      "employment_difficult_category_code": "ED_007",
+      "employment_difficult_policy_match": false,
+      "employment_difficult_reason": "生命状态与后续缴费、补贴记录冲突，认定状态暂不应作为自动通过依据。"
+    }
+  ]
+}

@@ -5,10 +5,10 @@ defineProps({
 })
 
 const ROLE_META = {
-  严格合规Agent: { short: '严' },
-  宽松业务Agent: { short: '宽' },
-  审计挑战Agent: { short: '审' },
-  探索分析Agent: { short: '探' },
+  '严格合规 Agent': { short: '严' },
+  '宽松业务 Agent': { short: '宽' },
+  '审计挑战 Agent': { short: '审' },
+  '探索分析 Agent': { short: '探' },
 }
 
 const FACT_LABELS = {
@@ -70,7 +70,7 @@ const sanitizeDisplayText = (value) => {
             {{ judgment.stance || '待定' }}
           </el-tag>
           <el-tag v-if="isDebate" type="info" effect="plain">
-            Round {{ judgment.debate_round }}
+            第 {{ judgment.debate_round }} 轮
           </el-tag>
         </div>
       </div>

@@ -101,6 +101,8 @@ class DebateOrchestratorPersistenceTests(unittest.TestCase):
         self.assertEqual(result["final_stance"], SUPPORT_STANCE)
         self.assertEqual(result["rounds_taken"], 0)
         self.assertEqual(len(result["history"]), 1)
+        self.assertIn("arbiter_result", result)
+        self.assertIn("summary", result["arbiter_result"])
 
         persist_mock.assert_called_once()
         kwargs = persist_mock.call_args.kwargs
@@ -120,6 +122,7 @@ class DebateOrchestratorPersistenceTests(unittest.TestCase):
         self.assertEqual(payloads[-1]["data"]["final_conclusion"], PASS_CONCLUSION)
         self.assertEqual(payloads[-1]["data"]["session_id"], persist_mock.call_args.kwargs["session_id"])
         self.assertIn("history", payloads[-1]["data"])
+        self.assertIn("arbiter_result", payloads[-1]["data"])
         self.assertTrue(any(payload["event"] == "evidence" for payload in payloads))
         self.assertTrue(any(payload["event"] == "agent_judgment" for payload in payloads))
 

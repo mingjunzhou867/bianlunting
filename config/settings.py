@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o"
     llm_temperature: float = 0.3
     llm_max_tokens: int = 4096
+    llm_timeout_seconds: float = 120.0
+    rag_review_enabled: bool = False
+    rag_review_api_key: str = ""
+    rag_review_base_url: str = "https://api.deepseek.com/v1"
+    rag_review_model: str = "deepseek-chat"
 
     # ----------------------------------------------------------
     # 数据库配置

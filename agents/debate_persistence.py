@@ -14,6 +14,7 @@ from typing import Any, Sequence
 
 from sqlalchemy import text
 
+from agents.decision_semantics import build_item_semantics, conclusion_tag_type
 from config.database import get_session
 from evidence.evidence_model import EvidenceBundle, EvidenceItem
 
@@ -75,7 +76,10 @@ def serialize_evidence_item(item: EvidenceItem) -> dict[str, Any]:
         "diagnostic_label": item.diagnostic_label,
         "diagnostic_detail": item.diagnostic_detail,
         "diagnostic_hint": item.diagnostic_hint,
+        "manual_verified": item.manual_verified,
+        "manual_stance": item.manual_stance,
         "created_at": _isoformat(item.created_at),
+        **build_item_semantics(item),
     }
 
 
@@ -105,17 +109,27 @@ def build_debate_result(
     bundle: EvidenceBundle,
     history: Sequence[Any],
     final_record: Any,
+    arbiter_result: dict[str, Any] | None = None,
+    adjudication_report: dict[str, Any] | None = None,
+    manual_supplements: list[dict[str, Any]] | None = None,
+    persona: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    final_conclusion = final_record.get_final_conclusion()
     return {
         "session_id": session_id,
         "id_card": bundle.id_card,
         "evidence_count": len(bundle.items),
         "rounds_taken": final_record.round_num,
-        "final_conclusion": final_record.get_final_conclusion(),
+        "final_conclusion": final_conclusion,
+        "final_conclusion_tag_type": conclusion_tag_type(final_conclusion),
         "final_stance": final_record.majority_stance,
         "consensus_rate": final_record.consensus_rate,
         "is_consensus_reached": final_record.is_consensus_reached,
         "history": serialize_history(history),
+        "arbiter_result": arbiter_result or {},
+        "adjudication_report": adjudication_report or {},
+        "manual_supplements": manual_supplements or [],
+        "persona": persona or {},
     }
 
 
@@ -128,10 +142,23 @@ def build_completed_session_records(
     started_at: datetime,
     completed_at: datetime,
     policy_id: str = "POLICY_001",
+    arbiter_result: dict[str, Any] | None = None,
+    adjudication_report: dict[str, Any] | None = None,
+    manual_supplements: list[dict[str, Any]] | None = None,
+    persona: dict[str, Any] | None = None,
 ) -> PersistedDebateSession:
     history_payload = serialize_history(history)
     evidence_payload = serialize_evidence_bundle(bundle)
-    result_payload = build_debate_result(session_id, bundle, history, final_record)
+    result_payload = build_debate_result(
+        session_id,
+        bundle,
+        history,
+        final_record,
+        arbiter_result=arbiter_result,
+        adjudication_report=adjudication_report,
+        manual_supplements=manual_supplements,
+        persona=persona,
+    )
     agent_count = len(history[0].judgments) if history else 0
 
     session_row = {
@@ -305,6 +332,10 @@ def persist_completed_session(
     started_at: datetime,
     completed_at: datetime,
     policy_id: str = "POLICY_001",
+    arbiter_result: dict[str, Any] | None = None,
+    adjudication_report: dict[str, Any] | None = None,
+    manual_supplements: list[dict[str, Any]] | None = None,
+    persona: dict[str, Any] | None = None,
 ) -> PersistedDebateSession:
     persisted = build_completed_session_records(
         session_id=session_id,
@@ -315,6 +346,10 @@ def persist_completed_session(
         started_at=started_at,
         completed_at=completed_at,
         policy_id=policy_id,
+        arbiter_result=arbiter_result,
+        adjudication_report=adjudication_report,
+        manual_supplements=manual_supplements,
+        persona=persona,
     )
 
     insert_session_sql = text(

@@ -80,6 +80,8 @@ class EvidenceItem(BaseModel):
     diagnostic_label: str = Field(default="查询成功", description="Human-readable diagnostic label")
     diagnostic_detail: str = Field(default="", description="Detailed diagnostic description")
     diagnostic_hint: str = Field(default="", description="Suggested troubleshooting hint")
+    manual_verified: bool = Field(default=False, description="Whether this is manually verified high-priority evidence")
+    manual_stance: str | None = Field(default=None, description="Manual review stance: support/refute")
     created_at: datetime = Field(default_factory=datetime.now)
 
 

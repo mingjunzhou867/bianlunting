@@ -72,6 +72,7 @@ class RetrievalApiTests(unittest.TestCase):
             "evidence": [{"rule_id": "RULE_001"}],
             "history": [{"round_num": 0, "judgments": []}],
             "summary": {"final_conclusion": "符合"},
+            "arbiter_result": {"summary": "维持多数意见"},
         }
 
         response = self.client.get("/api/debates/session-123")
@@ -81,6 +82,7 @@ class RetrievalApiTests(unittest.TestCase):
         self.assertEqual(payload["status"], "success")
         self.assertEqual(payload["data"]["session_id"], "session-123")
         self.assertEqual(payload["data"]["summary"]["final_conclusion"], "符合")
+        self.assertEqual(payload["data"]["arbiter_result"]["summary"], "维持多数意见")
         self.assertEqual(payload["data"]["source_endpoint"], "/api/debate")
         self.assertEqual(payload["data"]["evidence"][0]["rule_id"], "RULE_001")
 

@@ -1,4 +1,4 @@
-﻿"""Small wrapper around the configured LLM provider."""
+"""Small wrapper around the configured LLM provider."""
 from __future__ import annotations
 
 import json
@@ -42,7 +42,8 @@ def _chat_openai_compat(
     if response_format:
         kwargs["response_format"] = response_format
 
-    response = client.chat.completions.create(**kwargs)
+    timeout = settings.llm_timeout_seconds if settings.llm_timeout_seconds > 0 else None
+    response = client.chat.completions.create(timeout=timeout, **kwargs)
     message = response.choices[0].message
 
     if message.tool_calls:

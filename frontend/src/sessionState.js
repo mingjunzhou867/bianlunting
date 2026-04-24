@@ -5,10 +5,15 @@ export const buildEmptySession = (idCard) => ({
   status: 'running',
   source_endpoint: '/api/debate_stream',
   system_traces: [],
+  persona: {},
   evidence: [],
   history: [{ round_num: 0, judgments: [] }],
   final_conclusion: '',
+  final_conclusion_tag_type: 'warning',
   final_stance: '',
+  arbiter_result: {},
+  adjudication_report: {},
+  manual_supplements: [],
   consensus_rate: 0,
   is_consensus_reached: false,
   rounds_taken: 0,
@@ -17,6 +22,39 @@ export const buildEmptySession = (idCard) => ({
   view_source: 'live',
 })
 
+const LEGACY_RISK_TEXT_FIXUPS = new Map([
+  ['鐠囦焦宓佺紓鍝勩亼', '数据缺失'],
+])
+
+const sanitizeLegacyRiskText = (value) => {
+  if (typeof value !== 'string' || !value) {
+    return value
+  }
+
+  let nextValue = value
+  LEGACY_RISK_TEXT_FIXUPS.forEach((replacement, needle) => {
+    if (nextValue.includes(needle)) {
+      nextValue = nextValue.split(needle).join(replacement)
+    }
+  })
+  return nextValue
+}
+
+const normalizeArbiterResult = (arbiterResult) => {
+  if (!arbiterResult || typeof arbiterResult !== 'object') {
+    return {}
+  }
+
+  const remainingRisks = Array.isArray(arbiterResult.remaining_risks)
+    ? arbiterResult.remaining_risks.map((item) => sanitizeLegacyRiskText(item))
+    : []
+
+  return {
+    ...arbiterResult,
+    remaining_risks: remainingRisks,
+  }
+}
+
 export const normalizeSession = (payload, fallbackIdCard = '') => ({
   session_id: payload?.session_id ?? '',
   id_card: payload?.id_card ?? fallbackIdCard,
@@ -24,6 +62,7 @@ export const normalizeSession = (payload, fallbackIdCard = '') => ({
   status: payload?.status ?? 'completed',
   source_endpoint: payload?.source_endpoint ?? '',
   system_traces: Array.isArray(payload?.system_traces) ? payload.system_traces : [],
+  persona: payload?.persona && typeof payload.persona === 'object' ? payload.persona : {},
   evidence: Array.isArray(payload?.evidence) ? payload.evidence : [],
   history: Array.isArray(payload?.history)
     ? payload.history.map((round) => ({
@@ -32,7 +71,13 @@ export const normalizeSession = (payload, fallbackIdCard = '') => ({
     }))
     : [],
   final_conclusion: payload?.final_conclusion ?? '',
+  final_conclusion_tag_type: payload?.final_conclusion_tag_type ?? 'warning',
   final_stance: payload?.final_stance ?? '',
+  arbiter_result: normalizeArbiterResult(payload?.arbiter_result),
+  adjudication_report: payload?.adjudication_report && typeof payload.adjudication_report === 'object'
+    ? payload.adjudication_report
+    : {},
+  manual_supplements: Array.isArray(payload?.manual_supplements) ? payload.manual_supplements : [],
   consensus_rate: Number(payload?.consensus_rate ?? 0),
   is_consensus_reached: Boolean(payload?.is_consensus_reached),
   rounds_taken: Number(payload?.rounds_taken ?? 0),
@@ -82,6 +127,13 @@ export const applyStreamEventToSession = (session, payload, activeIdCard = '') =
     }
   }
 
+  if (event === 'persona_ready') {
+    return {
+      ...session,
+      persona: data && typeof data === 'object' ? data : {},
+    }
+  }
+
   if (event === 'round_start') {
     const roundNum = normalizeRoundNum(data)
     return {
@@ -113,13 +165,21 @@ export const applyStreamEventToSession = (session, payload, activeIdCard = '') =
       activeIdCard,
     )
 
-    // API 推送的 debate_final 事件只含精简结果结构，
-    // 需要从当前的 live session 传承完整的过程资产，防止视图 1 被清空
+    // API 推送的 debate_final 事件只包含精简结果结构。
+    // 需要从当前 live session 继承完整的过程资产，防止视图一被清空。
     finalSession.system_traces = session.system_traces || []
     // Preserve live-only stream state because debate_final is intentionally compact.
     finalSession.evidence = (session.evidence && session.evidence.length)
       ? session.evidence
       : (Array.isArray(data?.evidence) ? data.evidence : [])
+    finalSession.persona = (
+      session.persona && typeof session.persona === 'object' && Object.keys(session.persona).length
+    )
+      ? session.persona
+      : (data?.persona && typeof data.persona === 'object' ? data.persona : {})
+    finalSession.manual_supplements = Array.isArray(data?.manual_supplements)
+      ? data.manual_supplements
+      : (Array.isArray(session.manual_supplements) ? session.manual_supplements : [])
 
     return finalSession
   }

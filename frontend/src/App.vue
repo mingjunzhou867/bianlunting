@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import DebateSessionView from './components/DebateSessionView.vue'
 import HistorySessionList from './components/HistorySessionList.vue'
+import ManualSupplementPanel from './components/ManualSupplementPanel.vue'
 import {
   applyStreamEventToSession,
   buildEmptySession,
@@ -50,6 +51,57 @@ const personas = [
   { id: '42090219780815000E', tag: 'E 陈灰色', type: 'warning' },
   { id: '42090219700505000I', tag: 'I 钱幽灵', type: 'info' },
 ]
+
+const buildSupplementId = () => `supp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+
+const manualStanceLabel = (stance) => {
+  if (stance === 'support') return '支持该条款'
+  if (stance === 'refute') return '反驳该条款'
+  return '人工核验'
+}
+
+const getClauseById = (session, clauseId) => {
+  const rows = Array.isArray(session?.adjudication_report?.clause_results)
+    ? session.adjudication_report.clause_results
+    : []
+  return rows.find((row) => row?.clause_id === clauseId) || null
+}
+
+const toManualEvidenceItem = (session, supplement) => {
+  const evidenceId = supplement.evidence_id || `manual_${supplement.supplement_id}`
+  const stance = supplement.stance || 'support'
+  const stanceLabel = manualStanceLabel(stance)
+  const supportsConclusion = stance === 'refute' ? false : true
+  return {
+    evidence_id: evidenceId,
+    rule_id: supplement.clause_id,
+    target_id_card: session.id_card,
+    target: `人工核验证据(${supplement.clause_id})`,
+    category: 'manual_supplement',
+    sql: '-- manual supplement evidence',
+    result_raw: [
+      {
+        source: 'manual',
+        supplement_id: supplement.supplement_id,
+        clause_id: supplement.clause_id,
+        stance,
+        manual_stance: stance,
+        manual_verified: true,
+      },
+    ],
+    result_summary: `[人工核验][${stanceLabel}] ${supplement.detail}`,
+    supports_conclusion: supportsConclusion,
+    confidence: 1.0,
+    exec_status: 'success',
+    diagnostic_code: 'ok',
+    diagnostic_label: '人工核验补证',
+    diagnostic_detail: `人工核验补证（${stanceLabel}，高优先级）`,
+    diagnostic_hint: '人工核验补证优先级最高，将覆盖同条款系统证据',
+    manual_verified: true,
+    manual_stance: stance,
+    created_at: supplement.submitted_at || new Date().toISOString(),
+  }
+}
 
 const handleQuickTest = (id) => {
   if (!liveLoading.value) {
@@ -236,6 +288,8 @@ const startStreamDebate = async (options = {}) => {
   const idCard = (options.idCard ?? idCardInput.value).trim()
   const requestedPolicyId = options.policyId ?? selectedPolicyId.value
   const reusedEvidence = Array.isArray(options.evidence) ? options.evidence : null
+  const manualSupplements = Array.isArray(options.manualSupplements) ? options.manualSupplements : []
+  const reviewMode = options.reviewMode ?? ''
   const debateOnly = Boolean(options.debateOnly)
   const startTab = options.startTab ?? 'cognition'
 
@@ -247,6 +301,7 @@ const startStreamDebate = async (options = {}) => {
     ...buildEmptySession(idCard),
     policy_id: requestedPolicyId || '',
     evidence: reusedEvidence ?? [],
+    manual_supplements: manualSupplements,
   }
   historyError.value = ''
   sessionError.value = ''
@@ -266,6 +321,9 @@ const startStreamDebate = async (options = {}) => {
   if (reusedEvidence && reusedEvidence.length > 0) {
     requestBody.reuse_evidence = true
     requestBody.evidence = reusedEvidence
+    if (manualSupplements.length > 0) {
+      requestBody.manual_supplements = manualSupplements
+    }
   }
 
   let finalSessionId = ''
@@ -288,7 +346,7 @@ const startStreamDebate = async (options = {}) => {
           selectedPolicyId.value = candidates[0].policy_id
         }
         activeTab.value = 'input'
-        ElMessage.info('请在「用户输入」视图中选择政策后重新提交。')
+        ElMessage.info('请在“用户输入”视图中选择政策后重新提交。')
         return
       }
     }
@@ -339,7 +397,11 @@ const startStreamDebate = async (options = {}) => {
     }
 
     await syncHistoryAfterLive(finalSessionId)
-    ElMessage.success('实时分析完成，历史会话已刷新。')
+    if (reviewMode === 'manual_supplement') {
+      ElMessage.success('补证复核已完成，已更新采纳结果。')
+    } else {
+      ElMessage.success('实时分析完成，历史会话已刷新。')
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       ElMessage.info('已停止实时分析，当前页面内容已保留。')
@@ -354,10 +416,133 @@ const startStreamDebate = async (options = {}) => {
   }
 }
 
+const handleSubmitSupplement = (payload) => {
+  if (!activeSession.value) return
+
+  const clauseId = String(payload?.clause_id || '').trim()
+  const detail = String(payload?.detail || '').trim()
+  if (!clauseId || !detail) {
+    ElMessage.warning('请先选择条款并填写补证说明。')
+    return
+  }
+
+  const clause = getClauseById(activeSession.value, clauseId)
+  if (!clause) {
+    ElMessage.warning('未找到对应条款，无法提交补证。')
+    return
+  }
+
+  const currentSupplements = Array.isArray(activeSession.value.manual_supplements)
+    ? activeSession.value.manual_supplements
+    : []
+  const supplement = {
+    supplement_id: buildSupplementId(),
+    clause_id: clauseId,
+    clause_text: payload?.clause_text || clause?.clause_text || '',
+    detail,
+    stance: payload?.stance || 'support',
+    baseline_status: payload?.baseline_status || clause?.semantic_display_label || clause?.status || '',
+    baseline_effect: payload?.baseline_effect || clause?.semantic_decision_effect || '',
+    status: 'pending_review',
+    submitted_at: new Date().toISOString(),
+  }
+
+  activeSession.value = {
+    ...activeSession.value,
+    manual_supplements: [...currentSupplements, supplement],
+  }
+  ElMessage.success('补证已提交，状态已标记为“已提交待复核”。')
+}
+
+const buildSupplementReviewPayload = (session) => {
+  const currentSupplements = Array.isArray(session?.manual_supplements) ? session.manual_supplements : []
+  const normalizedSupplements = currentSupplements.map((item) => (
+    item?.supplement_id
+      ? item
+      : { ...item, supplement_id: buildSupplementId() }
+  ))
+  const pendingSupplements = normalizedSupplements.filter((item) => item?.status === 'pending_review')
+
+  const latestPendingByClauseId = new Map()
+  pendingSupplements.forEach((item) => {
+    const clauseId = String(item?.clause_id || '').trim()
+    if (!clauseId) return
+    // Each rerun only keeps the latest supplement for one clause.
+    latestPendingByClauseId.set(clauseId, item)
+  })
+  const latestPendingSupplements = Array.from(latestPendingByClauseId.values())
+
+  const pendingEvidenceItems = latestPendingSupplements.map((item) => {
+    const normalized = item?.evidence_id ? item : { ...item, evidence_id: `manual_${item.supplement_id}` }
+    return {
+      supplement: normalized,
+      evidence: toManualEvidenceItem(session, normalized),
+    }
+  })
+
+  const evidenceIds = new Set(pendingEvidenceItems.map((item) => item.evidence.evidence_id))
+  const overriddenClauseIds = new Set(
+    pendingEvidenceItems
+      .map((item) => String(item.evidence.rule_id || '').trim())
+      .filter(Boolean),
+  )
+
+  const baseEvidence = Array.isArray(session?.evidence)
+    ? session.evidence.filter((item) => {
+      const evidenceId = String(item?.evidence_id || '')
+      const ruleId = String(item?.rule_id || '').trim()
+      if (evidenceIds.has(evidenceId)) return false
+      if (overriddenClauseIds.has(ruleId)) return false
+      return true
+    })
+    : []
+
+  const supplementById = new Map(pendingEvidenceItems.map((item) => [item.supplement.supplement_id, item.supplement]))
+  const nextSupplements = normalizedSupplements.map((item) => supplementById.get(item.supplement_id) || item)
+
+  return {
+    evidence: [...baseEvidence, ...pendingEvidenceItems.map((item) => item.evidence)],
+    supplements: nextSupplements,
+  }
+}
+
+const rerunSupplementReview = () => {
+  const session = activeSession.value
+  if (!session) {
+    ElMessage.warning('当前没有可复核会话。')
+    return
+  }
+  if (liveLoading.value) {
+    ElMessage.warning('当前分析进行中，请稍后再试。')
+    return
+  }
+
+  const pendingCount = (Array.isArray(session.manual_supplements) ? session.manual_supplements : [])
+    .filter((item) => item?.status === 'pending_review')
+    .length
+  if (pendingCount === 0) {
+    ElMessage.warning('暂无“已提交待复核”的补证记录。')
+    return
+  }
+
+  const { evidence, supplements } = buildSupplementReviewPayload(session)
+  activeSession.value = { ...session, manual_supplements: supplements }
+  startStreamDebate({
+    idCard: session.id_card || idCardInput.value,
+    policyId: session.policy_id || selectedPolicyId.value,
+    evidence,
+    debateOnly: true,
+    startTab: 'verdict',
+    manualSupplements: supplements,
+    reviewMode: 'manual_supplement',
+  })
+}
+
 const restartHistoryDebate = (session) => {
   const idCard = session?.id_card?.trim?.() ?? ''
   const policyId = session?.policy_id ?? ''
   const evidence = Array.isArray(session?.evidence) ? session.evidence : []
+  const manualSupplements = Array.isArray(session?.manual_supplements) ? session.manual_supplements : []
 
   if (!idCard) {
     ElMessage.warning('历史会话缺少身份证号，无法重新发起辩论。')
@@ -370,7 +555,14 @@ const restartHistoryDebate = (session) => {
   selectedPolicyId.value = policyId
 
   ElMessage.success('已按历史会话参数重新发起辩论。')
-  startStreamDebate({ idCard, policyId, evidence, debateOnly: true, startTab: 'tribunal' })
+  startStreamDebate({
+    idCard,
+    policyId,
+    evidence,
+    debateOnly: true,
+    startTab: 'tribunal',
+    manualSupplements,
+  })
 }
 
 const handleBeforeUnload = (e) => {
@@ -397,7 +589,7 @@ onUnmounted(() => {
         <div class="header-row">
           <div>
             <div class="header-title">多 Agent 辩论判定台</div>
-            <div class="header-subtitle">输入需求 → 意图识别 → 取证规划 → 多智能体辩论 → 决策审计</div>
+            <div class="header-subtitle">输入需求 → 意图识别 → 取证规划 → 多智能体辩论 → 裁决审计</div>
           </div>
           <div class="header-right">
             <el-tag type="primary" effect="plain">Phase 2.1</el-tag>
@@ -412,8 +604,8 @@ onUnmounted(() => {
     <el-main class="main-workspace">
       <el-tabs v-model="activeTab" class="dashboard-tabs">
 
-        <!-- ========== 用户输入视图 ========== -->
-        <el-tab-pane label="📝 用户输入 (Intent Input)" name="input">
+        <!-- ========== 视图零 ========== -->
+        <el-tab-pane label="🟦 视图零：用户输入 (Intent Input)" name="input">
           <el-scrollbar height="100%">
             <div class="input-view">
               <div class="input-view-left">
@@ -437,7 +629,7 @@ onUnmounted(() => {
                     clearable
                     type="textarea"
                     :rows="3"
-                    placeholder="请输入一句话需求，如：判断这个人能不能领灵活就业补贴"
+                    placeholder="请输入一句话需求，例如：判断这个人能否领取灵活就业补贴"
                     class="input-field"
                     @keyup.ctrl.enter="runIntentRecognition"
                   />
@@ -451,7 +643,7 @@ onUnmounted(() => {
                       <el-icon><Search /></el-icon> 识别意图
                     </el-button>
                     <el-divider direction="vertical" />
-                    <span class="toolbar-label">快速填入：</span>
+                    <span class="toolbar-label">快速填充：</span>
                     <el-button
                       v-for="persona in personas"
                       :key="persona.id"
@@ -473,7 +665,7 @@ onUnmounted(() => {
                   </div>
 
                   <div v-if="!intentResult" class="policy-empty">
-                    <el-empty description="请先输入需求并点击「识别意图」" :image-size="80" />
+                    <el-empty description="请先输入需求并点击“识别意图”" :image-size="80" />
                   </div>
 
                   <el-radio-group
@@ -523,7 +715,7 @@ onUnmounted(() => {
                 </div>
 
                 <div v-if="!selectedPolicyId" class="conditions-empty">
-                  <el-empty description="请在左侧选择一个政策" :image-size="80" />
+                  <el-empty description="请先在左侧选择一个政策" :image-size="80" />
                 </div>
 
                 <div v-else-if="conditionsLoading" class="conditions-loading">
@@ -587,7 +779,7 @@ onUnmounted(() => {
         </el-tab-pane>
 
         <!-- ========== 视图一 ========== -->
-        <el-tab-pane label="🖥️ 视图一：取证规划中心 (Cognition Center)" name="cognition">
+        <el-tab-pane label="🧠 视图一：取证规划中心 (Cognition Center)" name="cognition">
           <el-scrollbar height="100%">
             <div class="session-pane-inner">
               <el-alert v-if="liveError" type="error" :closable="false" show-icon class="session-alert">
@@ -623,7 +815,30 @@ onUnmounted(() => {
         </el-tab-pane>
 
         <!-- ========== 视图三 ========== -->
-        <el-tab-pane label="📊 视图三：决策审计看板 (Global Audit)" name="audit">
+        <el-tab-pane label="⚖️ 视图三：裁决结果与补证复核 (Final Verdict)" name="verdict">
+          <el-scrollbar height="100%">
+            <div class="session-pane-inner">
+              <el-alert v-if="sessionError" type="warning" :closable="false" show-icon class="session-alert">
+                {{ sessionError }}
+              </el-alert>
+              <DebateSessionView
+                :session="activeSession"
+                :live-loading="liveLoading"
+                :session-loading="sessionLoading"
+                current-view="verdict"
+                @restart="restartHistoryDebate"
+              />
+              <ManualSupplementPanel
+                :session="activeSession"
+                :disabled="liveLoading || sessionLoading"
+                @submit-supplement="handleSubmitSupplement"
+                @rerun-review="rerunSupplementReview"
+              />
+            </div>
+          </el-scrollbar>
+        </el-tab-pane>
+
+        <el-tab-pane label="📚 视图四：历史会话 (History)" name="audit">
           <div class="audit-pane-inner">
             <HistorySessionList
               :items="historyItems"
@@ -943,7 +1158,7 @@ onUnmounted(() => {
   justify-content: flex-end;
 }
 
-/* ===== Tabs & 通用 ===== */
+/* ===== Tabs 与通用样式 ===== */
 .main-workspace {
   padding: 0;
   display: flex;
@@ -1052,3 +1267,4 @@ onUnmounted(() => {
   }
 }
 </style>
+

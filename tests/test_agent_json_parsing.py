@@ -7,7 +7,7 @@ from typing import get_args
 from unittest.mock import patch
 
 from agents.agent_explorer import ExploratoryAgent
-from agents.base_agent import AgentJudgment, BaseAgent
+from agents.base_agent import AgentJudgment, BaseAgent, DebateToolPolicy
 
 
 class DummyAgent(BaseAgent):
@@ -207,11 +207,34 @@ class AgentJsonParsingTests(unittest.TestCase):
                     "请输出 JSON",
                     tools=[{"type": "function", "function": {"name": "noop", "parameters": {"type": "object"}}}],
                     tool_registry=SimpleNamespace(execute=lambda *_args, **_kwargs: {}),
+                    tool_policy=DebateToolPolicy(allowed_tool_names=("noop",)),
                     max_iterations=1,
                 )
 
         self.assertEqual(raw, "{}")
         self.assertEqual(captured_calls[0]["response_format"], self.agent._judgment_response_format())
+
+    def test_filter_tools_by_policy_keeps_only_allowed_tools(self) -> None:
+        tools = [
+            {"type": "function", "function": {"name": "get_dict"}},
+            {"type": "function", "function": {"name": "text_to_sql"}},
+        ]
+
+        filtered = self.agent._filter_tools_by_policy(
+            tools,
+            DebateToolPolicy(allowed_tool_names=("get_dict",)),
+        )
+
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0]["function"]["name"], "get_dict")
+
+    def test_tool_boundary_prompt_mentions_evidence_first_and_budget(self) -> None:
+        prompt = self.agent._build_tool_boundary_prompt(
+            DebateToolPolicy(max_tool_calls_per_turn=1, allowed_tool_names=("get_dict",))
+        )
+
+        self.assertIn("judge without tools if possible", prompt)
+        self.assertIn("Max tool calls this turn: 1", prompt)
 
 
 class ExplorerPromptContractTests(unittest.TestCase):

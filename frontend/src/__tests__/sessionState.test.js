@@ -14,6 +14,7 @@ const testBuildEmptySession = () => {
   assert.equal(session.view_source, 'live')
   assert.equal(session.history.length, 1)
   assert.deepEqual(session.history[0], { round_num: 0, judgments: [] })
+  assert.deepEqual(session.arbiter_result, {})
 }
 
 const testNormalizeSession = () => {
@@ -22,6 +23,10 @@ const testNormalizeSession = () => {
       history: [{ round_num: '1', judgments: null }],
       consensus_rate: '0.6667',
       rounds_taken: '1',
+      arbiter_result: {
+        summary: '维持多数意见',
+        remaining_risks: ['[P001_FLEX_003] 是否存在身份切换风险: 鐠囦焦宓佺紓鍝勩亼(no_data)'],
+      },
     },
     '42090219760310000D',
   )
@@ -31,6 +36,10 @@ const testNormalizeSession = () => {
   assert.deepEqual(normalized.history[0].judgments, [])
   assert.equal(normalized.consensus_rate, 0.6667)
   assert.equal(normalized.rounds_taken, 1)
+  assert.equal(normalized.arbiter_result.summary, '维持多数意见')
+  assert.deepEqual(normalized.arbiter_result.remaining_risks, [
+    '[P001_FLEX_003] 是否存在身份切换风险: 数据缺失(no_data)',
+  ])
   assert.equal(normalized.view_source, 'saved')
 }
 
@@ -86,6 +95,7 @@ const testApplyFinalEvent = () => {
         session_id: 'sess-D-20260321-001',
         final_conclusion: '不符合',
         final_stance: '反对通过',
+        arbiter_result: { summary: '维持多数意见' },
         history: [{ round_num: 0, judgments: [] }],
         evidence: [{ rule_id: 'EMP_SYNC' }],
       },
@@ -97,6 +107,7 @@ const testApplyFinalEvent = () => {
   assert.equal(session.id_card, '42090219760310000D')
   assert.equal(session.view_source, 'live')
   assert.equal(session.evidence[0].rule_id, 'EMP_SYNC')
+  assert.equal(session.arbiter_result.summary, '维持多数意见')
 }
 
 const testResolveSelectedSessionId = () => {

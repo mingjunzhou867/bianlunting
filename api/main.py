@@ -50,6 +50,7 @@ class DebateRequest(BaseModel):
     confirmed_policy_id: str | None = None
     reuse_evidence: bool = False
     evidence: list[dict[str, Any]] | None = None
+    manual_supplements: list[dict[str, Any]] | None = None
 
 
 class IntentRequest(BaseModel):
@@ -114,6 +115,8 @@ def _build_bundle_from_payload(id_card: str, raw_items: list[dict[str, Any]] | N
             "diagnostic_label": str(raw.get("diagnostic_label") or label),
             "diagnostic_detail": str(raw.get("diagnostic_detail") or detail),
             "diagnostic_hint": str(raw.get("diagnostic_hint") or hint),
+            "manual_verified": bool(raw.get("manual_verified") or False),
+            "manual_stance": str(raw.get("manual_stance") or raw.get("stance") or "") or None,
         }
         if raw.get("created_at") is not None:
             item_payload["created_at"] = raw.get("created_at")
@@ -233,6 +236,7 @@ def run_debate(request: DebateRequest) -> Any:
             bundle,
             policy_id=policy_id or DEFAULT_POLICY_ID,
             source_endpoint="/api/debate",
+            manual_supplements=request.manual_supplements,
         )
     else:
         result = orchestrator.run_debate(request.id_card.strip(), policy_id=policy_id or DEFAULT_POLICY_ID)
@@ -247,7 +251,11 @@ def run_debate_stream(request: DebateRequest) -> Any:
 
     if request.reuse_evidence:
         bundle = _build_bundle_from_payload(request.id_card.strip(), request.evidence)
-        stream = orchestrator.run_debate_stream_with_bundle(bundle, policy_id=policy_id or DEFAULT_POLICY_ID)
+        stream = orchestrator.run_debate_stream_with_bundle(
+            bundle,
+            policy_id=policy_id or DEFAULT_POLICY_ID,
+            manual_supplements=request.manual_supplements,
+        )
     else:
         stream = orchestrator.run_debate_stream(request.id_card.strip(), policy_id=policy_id or DEFAULT_POLICY_ID)
     return StreamingResponse(stream, media_type="text/event-stream")

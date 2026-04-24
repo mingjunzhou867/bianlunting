@@ -12,7 +12,7 @@ const emit = defineEmits(['select'])
 
 const formatDateTime = (value) => {
   if (!value) {
-    return '未完成'
+    return '未记录'
   }
 
   const parsed = new Date(value)
@@ -23,20 +23,15 @@ const formatDateTime = (value) => {
   return parsed.toLocaleString('zh-CN', { hour12: false })
 }
 
-const resolveConclusionType = (conclusion) => {
-  if (conclusion === '符合') {
-    return 'success'
-  }
-  if (conclusion === '不符合') {
-    return 'danger'
-  }
-  return 'warning'
+const resolveConclusionTagType = (item) => {
+  // 统一语义层：优先使用后端直接给出的语义 tag，前端不再重复推导
+  return item?.final_conclusion_tag_type || 'info'
 }
 
 const POLICY_DISPLAY = {
-  'POLICY_001': { name: '灵活就业补贴', color: '#409eff' },
-  'POLICY_002': { name: '失业补贴', color: '#e6a23c' },
-  'POLICY_003': { name: '主动服务', color: '#67c23a' },
+  POLICY_001: { name: '灵活就业社保补贴', color: '#409eff' },
+  POLICY_002: { name: '失业补贴', color: '#e6a23c' },
+  POLICY_003: { name: '主动服务', color: '#67c23a' },
 }
 
 const policyLabel = (policyId) => {
@@ -55,9 +50,9 @@ const policyTagType = (policyId) => {
   <div class="history-shell">
     <div class="history-header">
       <div>
-        <div class="history-title">历史会话</div>
+        <div class="history-title">会话记录</div>
         <div class="history-subtitle">
-          系统的所有历史记录
+          系统保存的全部历史会话记录
         </div>
       </div>
 
@@ -83,7 +78,7 @@ const policyTagType = (policyId) => {
         </div>
 
         <div v-else-if="!items.length" class="history-state">
-          系统尚无已保存的历史记录。
+          系统暂无已保存的历史记录。
         </div>
 
         <button
@@ -97,7 +92,7 @@ const policyTagType = (policyId) => {
         >
           <div class="history-item-head">
             <div class="history-item-tags">
-              <el-tag :type="resolveConclusionType(item.final_conclusion)" size="small">
+              <el-tag :type="resolveConclusionTagType(item)" size="small">
                 {{ item.final_conclusion || '待定' }}
               </el-tag>
               <el-tag :type="policyTagType(item.policy_id)" size="small" effect="plain">

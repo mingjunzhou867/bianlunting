@@ -128,21 +128,25 @@ class DebatePersistenceContractTests(unittest.TestCase):
             final_record=final_record,
             started_at=datetime(2026, 3, 23, 10, 0, 0),
             completed_at=datetime(2026, 3, 23, 10, 1, 0),
+            arbiter_result={"summary": "维持多数意见"},
+            persona={"title": "测试画像", "archetype": "测试类型"},
         )
 
         self.assertEqual(persisted.session_row["id_card"], bundle.id_card)
         self.assertEqual(persisted.session_row["status"], "completed")
         self.assertEqual(persisted.session_row["source_endpoint"], "/api/debate")
-        self.assertEqual(persisted.session_row["final_conclusion"], PASS_CONCLUSION)
+        self.assertEqual(persisted.session_row["final_conclusion"], final_record.get_final_conclusion())
         self.assertEqual(persisted.session_row["rounds_taken"], 0)
         self.assertEqual(len(persisted.log_rows), 3)
 
         snapshot = json.loads(persisted.session_row["snapshot_payload"])
-        self.assertEqual(snapshot["summary"]["final_conclusion"], PASS_CONCLUSION)
+        self.assertEqual(snapshot["summary"]["final_conclusion"], final_record.get_final_conclusion())
+        self.assertEqual(snapshot["arbiter_result"]["summary"], "维持多数意见")
         self.assertEqual(snapshot["summary"]["evidence_count"], 1)
         self.assertEqual(snapshot["history"][0]["judgments"][0]["agent_id"], "agent_1")
         self.assertEqual(snapshot["evidence"][0]["rule_id"], "RULE_001")
         self.assertEqual(snapshot["evidence"][0]["result_raw"][0]["company_id"], "91420900000000001X")
+        self.assertEqual(snapshot["persona"]["title"], "测试画像")
 
     def test_mysql_ddl_matches_runtime_contract(self) -> None:
         ddl = DDL_PATH.read_text(encoding="utf-8")
@@ -222,6 +226,8 @@ class DebatePersistenceContractTests(unittest.TestCase):
             "final_conclusion": PASS_CONCLUSION,
             "history": [{"round_num": 0, "judgments": []}],
             "summary": {"final_conclusion": PASS_CONCLUSION},
+            "arbiter_result": {"summary": "维持多数意见"},
+            "persona": {"title": "历史画像"},
         }
         rows = [
             {
@@ -243,6 +249,8 @@ class DebatePersistenceContractTests(unittest.TestCase):
 
         self.assertEqual(detail["session_id"], "session-123")
         self.assertEqual(detail["final_conclusion"], PASS_CONCLUSION)
+        self.assertEqual(detail["arbiter_result"]["summary"], "维持多数意见")
+        self.assertEqual(detail["persona"]["title"], "历史画像")
         self.assertEqual(detail["completed_at"], "2026-03-23T10:01:00")
         self.assertEqual(detail["history"][0]["round_num"], 0)
 

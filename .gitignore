@@ -8,6 +8,8 @@ __pycache__/
 .venv/
 .pytest_cache/
 .test_tmp/
+rag/.tmp/
+rag/outputs/
 venv/
 env/
 *.egg-info/

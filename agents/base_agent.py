@@ -5,6 +5,7 @@ import ast
 import json
 import re
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Literal, get_args
 
 from loguru import logger
@@ -41,6 +42,16 @@ SHARED_CONTEXT = """
 你只能基于提供给你的证据做判断，不得虚构数据库事实。
 最终输出必须是单个 JSON 对象，字段必须完整，且不得输出代码块或额外解释。
 """.strip()
+
+
+@dataclass(frozen=True)
+class DebateToolPolicy:
+    """Compatibility policy holder for debate tool usage."""
+
+    allow_tools: bool = True
+    require_existing_evidence_first: bool = True
+    max_tool_calls_per_turn: int = 1
+    allowed_tool_names: tuple[str, ...] = ("get_dict", "text_to_sql")
 
 
 class AgentJudgment(BaseModel):
@@ -125,6 +136,43 @@ def format_projection(projection: EvidenceProjection) -> str:
     return "\n".join(lines)
 
 
+def format_persona_context(persona_context: dict | None) -> str:
+    """Render compact persona context for pre-debate grounding."""
+    if not isinstance(persona_context, dict) or not persona_context:
+        return ""
+
+    lines: list[str] = ["【用户画像】"]
+    title = str(persona_context.get("title") or "").strip()
+    archetype = str(persona_context.get("archetype") or "").strip()
+    summary_line = str(persona_context.get("summary_line") or "").strip()
+    core_intent = str(persona_context.get("core_intent") or "").strip()
+    substantive_dispute = str(persona_context.get("substantive_dispute") or "").strip()
+    risk_level = str(persona_context.get("risk_level") or "").strip()
+
+    if title:
+        lines.append(f"- 标题: {title}")
+    if archetype:
+        lines.append(f"- 原型: {archetype}")
+    if summary_line:
+        lines.append(f"- 摘要: {summary_line}")
+    if core_intent:
+        lines.append(f"- 核心意图: {core_intent}")
+    if substantive_dispute:
+        lines.append(f"- 实质争议: {substantive_dispute}")
+    if risk_level:
+        lines.append(f"- 风险级别: {risk_level}")
+
+    dispute_points = persona_context.get("dispute_points")
+    if isinstance(dispute_points, list) and dispute_points:
+        lines.append("- 辩论焦点:")
+        for point in dispute_points[:4]:
+            point_text = str(point).strip()
+            if point_text:
+                lines.append(f"  * {point_text}")
+
+    return "\n".join(lines)
+
+
 class BaseAgent(ABC):
     """Abstract base class for all debate agents."""
 
@@ -148,13 +196,20 @@ class BaseAgent(ABC):
         self,
         projection: EvidenceProjection,
         debate_round: int = 0,
+        case_summaries: list[dict] | None = None,
+        persona_context: dict | None = None,
         tools: list[dict] | None = None,
         tool_registry=None,
+        tool_policy: DebateToolPolicy | None = None,
     ) -> AgentJudgment:
         evidence_text = format_projection(projection)
-        user_content = f"{evidence_text}\n\n请基于以上证据按约定 JSON 格式输出你的判断。"
+        persona_text = format_persona_context(persona_context)
+        user_content = evidence_text
+        if persona_text:
+            user_content = f"{user_content}\n\n{persona_text}"
+        user_content = f"{user_content}\n\n请基于以上证据按约定 JSON 格式输出你的判断。"
 
-        if tools and tool_registry:
+        if tools and tool_registry and (tool_policy is None or tool_policy.allow_tools):
             raw = self._call_llm_with_tools(self.SYSTEM_PROMPT, user_content, tools, tool_registry)
         else:
             raw = self._call_llm(self.SYSTEM_PROMPT, user_content)
@@ -170,18 +225,25 @@ class BaseAgent(ABC):
         projection: EvidenceProjection,
         previous_judgments: list[AgentJudgment],
         debate_round: int = 1,
+        case_summaries: list[dict] | None = None,
+        persona_context: dict | None = None,
         tools: list[dict] | None = None,
         tool_registry=None,
+        tool_policy: DebateToolPolicy | None = None,
     ) -> AgentJudgment:
         evidence_text = format_projection(projection)
+        persona_text = format_persona_context(persona_context)
         other_views = self._format_other_judgments(previous_judgments)
+        user_content = evidence_text
+        if persona_text:
+            user_content = f"{user_content}\n\n{persona_text}"
         user_content = (
-            f"{evidence_text}\n\n"
+            f"{user_content}\n\n"
             f"【其他 Agent 的判断】\n{other_views}\n\n"
             "请结合当前证据和其他 Agent 观点，按约定 JSON 格式输出你的回应。"
         )
 
-        if tools and tool_registry:
+        if tools and tool_registry and (tool_policy is None or tool_policy.allow_tools):
             raw = self._call_llm_with_tools(self.SYSTEM_PROMPT, user_content, tools, tool_registry)
         else:
             raw = self._call_llm(
@@ -211,23 +273,9 @@ class BaseAgent(ABC):
             )
             judgment.stance = expected_stance
 
-        support_count = sum(card.status == "supports" for card in projection.cards)
-        contradict_count = sum(card.status == "contradicts" for card in projection.cards)
-
-        if (
-            self.AGENT_ID in {"agent_lenient", "agent_empirical"}
-            and judgment.conclusion == CONCLUSION_MISSING
-            and support_count > 0
-            and contradict_count == 0
-        ):
-            judgment.conclusion = CONCLUSION_PASS
-            judgment.stance = STANCE_SUPPORT
-            judgment.confidence = max(judgment.confidence, 0.65)
-            judgment.key_finding = judgment.key_finding or "现有证据整体支持通过"
-            judgment.reasoning = (
-                f"{judgment.reasoning} "
-                "现有已验证证据均支持通过，缺失项仅降低置信度，不单独构成待定。"
-            ).strip()
+        # Keep agent conclusion unchanged here to avoid repeated adjudication in
+        # agent post-processing, round aggregation, and final reports.
+        judgment.confidence = max(0.0, min(1.0, float(judgment.confidence)))
 
         return judgment
 
