@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import DebateSessionView from './components/DebateSessionView.vue'
 import HistorySessionList from './components/HistorySessionList.vue'
@@ -43,6 +43,8 @@ const selectedPolicyId = ref('')
 const policyConditions = ref([])
 const policyConditionsMeta = ref(null)
 const conditionsLoading = ref(false)
+const ID_CARD_REGEX = /^\d{17}[\dXx]$/
+const moduleGavelUrl = '/image/gov/module-gavel.png'
 
 const personas = [
   { id: '42090219800101000A', tag: 'A 张完美', type: 'success' },
@@ -108,6 +110,143 @@ const handleQuickTest = (id) => {
     idCardInput.value = id
   }
 }
+
+const idCardState = computed(() => {
+  const value = idCardInput.value.trim()
+  if (!value) return 'empty'
+  return ID_CARD_REGEX.test(value) ? 'valid' : 'invalid'
+})
+
+const groupedConditions = computed(() => {
+  const groups = { necessary: [], sufficient: [], exclusion: [] }
+  ;(policyConditions.value || []).forEach((item) => {
+    const key = String(item?.category || '')
+    if (key.includes('排除')) groups.exclusion.push(item)
+    else if (key.includes('必须') || key.includes('基础')) groups.necessary.push(item)
+    else groups.sufficient.push(item)
+  })
+  return groups
+})
+
+const policySummary = (reason = '') => {
+  const text = String(reason || '').trim()
+  if (!text) return ['暂无摘要', '请以规则明细为准']
+  if (text.length <= 30) return [text, '请结合条件清单确认']
+  return [text.slice(0, 30), text.slice(30, 60) || '请结合条件清单确认']
+}
+
+const conditionStateClass = (cond) => {
+  const tag = String(cond?.tag_type || '')
+  if (tag === 'success') return 'state-dot--ok'
+  if (tag === 'danger') return 'state-dot--error'
+  if (tag === 'warning') return 'state-dot--warn'
+  return 'state-dot--pending'
+}
+
+const currentViewLabel = computed(() => {
+  if (activeTab.value === 'input') return '视图零：用户输入'
+  if (activeTab.value === 'cognition') return '视图一：取证规划中心'
+  if (activeTab.value === 'tribunal') return '视图二：多智能体辩论庭'
+  if (activeTab.value === 'verdict') return '视图三：裁决结果与补证复核'
+  return '视图四：历史会话'
+})
+
+const flowCompleted = computed(() => {
+  const session = activeSession.value
+  return Boolean(session?.final_conclusion) || Boolean(session?.completed_at) || session?.status === 'completed'
+})
+
+const overallFlowStep = computed(() => {
+  const session = activeSession.value
+  const hasFinal = Boolean(session?.final_conclusion) || Boolean(session?.completed_at) || session?.status === 'completed'
+  if (hasFinal) return 4
+
+  const history = Array.isArray(session?.history) ? session.history : []
+  const hasRound = history.some((round) => Number(round?.round_num ?? 0) >= 1)
+  if (hasRound) return 3
+
+  const traceCount = Array.isArray(session?.system_traces) ? session.system_traces.length : 0
+  const evidenceCount = Array.isArray(session?.evidence) ? session.evidence.length : 0
+  const hasRetrievalAssets = traceCount > 0 || evidenceCount > 0
+  if (activeTab.value === 'cognition' || hasRetrievalAssets || liveLoading.value) return 2
+
+  return 1
+})
+
+const finalVerdictLabel = computed(() => {
+  const session = activeSession.value
+  const conclusion = String(session?.final_conclusion || '')
+  const stance = String(session?.final_stance || '').toLowerCase()
+  if (!conclusion && !stance) return ''
+  const negativeHit = /不符合|不满足|驳回|不通过|拒绝/.test(conclusion) || stance.includes('refute') || stance.includes('reject')
+  if (negativeHit) return '不符合'
+  return '符合'
+})
+
+const finalVerdictClass = computed(() => {
+  if (!finalVerdictLabel.value) return ''
+  return finalVerdictLabel.value === '符合' ? 'flow-verdict--pass' : 'flow-verdict--fail'
+})
+
+const gotoFlowStep = (step) => {
+  if (step === 1) activeTab.value = 'input'
+  else if (step === 2) activeTab.value = 'cognition'
+  else if (step === 3) activeTab.value = 'tribunal'
+  else if (step === 4) activeTab.value = 'verdict'
+}
+
+const retrievalProgressPct = computed(() => {
+  const session = activeSession.value
+  if (!session) return 0
+  if (overallFlowStep.value > 2) return 100
+  if (overallFlowStep.value < 2) return 0
+
+  const traceCount = Array.isArray(session.system_traces) ? session.system_traces.length : 0
+  const evidenceCount = Array.isArray(session.evidence) ? session.evidence.length : 0
+  if (!liveLoading.value) return 100
+
+  // 没有显式检索进度事件时，用“可观测资产”估算推进程度。
+  // 进入评判阶段会自动变为 100（见 overallFlowStep > 2 分支）。
+  const fromTraces = Math.min(55, traceCount * 6)
+  const fromEvidence = evidenceCount > 0 ? Math.min(40, 20 + evidenceCount * 6) : 0
+  return Math.min(95, Math.max(8, fromTraces + fromEvidence))
+})
+
+const currentDebateRound = computed(() => {
+  const history = Array.isArray(activeSession.value?.history) ? activeSession.value.history : []
+  let maxRound = 0
+  history.forEach((round) => {
+    const num = Number(round?.round_num ?? 0)
+    if (Number.isFinite(num)) {
+      maxRound = Math.max(maxRound, Math.floor(num))
+    }
+  })
+  return Math.max(1, maxRound)
+})
+
+const faqStage = ref('input')
+const faqItems = [
+  { stage: 'input', q: '为什么要先做身份录入与政策匹配？', a: '先锁定政策后再取证，能显著减少误检和重复执行。' },
+  { stage: 'input', q: 'Top-3 政策该怎么选？', a: '优先选择匹配度高且匹配原因最贴近当前诉求的政策。' },
+  { stage: 'input', q: '身份证号校验通过但仍无法进入下一步？', a: '请确认需求描述不为空，并点击“识别意图”完成政策候选加载。' },
+  { stage: 'input', q: '政策匹配分数很接近时怎么办？', a: '优先查看匹配原因与业务场景是否一致，再结合条件清单做最终选择。' },
+  { stage: 'retrieval', q: '检索进度一直偏慢怎么办？', a: '通常是数据量大或查询复杂，先核对身份证号与政策是否选对。' },
+  { stage: 'retrieval', q: '条件清单为空是什么原因？', a: '可能未完成政策选择，或当前政策还没有结构化条件配置。' },
+  { stage: 'retrieval', q: '检索进度到 100% 后下一步没切换？', a: '一般会在证据与系统轨迹就绪后自动进入评判，请稍等几秒刷新状态。' },
+  { stage: 'retrieval', q: '看到“暂无结构化条件”还可以继续吗？', a: '可以继续，但建议先确认政策版本是否完整，避免结论依据不足。' },
+  { stage: 'judge', q: '为什么会进入多轮评判？', a: '当智能体结论分歧较大时，系统会继续追加轮次来收敛共识。' },
+  { stage: 'judge', q: '第几轮算结束？', a: '达到最大轮次或共识阈值后自动结束，并进入结果生成。' },
+  { stage: 'judge', q: '轮次增加会影响最终结论吗？', a: '会，新增轮次会引入更多证据交叉验证，用于提升结论稳定性。' },
+  { stage: 'judge', q: '评判阶段可以手动终止吗？', a: '可以，点击顶部“停止分析”后会保留当前已生成结果用于后续复核。' },
+  { stage: 'result', q: '“符合/不符合”由什么决定？', a: '由最终裁决结论综合证据一致性、规则命中和人工补证结果得出。' },
+  { stage: 'result', q: '结果出来后还能复核吗？', a: '可以，在裁决页可继续补证并发起复核流程。' },
+  { stage: 'result', q: '为什么结果是“不符合”但部分条件看起来通过？', a: '存在排除条件命中或关键必要条件失败时，最终结论仍会判为不符合。' },
+  { stage: 'result', q: '审核结论可以导出给外部系统吗？', a: '可以按会话记录留痕，后续可由接口或审计视图导出结构化结果。' },
+]
+
+const faqVisibleItems = computed(() => {
+  return faqItems.filter((item) => item.stage === faqStage.value)
+})
 
 const readJson = async (response) => {
   try {
@@ -583,54 +722,185 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <el-container direction="vertical" class="app-shell">
+  <el-container direction="vertical" class="app-shell gov-app-shell">
     <el-header class="app-header">
-      <div class="header-inner">
-        <div class="header-row">
-          <div>
-            <div class="header-title">多 Agent 辩论判定台</div>
-            <div class="header-subtitle">输入需求 → 意图识别 → 取证规划 → 多智能体辩论 → 裁决审计</div>
-          </div>
-          <div class="header-right">
-            <el-tag type="primary" effect="plain">Phase 2.1</el-tag>
-            <el-button v-if="liveLoading" type="danger" plain size="small" @click="stopAnalysis">
-              <el-icon><CircleCloseFilled /></el-icon> 停止分析
-            </el-button>
+      <div class="header-top">
+        <div class="header-inner">
+          <div class="header-row">
+            <div class="gov-title-wrap">
+              <div class="brand-block">
+                <div class="header-title">多 Agent 辩论判定台</div>
+                <div class="brand-divider"></div>
+                <div class="header-subtitle">政策识别·条件核验·多智能体审理·裁决留痕</div>
+              </div>
+            </div>
+            <div class="header-right">
+              <el-tag type="primary" effect="dark" class="phase-pill">
+                Phase 2.1 <span class="online-dot" aria-hidden="true"></span>
+              </el-tag>
+              <el-button v-if="liveLoading" type="danger" plain size="small" @click="stopAnalysis">
+                <el-icon><CircleCloseFilled /></el-icon> 停止分析
+              </el-button>
+              <img class="module-gavel" :src="moduleGavelUrl" alt="module gavel" />
+            </div>
           </div>
         </div>
       </div>
     </el-header>
 
-    <el-main class="main-workspace">
+    <el-main class="main-workspace gov-main-workspace">
       <el-tabs v-model="activeTab" class="dashboard-tabs">
 
         <!-- ========== 视图零 ========== -->
         <el-tab-pane label="🟦 视图零：用户输入 (Intent Input)" name="input">
           <el-scrollbar height="100%">
             <div class="input-view">
+              <div class="flow-strip">
+                <div class="flow-sidebar-head">
+                  <div class="flow-sidebar-title">当前办理进度</div>
+                  <div class="flow-sidebar-subtitle">请按步骤完成信息录入</div>
+                </div>
+
+                <div class="flow-cards" :class="{ 'flow-cards--completed': flowCompleted }">
+                  <!-- Step 1 -->
+                  <div
+                    class="flow-card flow-card--step"
+                    :class="{ 'flow-card--active': overallFlowStep === 1, 'flow-card--done': overallFlowStep > 1 }"
+                    @click="gotoFlowStep(1)"
+                  >
+                    <div class="flow-card-bar" v-if="overallFlowStep === 1"></div>
+                    <div class="flow-card-header">
+                      <div class="flow-num" :class="{ 'flow-num--done': overallFlowStep > 1 }">01</div>
+                      <div class="flow-card-titles">
+                        <div class="flow-card-title">身份录入与政策锁定</div>
+                        <div class="flow-card-desc">
+                          {{ selectedPolicyId ? '已选政策，准备进入取证检索' : '录入身份证号与需求，完成政策匹配' }}
+                        </div>
+                      </div>
+                      <el-icon v-if="overallFlowStep > 1" class="flow-check"><Select /></el-icon>
+                    </div>
+                    <div class="flow-result-pill" v-if="selectedPolicyId">已锁定政策</div>
+                  </div>
+                  <div class="flow-connector" :class="{ 'flow-connector--next': overallFlowStep === 1 }"></div>
+
+                  <!-- Step 2 -->
+                  <div
+                    class="flow-card flow-card--step"
+                    :class="{ 'flow-card--active': overallFlowStep === 2, 'flow-card--done': overallFlowStep > 2, 'flow-card--disabled': overallFlowStep < 2 }"
+                    @click="gotoFlowStep(2)"
+                  >
+                    <div class="flow-card-bar" v-if="overallFlowStep === 2"></div>
+                    <div class="flow-card-header">
+                      <div class="flow-num" :class="{ 'flow-num--done': overallFlowStep > 2, 'flow-num--pending': overallFlowStep < 2 }">02</div>
+                      <div class="flow-card-titles">
+                        <div class="flow-card-title" :class="{ 'flow-card-title--disabled': overallFlowStep < 2 }">身份取证检索</div>
+                        <div class="flow-card-desc" :class="{ 'flow-card-desc--disabled': overallFlowStep < 2 }">
+                          {{ overallFlowStep < 2 ? '需先完成政策锁定' : (overallFlowStep > 2 ? '检索完成，进入智能体评判' : '正在检索证据与画像…') }}
+                        </div>
+                      </div>
+                      <el-icon v-if="overallFlowStep > 2" class="flow-check"><Select /></el-icon>
+                    </div>
+                    <div class="flow-inline-progress" v-if="overallFlowStep >= 2">
+                      <el-progress
+                        :percentage="retrievalProgressPct"
+                        :stroke-width="6"
+                        :show-text="false"
+                        color="#C41E3A"
+                      />
+                      <div class="flow-inline-progress-meta">
+                        <span>检索进度</span>
+                        <span class="flow-inline-progress-val">{{ Math.round(retrievalProgressPct) }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flow-connector" :class="{ 'flow-connector--next': overallFlowStep === 2 }"></div>
+
+                  <!-- Step 3 -->
+                  <div
+                    class="flow-card flow-card--step"
+                    :class="{ 'flow-card--active': overallFlowStep === 3, 'flow-card--done': overallFlowStep > 3, 'flow-card--disabled': overallFlowStep < 3 }"
+                    @click="gotoFlowStep(3)"
+                  >
+                    <div class="flow-card-bar" v-if="overallFlowStep === 3"></div>
+                    <div class="flow-card-header">
+                      <div class="flow-num" :class="{ 'flow-num--done': overallFlowStep > 3, 'flow-num--pending': overallFlowStep < 3 }">03</div>
+                      <div class="flow-card-titles">
+                        <div class="flow-card-title" :class="{ 'flow-card-title--disabled': overallFlowStep < 3 }">智能体评判</div>
+                        <div class="flow-card-desc" :class="{ 'flow-card-desc--disabled': overallFlowStep < 3 }">
+                          {{ overallFlowStep < 3 ? '等待取证完成' : (overallFlowStep > 3 ? '评判结束，进入结果生成' : '多轮辩论中，汇聚分歧与共识') }}
+                        </div>
+                      </div>
+                      <el-icon v-if="overallFlowStep > 3" class="flow-check"><Select /></el-icon>
+                    </div>
+                    <span class="flow-round-pill flow-round-pill--corner" v-if="overallFlowStep >= 3">第 {{ currentDebateRound }} 轮</span>
+                  </div>
+                  <div class="flow-connector" :class="{ 'flow-connector--next': overallFlowStep === 3 }"></div>
+
+                  <!-- Step 4 -->
+                  <div
+                    class="flow-card flow-card--step"
+                    :class="{ 'flow-card--active': overallFlowStep === 4, 'flow-card--done': flowCompleted, 'flow-card--disabled': overallFlowStep < 4 }"
+                    @click="gotoFlowStep(4)"
+                  >
+                    <div class="flow-card-bar" v-if="overallFlowStep === 4"></div>
+                    <div class="flow-card-header">
+                      <div class="flow-num" :class="{ 'flow-num--done': flowCompleted, 'flow-num--pending': overallFlowStep < 4 }">04</div>
+                      <div class="flow-card-titles">
+                        <div class="flow-card-title" :class="{ 'flow-card-title--disabled': overallFlowStep < 4 }">审核结论生成</div>
+                        <div class="flow-card-desc" :class="{ 'flow-card-desc--disabled': overallFlowStep < 4 }">
+                          {{ liveLoading && overallFlowStep === 4 ? '生成中…' : '输出裁决与复核入口，并可留痕审计' }}
+                        </div>
+                      </div>
+                      <el-icon v-if="flowCompleted" class="flow-check"><Select /></el-icon>
+                    </div>
+                    <div v-if="finalVerdictLabel" class="flow-verdict-pill" :class="finalVerdictClass">
+                      结论：{{ finalVerdictLabel }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flow-foot">
+                  <div class="flow-faq">
+                    <div class="flow-faq-title">常见问题</div>
+                    <el-select v-model="faqStage" class="faq-stage-select" size="small">
+                      <el-option label="身份录入与政策锁定" value="input" />
+                      <el-option label="身份取证检索" value="retrieval" />
+                      <el-option label="智能体评判" value="judge" />
+                      <el-option label="审核结论生成" value="result" />
+                    </el-select>
+                    <div class="faq-scroll">
+                      <div class="faq-list">
+                        <div v-for="(item, idx) in faqVisibleItems" :key="`${item.stage}-${idx}`" class="faq-item">
+                          <div class="faq-q">Q：{{ item.q }}</div>
+                          <div class="faq-a">A：{{ item.a }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="input-view-left">
                 <!-- 左上：输入区 -->
                 <div class="input-section">
                   <div class="section-title">
                     <el-icon><EditPen /></el-icon> 需求输入
                   </div>
-                  <el-input
-                    v-model="idCardInput"
-                    :disabled="liveLoading"
-                    clearable
-                    placeholder="身份证号"
-                    class="input-field"
-                  >
+                  <el-input v-model="idCardInput" :disabled="liveLoading" clearable placeholder="身份证号" class="idcard-field">
                     <template #prepend>身份证号</template>
+                    <template #suffix>
+                      <el-icon v-if="idCardState === 'valid'" class="idcard-icon idcard-icon--ok"><SuccessFilled /></el-icon>
+                      <el-icon v-else-if="idCardState === 'invalid'" class="idcard-icon idcard-icon--error"><WarningFilled /></el-icon>
+                    </template>
                   </el-input>
                   <el-input
                     v-model="userQueryInput"
                     :disabled="liveLoading"
                     clearable
                     type="textarea"
-                    :rows="3"
+                    :rows="4"
                     placeholder="请输入一句话需求，例如：判断这个人能否领取灵活就业补贴"
-                    class="input-field"
+                    class="query-field"
                     @keyup.ctrl.enter="runIntentRecognition"
                   />
                   <div class="input-actions">
@@ -640,7 +910,7 @@ onUnmounted(() => {
                       :disabled="intentLoading || liveLoading"
                       @click="runIntentRecognition"
                     >
-                      <el-icon><Search /></el-icon> 识别意图
+                      <el-icon><Search /></el-icon> {{ intentLoading ? '识别中...' : '识别意图' }}
                     </el-button>
                     <el-divider direction="vertical" />
                     <span class="toolbar-label">快速填充：</span>
@@ -650,6 +920,7 @@ onUnmounted(() => {
                       :type="persona.type"
                       plain
                       size="small"
+                      class="quick-tag-btn"
                       :disabled="liveLoading"
                       @click="handleQuickTest(persona.id)"
                     >
@@ -658,111 +929,162 @@ onUnmounted(() => {
                   </div>
                 </div>
 
-                <!-- 左下：Top-3 政策选择 -->
-                <div class="policy-section">
-                  <div class="section-title">
-                    <el-icon><List /></el-icon> 政策匹配 Top-3
-                  </div>
+                <!-- 政策匹配 & 条件清单（同级左右版块） -->
+                <div class="match-grid">
+                  <!-- 左：政策匹配 -->
+                  <div class="policy-section">
+                    <div class="section-head">
+                      <div class="section-title">
+                        <el-icon><List /></el-icon> 政策匹配 Top-3
+                      </div>
+                    </div>
 
-                  <div v-if="!intentResult" class="policy-empty">
-                    <el-empty description="请先输入需求并点击“识别意图”" :image-size="80" />
-                  </div>
+                    <div v-if="!intentResult" class="policy-empty">
+                      <div class="policy-skeleton" v-for="idx in 3" :key="idx">
+                        <div class="skeleton-line skeleton-line--title"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line skeleton-line--short"></div>
+                      </div>
+                    </div>
 
-                  <el-radio-group
-                    v-else
-                    v-model="selectedPolicyId"
-                    class="policy-radio-group"
-                  >
-                    <el-radio
-                      v-for="(policy, idx) in (intentResult.candidate_policies || [])"
-                      :key="policy.policy_id"
-                      :value="policy.policy_id"
-                      border
-                      class="policy-radio-card"
-                      :class="{ 'policy-radio-card--top': idx === 0 }"
+                    <el-radio-group
+                      v-else
+                      v-model="selectedPolicyId"
+                      class="policy-radio-group"
                     >
-                      <div class="policy-radio-inner">
-                        <div class="policy-radio-header">
-                          <span class="policy-radio-rank">#{{ idx + 1 }}</span>
-                          <span class="policy-radio-name">{{ policy.policy_name }}</span>
-                          <el-tag
-                            :type="policy.match_score >= 0.8 ? 'success' : policy.match_score >= 0.5 ? 'warning' : 'info'"
-                            size="small"
-                            effect="plain"
-                          >
-                            {{ (policy.match_score * 100).toFixed(0) }}%
-                          </el-tag>
+                      <el-radio
+                        v-for="(policy, idx) in (intentResult.candidate_policies || [])"
+                        :key="policy.policy_id"
+                        :value="policy.policy_id"
+                        border
+                        class="policy-radio-card"
+                        :class="{ 'policy-radio-card--top': idx === 0 }"
+                      >
+                        <div class="policy-radio-inner">
+                          <div class="policy-radio-header">
+                            <span class="policy-radio-rank">#{{ idx + 1 }}</span>
+                            <span class="policy-radio-name">{{ policy.policy_name }}</span>
+                            <span class="policy-score-badge">{{ (policy.match_score * 100).toFixed(0) }}%</span>
+                            <el-tag
+                              :type="policy.match_score >= 0.8 ? 'success' : policy.match_score >= 0.5 ? 'warning' : 'info'"
+                              size="small"
+                              effect="plain"
+                            >
+                              {{ (policy.match_score * 100).toFixed(0) }}%
+                            </el-tag>
+                          </div>
+                          <el-progress
+                            :percentage="Number((policy.match_score * 100).toFixed(0))"
+                            :stroke-width="6"
+                            :show-text="false"
+                            color="#C23531"
+                          />
+                          <div class="policy-radio-reason">{{ policySummary(policy.match_reason)[0] }}</div>
+                          <div class="policy-radio-reason">{{ policySummary(policy.match_reason)[1] }}</div>
+                          <div class="policy-radio-extra">预计办理时长：1-3 个工作日</div>
                         </div>
-                        <div class="policy-radio-reason">{{ policy.match_reason }}</div>
-                      </div>
-                    </el-radio>
-                  </el-radio-group>
+                      </el-radio>
+                    </el-radio-group>
 
-                  <div v-if="intentResult?.ambiguities?.length" class="intent-ambiguities">
-                    <el-alert type="warning" :closable="false" show-icon>
-                      <template #title>
-                        <span>歧义提示：{{ intentResult.ambiguities.join('；') }}</span>
-                      </template>
-                    </el-alert>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 右侧：条件展示 -->
-              <div class="input-view-right">
-                <div class="section-title">
-                  <el-icon><Document /></el-icon> 判定条件清单
-                </div>
-
-                <div v-if="!selectedPolicyId" class="conditions-empty">
-                  <el-empty description="请先在左侧选择一个政策" :image-size="80" />
-                </div>
-
-                <div v-else-if="conditionsLoading" class="conditions-loading">
-                  <el-icon class="is-loading"><Loading /></el-icon>
-                  <span>加载条件中...</span>
-                </div>
-
-                <div v-else class="conditions-content">
-                  <div v-if="policyConditionsMeta" class="conditions-meta">
-                    <h3>{{ policyConditionsMeta.policy_name }}</h3>
-                    <el-tag size="small" effect="plain">{{ policyConditionsMeta.policy_type }}</el-tag>
-                    <p>{{ policyConditionsMeta.description }}</p>
+                    <div v-if="intentResult?.ambiguities?.length" class="intent-ambiguities">
+                      <el-alert type="warning" :closable="false" show-icon>
+                        <template #title>
+                          <span>歧义提示：{{ intentResult.ambiguities.join('；') }}</span>
+                        </template>
+                      </el-alert>
+                    </div>
                   </div>
 
-                  <div v-if="policyConditions.length === 0" class="conditions-empty-text">
-                    该政策暂无结构化判定条件。
-                  </div>
+                  <!-- 右：条件清单 -->
+                  <div class="conditions-section">
+                    <div class="conditions-panel conditions-panel--embedded">
+                      <div class="conditions-head">
+                        <div class="section-title">
+                          <el-icon><Document /></el-icon> 条件清单
+                        </div>
+                      </div>
 
-                  <div v-else class="conditions-list">
-                    <div
-                      v-for="cond in policyConditions"
-                      :key="cond.rule_id"
-                      class="condition-card"
-                    >
-                      <div class="condition-header">
-                        <el-tag :type="cond.tag_type" size="small">{{ cond.category }}</el-tag>
-                        <span class="condition-id">{{ cond.rule_id }}</span>
-                      </div>
-                      <div class="condition-desc">{{ cond.description }}</div>
-                      <div v-if="cond.pass_condition" class="condition-detail">
-                        <el-icon><SuccessFilled /></el-icon> {{ cond.pass_condition }}
-                      </div>
-                      <div v-if="cond.fail_condition" class="condition-detail condition-detail--fail">
-                        <el-icon><CircleCloseFilled /></el-icon> {{ cond.fail_condition }}
-                      </div>
-                      <div v-if="cond.check_logic" class="condition-detail condition-detail--logic">
-                        <el-icon><InfoFilled /></el-icon> {{ cond.check_logic }}
-                      </div>
-                      <div v-if="cond.formula" class="condition-detail condition-detail--formula">
-                        <el-icon><Odometer /></el-icon> {{ cond.formula }}
+                      <div class="conditions-scroll">
+                        <div v-if="!selectedPolicyId" class="conditions-empty-center">
+                          请先完成政策匹配选择
+                        </div>
+
+                        <div v-else-if="conditionsLoading" class="conditions-loading">
+                          <el-icon class="is-loading"><Loading /></el-icon>
+                          <span>加载条件中...</span>
+                        </div>
+
+                        <div v-else class="conditions-content">
+                          <div v-if="policyConditionsMeta?.policy_name" class="conditions-policy-pill">
+                            {{ policyConditionsMeta.policy_name }}
+                          </div>
+                          <div v-if="policyConditionsMeta" class="conditions-meta">
+                            <h3>{{ policyConditionsMeta.policy_name }}</h3>
+                            <el-tag size="small" effect="plain">{{ policyConditionsMeta.policy_type }}</el-tag>
+                            <p>{{ policyConditionsMeta.description }}</p>
+                          </div>
+
+                          <div v-if="policyConditions.length === 0" class="conditions-empty-text">
+                            该政策暂无结构化判定条件。
+                          </div>
+
+                          <div v-else class="conditions-list">
+                            <div class="condition-group" v-if="groupedConditions.necessary.length">
+                              <div class="condition-group-title">必要条件</div>
+                              <div
+                                v-for="cond in groupedConditions.necessary"
+                                :key="cond.rule_id"
+                                class="condition-card"
+                              >
+                                <div class="condition-header">
+                                  <span class="state-dot" :class="conditionStateClass(cond)"></span>
+                                  <el-tag :type="cond.tag_type" size="small">{{ cond.category }}</el-tag>
+                                  <span class="condition-id">{{ cond.rule_id }}</span>
+                                </div>
+                                <div class="condition-desc">{{ cond.description }}</div>
+                              </div>
+                            </div>
+                            <div class="condition-group" v-if="groupedConditions.sufficient.length">
+                              <div class="condition-group-title">充分条件</div>
+                              <div
+                                v-for="cond in groupedConditions.sufficient"
+                                :key="cond.rule_id"
+                                class="condition-card"
+                              >
+                                <div class="condition-header">
+                                  <span class="state-dot" :class="conditionStateClass(cond)"></span>
+                                  <el-tag :type="cond.tag_type" size="small">{{ cond.category }}</el-tag>
+                                  <span class="condition-id">{{ cond.rule_id }}</span>
+                                </div>
+                                <div class="condition-desc">{{ cond.description }}</div>
+                              </div>
+                            </div>
+                            <div class="condition-group" v-if="groupedConditions.exclusion.length">
+                              <div class="condition-group-title">排除条件</div>
+                              <div
+                                v-for="cond in groupedConditions.exclusion"
+                                :key="cond.rule_id"
+                                class="condition-card"
+                              >
+                                <div class="condition-header">
+                                  <span class="state-dot" :class="conditionStateClass(cond)"></span>
+                                  <el-tag :type="cond.tag_type" size="small">{{ cond.category }}</el-tag>
+                                  <span class="condition-id">{{ cond.rule_id }}</span>
+                                </div>
+                                <div class="condition-desc">{{ cond.description }}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- 右下角确认按钮 -->
-                <div class="confirm-footer">
+                <div class="confirm-footer confirm-footer--embedded">
+                  <div class="confirm-hint">
+                    完成政策匹配与条件核对后，点击按钮启动分析
+                  </div>
                   <el-button
                     type="primary"
                     size="large"
@@ -774,6 +1096,7 @@ onUnmounted(() => {
                   </el-button>
                 </div>
               </div>
+
             </div>
           </el-scrollbar>
         </el-tab-pane>
@@ -852,6 +1175,7 @@ onUnmounted(() => {
           </div>
         </el-tab-pane>
       </el-tabs>
+      <el-backtop :right="24" :bottom="24" />
     </el-main>
   </el-container>
 </template>
@@ -859,17 +1183,57 @@ onUnmounted(() => {
 <style scoped>
 .app-shell {
   height: 100vh;
+  color: #333333;
+  --ui-transition: all 0.2s ease-in-out;
 }
 
 .app-header {
   height: auto;
   padding: 0;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-card);
+  border-bottom: none;
+  background: transparent;
+}
+
+.header-top {
+  height: 144px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(251, 251, 253, 0.9)),
+    url('/image/gov/try1.png') center center / cover no-repeat;
+  border-bottom: none;
+  position: relative;
+}
+
+.header-top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #C41E3A, rgba(196, 30, 58, 0.15), transparent);
+}
+
+.header-bottom {
+  height: 48px;
+  background: #8B1A1A;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .header-inner {
-  padding: 14px 24px;
+  height: 100%;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+}
+
+.header-inner--bottom {
+  gap: 18px;
+}
+
+.current-view-name {
+  color: #fff;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .header-row {
@@ -879,22 +1243,195 @@ onUnmounted(() => {
   gap: 16px;
 }
 
-.header-right {
+.gov-title-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.header-title {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text-primary);
+.gov-emblem {
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+  flex: 0 0 auto;
+}
+
+.module-gavel {
+  width: 320px;
+  height: 320px;
+  object-fit: contain;
+  opacity: 0.95;
+  position: absolute;
+  right: -66px;
+  bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.header-right :deep(.el-button) {
+  height: 44px;
+}
+
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.brand-divider {
+  width: 40px;
+  height: 1px;
+  background: rgba(196, 30, 58, 0.25);
 }
 
 .header-subtitle {
-  margin-top: 4px;
+  font-size: 13px;
+  color: #C41E3A;
+  letter-spacing: 0.22em;
+}
+
+.top-action-btn {
+  font-size: 15px;
+  color: #111827;
+  padding: 0 10px;
+  border-radius: 10px;
+  transition: var(--ui-transition);
+}
+
+.top-action-btn :deep(.el-icon) {
+  font-size: 20px;
+  color: #6B7280;
+}
+
+.top-action-btn span {
+  color: #6B7280;
+  font-size: 15px;
+}
+
+.top-action-btn:hover {
+  color: #C41E3A;
+  background: #FEF2F2;
+}
+
+.top-action-btn:hover :deep(.el-icon),
+.top-action-btn:hover span {
+  color: #C41E3A;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: #111;
+  letter-spacing: 0.4px;
+  line-height: 1.05;
+}
+
+.gov-title-wrap {
+  min-height: auto;
+}
+
+.phase-pill {
+  border-radius: 999px !important;
+  background: #C41E3A !important;
+  color: #fff !important;
+  border-color: #C41E3A !important;
   font-size: 12px;
-  color: var(--text-muted);
+  font-weight: 800;
+  padding: 6px 12px;
+  box-shadow: 0 2px 6px rgba(196, 30, 58, 0.24);
+}
+
+.online-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  margin-left: 6px;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18);
+}
+
+.header-location {
+  display: none;
+}
+
+.top-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 0;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(196, 30, 58, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.top-step {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.top-step span {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(156, 163, 175, 0.3);
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.top-step--active {
+  background: #C41E3A;
+  color: #fff;
+  font-weight: 800;
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 0 0 2px rgba(196, 30, 58, 0.25),
+    0 6px 16px rgba(0,0,0,0.28);
+}
+
+.top-step--active span {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.top-step--done {
+  color: #fff;
+}
+
+.top-step--done span {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  background: transparent;
+  color: #fff;
+  font-weight: 900;
+}
+
+.top-step-line {
+  width: 34px;
+  height: 1px;
+  border-top: 2px dashed rgba(255, 255, 255, 0.25);
+}
+
+.top-step-line--done {
+  border-top-style: solid;
+  border-top-color: rgba(196, 30, 58, 0.95);
 }
 
 .toolbar-label {
@@ -902,49 +1439,651 @@ onUnmounted(() => {
   color: var(--text-muted);
 }
 
+.top-action-btn {
+  color: #333;
+}
+
+.avatar-entry {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
 /* ===== 用户输入视图 ===== */
 .input-view {
-  display: flex;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-areas: "flow left";
+  gap: 0 20px;
+  width: min(100%, 1440px);
   max-width: 1440px;
   margin: 0 auto;
-  padding: 24px 32px 40px;
-  min-height: 100%;
+  padding: 24px clamp(20px, 3vw, 32px) 32px;
+  min-height: calc(100vh - 196px);
+  align-items: stretch;
+  box-sizing: border-box;
+}
+
+.flow-strip {
+  grid-area: flow;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  background: #ffffff;
+  border: 2px solid #5b1b24;
+  border-radius: 12px;
+  position: static;
+  min-height: calc(100vh - 220px);
+  overflow: visible;
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+}
+
+.flow-rail-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+/* ==== Flow sidebar v2 (card-based) ==== */
+.flow-sidebar-head {
+  margin-bottom: 20px;
+}
+
+.flow-sidebar-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.flow-sidebar-subtitle {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.flow-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.flow-card {
+  position: relative;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  padding: 12px;
+  transition: var(--ui-transition);
+  cursor: pointer;
+}
+
+.flow-card--step {
+  min-height: 96px;
+}
+
+.flow-card:hover:not(.flow-card--disabled) {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
+}
+
+.flow-card--disabled {
+  opacity: 0.7;
+}
+
+.flow-card--enabled {
+  opacity: 1;
+}
+
+.flow-card--active {
+  border-left: 3px solid #F59E0B;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.22), 0 8px 20px rgba(245, 158, 11, 0.16);
+  animation: flowPulse 1.6s ease-in-out infinite;
+}
+
+.flow-card-bar {
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: 4px;
+  height: 28px;
+  border-radius: 3px;
+  background: #F59E0B;
+}
+
+.flow-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.flow-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 12px;
+  color: #fff;
+  background: #C41E3A;
+  flex: 0 0 auto;
+}
+
+.flow-num--done {
+  background: #10B981;
+}
+
+.flow-num--pending {
+  background: #D1D5DB;
+}
+
+.flow-card-titles {
+  min-width: 0;
+}
+
+.flow-card-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.flow-card-title--muted {
+  color: #374151;
+}
+
+.flow-card-title--disabled {
+  color: #9CA3AF;
+}
+
+.flow-card-desc {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #6B7280;
+  line-height: 1.45;
+}
+
+.flow-card-desc--disabled {
+  color: #9CA3AF;
+}
+
+.flow-check {
+  margin-left: auto;
+  color: #16A34A;
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.flow-card-tip {
+  margin-top: 10px;
+  background: #FFFBEB;
+  border-left: 3px solid #F59E0B;
+  padding: 8px 12px;
+  border-radius: 4px;
+  color: #92400E;
+  font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.flow-card-tip :deep(.el-icon) {
+  color: #F59E0B;
+  margin-top: 1px;
+}
+
+.flow-mini-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.mini-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #D1D5DB;
+}
+
+.mini-dot--active {
+  background: #C41E3A;
+  transform: scale(1.2);
+}
+
+.mini-dot--ok {
+  background: #10B981;
+}
+
+.flow-connector {
+  height: 12px;
+  margin-left: 14px;
+  border-left: 1px dashed #D1D5DB;
+}
+
+.flow-connector--next {
+  border-left-style: solid;
+  border-left-color: #C41E3A;
+}
+
+.flow-result-pill {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.12);
+  border-radius: 999px;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.flow-inline-progress {
+  margin-top: 12px;
+}
+
+.flow-inline-progress :deep(.el-progress-bar__outer) {
+  background: rgba(209, 213, 219, 0.6);
+}
+
+.flow-inline-progress-meta {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #6B7280;
+}
+
+.flow-inline-progress-val {
+  color: #8a0c14;
+  font-weight: 800;
+}
+
+.flow-round-pill {
+  font-size: 11px;
+  font-weight: 900;
+  color: #8a0c14;
+  background: rgba(255, 235, 238, 0.95);
+  border: 1px solid rgba(196, 30, 58, 0.28);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.flow-round-pill--corner {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+}
+
+.flow-verdict-pill {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.flow-verdict--pass {
+  color: #0f5132;
+  background: rgba(40, 167, 69, 0.18);
+  border: 1px solid rgba(40, 167, 69, 0.5);
+}
+
+.flow-verdict--fail {
+  color: #9f1239;
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.flow-cards--completed .flow-card:nth-child(1),
+.flow-cards--completed .flow-card:nth-child(3),
+.flow-cards--completed .flow-card:nth-child(5) {
+  min-height: 96px;
+}
+
+.flow-prehint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #6B7280;
+  font-style: italic;
+}
+
+.flow-status-row {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.flow-status-inline--ok {
+  color: #10B981;
+}
+
+.flow-status-inline--wait {
+  color: #FAAD14;
+}
+
+.flow-foot {
+  margin-top: 16px;
+}
+
+.flow-duration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6B7280;
+  margin-bottom: 10px;
+}
+
+.flow-faq {
+  padding-left: 8px;
+  padding-right: 4px;
+  overflow: visible;
+}
+
+.flow-faq-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.faq-stage-select {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.faq-scroll {
+  overflow: visible;
+  padding-right: 2px;
+  scrollbar-width: none;
+}
+
+.faq-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.faq-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.faq-q {
+  font-size: 12px;
+  font-weight: 800;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.faq-a {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+@keyframes flowPulse {
+  0%, 100% { box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  50% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+}
+
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 0 6px 8px;
+  border-left: 4px solid transparent;
+  border-radius: 6px;
+}
+
+.flow-step--active .flow-index {
+  background: #C23531;
+  color: #fff;
+}
+
+.flow-step--active .flow-text {
+  color: #333333;
+  font-weight: 700;
+}
+
+.flow-step--active {
+  border-left-color: #C23531;
+}
+
+.flow-step-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.flow-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: #f1f5f9;
+  border: 1px solid var(--border-color, #e4e7ed);
+  margin-top: 1px;
+}
+
+.flow-text {
+  font-size: 13px;
+  color: #333333;
+  white-space: normal;
+}
+
+.flow-subtext {
+  font-size: 11px;
+  color: #555555;
+  line-height: 1.35;
+}
+
+.flow-tip-mini {
+  font-size: 11px;
+  color: #666666;
+}
+
+.flow-rail-line {
+  height: 10px;
+  width: 1px;
+  background: var(--border-color, #e4e7ed);
+  margin: 2px 11px;
+}
+
+.flow-status {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+  align-items: baseline;
+}
+
+.flow-status-tag {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 1px 8px;
+  line-height: 20px;
+  height: 20px;
+}
+
+.flow-status-tag--ok {
+  color: #fff;
+  background: #C23531;
+}
+
+.flow-status-tag--wait {
+  color: #111;
+  background: #efefef;
 }
 
 .input-view-left {
-  flex: 0 0 420px;
+  grid-area: left;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
+  min-height: calc(100vh - 220px);
 }
 
 .input-view-right {
+  grid-area: right;
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  border: 1px solid var(--border-color, #e4e7ed);
+  border-radius: 12px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  min-height: calc(100vh - 210px);
+}
+
+.conditions-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  border: 1px solid var(--border-color, #e4e7ed);
+  border-radius: 12px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.conditions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.conditions-close {
+  color: #6B7280;
+}
+
+.conditions-locked {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed #E5E7EB;
+  border-radius: 12px;
+  padding: 18px;
+  background: #fff;
+  color: #6B7280;
+}
+
+.conditions-locked-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.conditions-locked-text {
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 15px;
+  gap: 8px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-primary, #303133);
   margin-bottom: 14px;
 }
 
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  background: #C41E3A;
+}
+
 .input-section {
   background: var(--bg-card, #fff);
-  border: 1px solid var(--border-color, #e4e7ed);
+  border: 1px solid #e3d7d7;
   border-radius: 12px;
   padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: var(--ui-transition);
+}
+
+.input-section:focus-within {
+  border-color: #C41E3A;
+  box-shadow: 0 0 0 3px rgba(194, 53, 49, 0.15);
+}
+
+.idcard-field {
+  max-width: 240px;
+}
+
+.idcard-field :deep(.el-input-group__prepend) {
+  color: #111827 !important;
+}
+
+.query-field {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.query-field :deep(.el-textarea__inner) {
+  min-height: 86px;
+}
+
+.query-field :deep(.el-textarea__inner) {
+  transition: all 0.2s ease-in-out;
+}
+
+.query-field :deep(.el-textarea__inner:focus) {
+  border-color: #C41E3A !important;
+  box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15) !important;
 }
 
 .input-field {
+  max-width: 320px;
   margin-bottom: 12px;
+}
+
+.idcard-icon--ok {
+  color: #52C41A;
+}
+
+.idcard-icon--error {
+  color: #F5222D;
+}
+
+.query-meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -4px;
+  margin-bottom: 8px;
+}
+
+.query-counter {
+  font-size: 12px;
+  color: #666666;
 }
 
 .input-actions {
@@ -955,23 +2094,134 @@ onUnmounted(() => {
   margin-top: 4px;
 }
 
+.input-actions :deep(.el-button--primary) {
+  min-width: 108px;
+}
+
 .policy-section {
   background: var(--bg-card, #fff);
-  border: 1px solid var(--border-color, #e4e7ed);
+  border: 1px solid #e3d7d7;
   border-radius: 12px;
   padding: 20px;
   flex: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: var(--ui-transition);
+}
+
+.match-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.92fr) minmax(420px, 1.08fr);
+  gap: 20px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+.conditions-section {
+  min-width: 0;
+  border-radius: 12px;
+}
+
+.conditions-panel--embedded {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.conditions-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: hidden;
+  padding-right: 6px;
+}
+
+.conditions-section:hover .conditions-scroll {
+  overflow-y: auto;
+}
+
+.conditions-empty-center {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(107, 114, 128, 0.72);
+  font-size: 12px;
+  border: 1px dashed rgba(229, 231, 235, 0.9);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.confirm-footer--embedded {
+  margin-top: 4px;
+  border-top: 1px solid var(--border-color, #e4e7ed);
+  background: transparent;
+  padding: 6px 4px 0;
+  position: static;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-head .section-title {
+  margin-bottom: 0;
 }
 
 .policy-empty {
-  padding: 20px 0;
+  padding: 8px 0;
+}
+
+.policy-skeleton {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 12px;
+  position: relative;
+}
+
+.policy-skeleton::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 2px;
+  background: #C23531;
+}
+
+.policy-skeleton + .policy-skeleton {
+  margin-top: 12px;
+}
+
+.skeleton-line {
+  height: 10px;
+  background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.2s infinite;
+  border-radius: 6px;
+}
+
+.skeleton-line + .skeleton-line {
+  margin-top: 8px;
+}
+
+.skeleton-line--title {
+  width: 60%;
+}
+
+.skeleton-line--short {
+  width: 45%;
 }
 
 .policy-radio-group {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 10px;
+  gap: 12px;
 }
 
 .policy-radio-group :deep(.el-radio) {
@@ -979,7 +2229,7 @@ onUnmounted(() => {
   height: auto !important;
   margin-right: 0;
   align-items: flex-start;
-  padding: 12px 14px;
+  padding: 12px 12px;
   box-sizing: border-box;
 }
 
@@ -995,7 +2245,8 @@ onUnmounted(() => {
 }
 
 .policy-radio-card--top :deep(.el-radio.is-bordered) {
-  border-color: var(--el-color-primary-light-5);
+  border-color: #C23531;
+  background: #FFF5F5;
 }
 
 .policy-radio-inner {
@@ -1006,6 +2257,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.policy-score-badge {
+  margin-left: auto;
+  font-size: 11px;
+  color: #fff;
+  background: #C23531;
+  border-radius: 999px;
+  padding: 2px 8px;
 }
 
 .policy-radio-rank {
@@ -1026,7 +2286,27 @@ onUnmounted(() => {
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--el-text-color-secondary);
+  color: #666666;
+}
+
+.policy-radio-extra {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666666;
+}
+
+.quick-tag-btn {
+  border-color: #C23531 !important;
+  color: #C23531 !important;
+  background: #fff !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+}
+
+.quick-tag-btn:hover {
+  background: #FFF5F5 !important;
 }
 
 .intent-ambiguities {
@@ -1039,6 +2319,18 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 360px;
+}
+
+.conditions-empty--red {
+  color: #C23531;
+  font-weight: 600;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conditions-empty--red :deep(.el-icon) {
+  font-size: 30px;
 }
 
 .conditions-loading {
@@ -1049,12 +2341,25 @@ onUnmounted(() => {
   gap: 8px;
   color: var(--el-text-color-secondary);
   font-size: 14px;
+  min-height: 360px;
 }
 
 .conditions-content {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 360px;
+}
+
+.conditions-policy-pill {
+  align-self: flex-start;
+  margin-bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #C23531;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .conditions-meta {
@@ -1062,7 +2367,21 @@ onUnmounted(() => {
   padding: 16px;
   background: var(--bg-card, #fff);
   border: 1px solid var(--border-color, #e4e7ed);
-  border-radius: 12px;
+  border-radius: 8px;
+}
+
+.condition-group + .condition-group {
+  margin-top: 12px;
+}
+
+.condition-group-title {
+  border-left: 4px solid #C23531;
+  background: #FEF2F2;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .conditions-meta h3 {
@@ -1094,18 +2413,26 @@ onUnmounted(() => {
   gap: 10px;
   flex: 1;
   overflow-y: auto;
+  max-height: calc(100vh - 330px);
+  scrollbar-width: none;
+}
+
+.conditions-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .condition-card {
   padding: 14px 16px;
   background: var(--bg-card, #fff);
-  border: 1px solid var(--border-color, #e4e7ed);
-  border-radius: 10px;
-  transition: border-color 0.2s;
+  border: 1px solid #e3d7d7;
+  border-radius: 12px;
+  transition: all 0.2s ease-in-out;
 }
 
 .condition-card:hover {
-  border-color: var(--el-color-primary-light-5);
+  border-color: #C41E3A;
+  background: #fafafa;
 }
 
 .condition-header {
@@ -1123,9 +2450,33 @@ onUnmounted(() => {
 
 .condition-desc {
   font-size: 14px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  line-height: 1.5;
+  font-weight: 500;
+  color: #333333;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.state-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.state-dot--pending {
+  background: #bfbfbf;
+}
+
+.state-dot--ok {
+  background: #52C41A;
+}
+
+.state-dot--error {
+  background: #F5222D;
+}
+
+.state-dot--warn {
+  background: #FAAD14;
 }
 
 .condition-detail {
@@ -1151,11 +2502,55 @@ onUnmounted(() => {
 }
 
 .confirm-footer {
-  margin-top: 20px;
-  padding-top: 16px;
+  margin-top: 24px;
+  padding: 12px 4px 4px;
   border-top: 1px solid var(--border-color, #e4e7ed);
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 12px;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.88) 30%, rgba(255,255,255,0.94));
+}
+
+.confirm-hint {
+  margin-right: auto;
+  font-size: 12px;
+  color: #666666;
+}
+
+.confirm-footer :deep(.el-button--primary) {
+  border-radius: 8px;
+  background: #C23531;
+  border-color: #C23531;
+  transition: all 0.2s ease-in-out;
+}
+
+.confirm-footer :deep(.el-button--primary:hover) {
+  background: #A52A2A;
+  border-color: #A52A2A;
+}
+
+.confirm-footer :deep(.el-button--primary.is-disabled) {
+  background: #bfbfbf;
+  border-color: #bfbfbf;
+}
+
+.confirm-footer :deep(.el-button--primary.is-disabled:hover) {
+  background: #bfbfbf;
+  border-color: #bfbfbf;
+}
+
+.confirm-footer :deep(.el-button.is-plain) {
+  color: #C23531;
+  border-color: #C23531;
+  background: #fff;
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
 }
 
 /* ===== Tabs 与通用样式 ===== */
@@ -1164,6 +2559,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 .dashboard-tabs {
@@ -1174,9 +2570,10 @@ onUnmounted(() => {
 
 .dashboard-tabs :deep(.el-tabs__header) {
   margin: 0;
-  padding: 12px 24px;
-  background: var(--bg-base);
+  padding: 12px clamp(20px, 3vw, 32px);
+  background: #8B1A1A;
   border-bottom: none;
+  overflow: visible;
 }
 
 .dashboard-tabs :deep(.el-tabs__nav-wrap::after) {
@@ -1186,16 +2583,23 @@ onUnmounted(() => {
 .dashboard-tabs :deep(.el-tabs__nav-scroll) {
   display: flex;
   justify-content: center;
+  width: 100%;
+  overflow: visible;
 }
 
 .dashboard-tabs :deep(.el-tabs__nav) {
-  background: var(--bg-card);
+  background: transparent;
   border-radius: 999px;
-  padding: 5px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  border: none;
+  box-shadow: none;
   display: flex;
-  gap: 3px;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .dashboard-tabs :deep(.el-tabs__active-bar) {
@@ -1203,26 +2607,47 @@ onUnmounted(() => {
 }
 
 .dashboard-tabs :deep(.el-tabs__item) {
-  height: 36px;
-  line-height: 36px;
-  padding: 0 20px !important;
+  height: 38px;
+  line-height: 38px;
+  padding: 0 16px !important;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 13px;
-  color: var(--text-muted) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  max-width: 100%;
+  white-space: nowrap;
+  flex: 0 1 auto;
 }
 
 .dashboard-tabs :deep(.el-tabs__item:hover:not(.is-active)) {
-  color: var(--text-primary) !important;
-  background: rgba(0, 0, 0, 0.02);
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .dashboard-tabs :deep(.el-tabs__item.is-active) {
-  color: var(--accent-blue) !important;
-  background: #eff6ff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  color: #8B1A1A !important;
+  background: #fff;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.55),
+    0 6px 16px rgba(0, 0, 0, 0.28);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.dashboard-tabs :deep(.el-tabs__item .el-icon) {
+  margin-right: 6px;
+}
+
+:deep(.el-backtop) {
+  background: #C41E3A;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.conditions-mobile-drawer :deep(.el-drawer__header) {
+  margin-bottom: 8px;
 }
 
 .dashboard-tabs :deep(.el-tabs__content) {
@@ -1230,6 +2655,7 @@ onUnmounted(() => {
   overflow: hidden;
   padding: 0;
   background: var(--bg-base);
+  min-width: 0;
 }
 
 .dashboard-tabs :deep(.el-tab-pane) {
@@ -1255,16 +2681,60 @@ onUnmounted(() => {
 
 @media (max-width: 1100px) {
   .input-view {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "flow"
+      "left";
+    gap: 14px;
+    width: 100%;
+    padding: 16px;
+  }
+
+  .match-grid {
+    grid-template-columns: 1fr;
   }
 
   .input-view-left {
     flex: none;
   }
 
+  .flow-strip {
+    position: static;
+    min-height: auto;
+    padding: 12px 10px;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .flow-rail-title {
+    display: block;
+  }
+
+  .flow-strip:hover .flow-rail-title {
+    display: block;
+  }
+
+  .flow-step-texts {
+    display: flex;
+  }
+
+  .flow-strip:hover .flow-step-texts {
+    display: flex;
+  }
+
   .session-pane-inner {
     padding: 16px 16px 32px;
   }
 }
-</style>
 
+@media (max-width: 1280px) {
+  .input-view {
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-areas: "flow left";
+  }
+
+  .match-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

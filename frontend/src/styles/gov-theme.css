@@ -1,0 +1,320 @@
+:root {
+  --gov-red: #c4101c;
+  --gov-red-deep: #8a0c14;
+  --gov-gold: #c9a227;
+  --gov-bg: #f6f7fb;
+  --gov-card: #ffffff;
+  --gov-line: #e7e8ec;
+  --gov-text: #1f2937;
+  --gov-muted: #5b616b;
+
+  /* If your image filenames differ, only update these six vars. */
+  --gov-img-hero: url("/image/gov/hero-bg.png");
+  --gov-img-footer: url("/image/gov/footer-wave.png");
+  --gov-img-gavel: url("/image/gov/module-gavel.png");
+  --gov-img-verdict: url("/image/gov/verdict-bg.png");
+  --gov-img-banner: url("/image/gov/banner-city-scale.png");
+  --gov-img-emblem: url("/image/gov/logo-emblem.png");
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background:
+    linear-gradient(145deg, rgba(63, 0, 6, 0.2), rgba(110, 4, 16, 0.16)),
+    #f8ecec,
+    linear-gradient(180deg, #fff, var(--gov-bg) 20%, var(--gov-bg)) !important;
+  color: var(--gov-text);
+}
+
+.gov-app-shell {
+  position: relative;
+  isolation: isolate;
+  background: transparent !important;
+}
+
+.gov-app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -2;
+  opacity: 0.95;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.18)),
+    var(--gov-img-hero) center top / cover no-repeat;
+}
+
+.gov-app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.18;
+  background:
+    radial-gradient(circle at 12% 14%, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle at 86% 16%, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 22%),
+    var(--gov-img-emblem) right 120px top 55% / 170px auto no-repeat,
+    var(--gov-img-gavel) left 60px bottom 120px / 220px auto no-repeat;
+}
+
+.gov-app-shell .app-header {
+  border-bottom: 1px solid rgba(192, 20, 26, 0.18);
+  background:
+    linear-gradient(180deg, rgba(110, 0, 0, 0.65), rgba(110, 0, 0, 0.35) 45%, rgba(110, 0, 0, 0.55)),
+    var(--gov-img-hero) center/cover no-repeat,
+    linear-gradient(135deg, var(--gov-red), var(--gov-red-deep)) !important;
+  box-shadow: 0 10px 26px rgba(79, 10, 17, 0.35);
+}
+
+.gov-app-shell .header-inner {
+  padding: 22px 30px;
+}
+
+.gov-app-shell .header-title {
+  color: #fff;
+  letter-spacing: 0.8px;
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  line-height: 1.16;
+  text-shadow: 0 3px 12px rgba(40, 0, 5, 0.45);
+}
+
+.gov-app-shell .header-subtitle {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px !important;
+  margin-top: 8px;
+  letter-spacing: 0.2px;
+}
+
+.gov-app-shell .gov-emblem {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+  background:
+    var(--gov-img-emblem) center/80% no-repeat,
+    rgba(255, 255, 255, 0.14);
+}
+
+.gov-main-workspace {
+  position: relative;
+  background: rgba(245, 238, 238, 0.5) !important;
+  backdrop-filter: blur(0.5px);
+  overflow: hidden;
+}
+
+.gov-main-workspace::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: 28px;
+  width: min(42vw, 540px);
+  height: 150px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)),
+    var(--gov-img-emblem) center/contain no-repeat;
+  opacity: 0.11;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.gov-main-workspace::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 130px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.74) 34%, rgba(255, 255, 255, 0.9)),
+    var(--gov-img-gavel) right 18px bottom 10px/180px no-repeat;
+  opacity: 0.56;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.gov-main-workspace .dashboard-tabs,
+.gov-main-workspace .dashboard-tabs .el-tabs__content,
+.gov-main-workspace .dashboard-tabs .el-tab-pane,
+.gov-main-workspace .dashboard-tabs .el-scrollbar,
+.gov-main-workspace .dashboard-tabs .el-scrollbar__view {
+  position: relative;
+  z-index: 1;
+}
+
+.gov-app-shell .dashboard-tabs .el-tabs__item.is-active {
+  color: var(--gov-red) !important;
+  background: #fff0f1;
+}
+
+.gov-app-shell .input-section,
+.gov-app-shell .policy-section,
+.gov-app-shell .conditions-meta,
+.gov-app-shell .condition-card,
+.gov-app-shell .session-overview,
+.gov-app-shell .verdict-panel,
+.gov-app-shell .report-card,
+.gov-app-shell .arbiter-card,
+.gov-app-shell .evidence-highlight-card,
+.gov-app-shell .history-item {
+  border-color: var(--gov-line) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 14px !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.gov-app-shell .input-section:hover,
+.gov-app-shell .policy-section:hover,
+.gov-app-shell .condition-card:hover,
+.gov-app-shell .history-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.gov-app-shell .section-title,
+.gov-app-shell .session-title,
+.gov-app-shell .panel-title {
+  color: var(--gov-text);
+}
+
+.gov-app-shell .section-subtitle,
+.gov-app-shell .history-subtitle,
+.gov-app-shell .history-time,
+.gov-app-shell .meta-label {
+  color: var(--gov-muted);
+}
+
+.gov-app-shell .policy-radio-card--top .el-radio.is-bordered,
+.gov-app-shell .condition-card:hover,
+.gov-app-shell .history-item:hover:not(:disabled),
+.gov-app-shell .history-item--active {
+  border-color: rgba(192, 20, 26, 0.32) !important;
+}
+
+.gov-app-shell .history-item--active {
+  background: rgba(196, 16, 28, 0.1);
+}
+
+.gov-app-shell .trace-console {
+  background:
+    linear-gradient(180deg, rgba(10, 15, 20, 0.94), rgba(10, 15, 20, 0.98)),
+    var(--gov-img-gavel) right bottom/170px no-repeat,
+    var(--gov-img-emblem) left 14px top 14px/84px no-repeat;
+}
+
+.gov-app-shell .final-card {
+  border: 2px solid rgba(192, 20, 26, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.9)),
+    var(--gov-img-verdict) center/cover no-repeat;
+}
+
+.gov-app-shell .final-conclusion {
+  color: #111827;
+}
+
+.gov-app-shell .dashboard-tabs .el-button--primary {
+  --el-button-bg-color: var(--gov-red);
+  --el-button-border-color: var(--gov-red);
+  --el-button-hover-bg-color: #d01724;
+  --el-button-hover-border-color: #d01724;
+  --el-button-active-bg-color: var(--gov-red-deep);
+  --el-button-active-border-color: var(--gov-red-deep);
+}
+
+.gov-app-shell .el-button {
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.gov-app-shell .el-button--primary {
+  box-shadow: 0 6px 16px rgba(154, 24, 37, 0.22);
+}
+
+.gov-app-shell .el-button--primary:hover {
+  transform: translateY(-1px);
+}
+
+.gov-app-shell .el-button--primary.is-disabled {
+  box-shadow: none;
+}
+
+.gov-app-shell .el-button.is-plain {
+  color: #7d1018 !important;
+  border-color: rgba(196, 16, 28, 0.3) !important;
+  background: rgba(255, 251, 251, 0.78) !important;
+}
+
+.gov-app-shell .el-button.is-plain:hover {
+  color: #8a0c14 !important;
+  border-color: rgba(196, 16, 28, 0.55) !important;
+  background: rgba(255, 242, 242, 0.95) !important;
+}
+
+/* red-gold tabs */
+.gov-app-shell .dashboard-tabs .el-tabs__item {
+  color: #7a2a2d !important;
+  padding: 0 16px !important;
+  font-size: 12px !important;
+}
+
+.gov-app-shell .dashboard-tabs .el-tabs__item:hover:not(.is-active) {
+  color: var(--gov-red) !important;
+  background: rgba(196, 16, 28, 0.08) !important;
+}
+
+.gov-app-shell .dashboard-tabs .el-tabs__item.is-active {
+  color: #8a0c14 !important;
+  background: linear-gradient(135deg, rgba(255, 248, 226, 0.92), rgba(255, 239, 241, 0.95)) !important;
+  border: 1px solid rgba(201, 162, 39, 0.5) !important;
+  box-shadow: 0 4px 12px rgba(145, 21, 35, 0.16);
+}
+
+/* Ensure long tab labels are fully visible */
+.gov-app-shell .dashboard-tabs .el-tabs__header {
+  overflow: visible !important;
+}
+
+.gov-app-shell .dashboard-tabs .el-tabs__nav-scroll {
+  justify-content: center !important;
+}
+
+.gov-app-shell .dashboard-tabs .el-tabs__nav {
+  flex-wrap: wrap !important;
+  min-width: 0 !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+/* Override base stylesheet solid backgrounds */
+.gov-app-shell.el-container,
+.gov-app-shell .el-main,
+.gov-app-shell .dashboard-tabs .el-tabs__content {
+  background: transparent !important;
+}
+
+/* red-gold tag system */
+.gov-app-shell .el-tag {
+  border-color: rgba(201, 162, 39, 0.52) !important;
+  color: #8a0c14 !important;
+  background: linear-gradient(135deg, rgba(255, 252, 244, 0.96), rgba(255, 239, 242, 0.96)) !important;
+}
+
+.gov-app-shell .el-tag.el-tag--danger {
+  border-color: rgba(196, 16, 28, 0.5) !important;
+  color: #8a0c14 !important;
+  background: rgba(255, 235, 238, 0.95) !important;
+}
+
+.gov-app-shell .el-tag.el-tag--success,
+.gov-app-shell .el-tag.el-tag--warning,
+.gov-app-shell .el-tag.el-tag--info,
+.gov-app-shell .el-tag.el-tag--primary {
+  border-color: rgba(201, 162, 39, 0.62) !important;
+  color: #7b5a02 !important;
+  background: rgba(255, 250, 233, 0.96) !important;
+}

@@ -1,0 +1,146 @@
+
+{
+  "meta": "AI辅助生成：DeepSeek-R1-0528, 2026-4-24",
+  "data": [
+    {
+      "example_id": "01",
+      "table": "social_insurance_payment",
+      "question": "帮我查一下身份证号为420900199001010001这个人的所有社保缴费记录。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';",
+      "intent": "按身份证号精确查询个人全部缴费记录"
+    },
+    {
+      "example_id": "02",
+      "table": "social_insurance_payment",
+      "question": "查询所有养老保险的缴费记录，看看都有哪些人交过。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurance_type = '110';",
+      "intent": "按险种类型筛选养老保险缴费记录"
+    },
+    {
+      "example_id": "03",
+      "table": "social_insurance_payment",
+      "question": "2024年1月份一共有哪些社保缴费记录，把那个月的缴费记录调出来看看。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE pay_month = '202401';",
+      "intent": "按缴费月份精确查询特定月份的缴费记录"
+    },
+    {
+      "example_id": "04",
+      "table": "social_insurance_payment",
+      "question": "身份证号420900199001010001这个人，他的医疗保险都交了哪几个月？",
+      "sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '310';",
+      "intent": "按身份证号和险种类型组合筛选医疗保险缴费记录"
+    },
+    {
+      "example_id": "05",
+      "table": "social_insurance_payment",
+      "question": "查一下2023年7月到2023年12月这半年期间，所有人员的社保缴费情况。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE pay_month >= '202307' AND pay_month <= '202312';",
+      "intent": "按缴费月份范围筛选缴费记录"
+    },
+    {
+      "example_id": "06",
+      "table": "social_insurance_payment",
+      "question": "看看以个人灵活就业身份参保的人，他们的缴费记录有哪些。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurer_status = '102';",
+      "intent": "按参保身份筛选个人灵活就业缴费记录"
+    },
+    {
+      "example_id": "07",
+      "table": "social_insurance_payment",
+      "question": "把状态正常的有效缴费记录都查出来，作废的那些不要。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE is_valid = '1';",
+      "intent": "筛选有效缴费记录"
+    },
+    {
+      "example_id": "08",
+      "table": "social_insurance_payment",
+      "question": "统计一下，到目前为止养老保险一共有多少条缴费记录？",
+      "sql": "SELECT COUNT(*) AS payment_count FROM social_insurance_payment WHERE insurance_type = '110';",
+      "intent": "按险种统计养老保险缴费记录总数"
+    },
+    {
+      "example_id": "09",
+      "table": "social_insurance_payment",
+      "question": "养老保险的缴费基数平均下来是多少钱？",
+      "sql": "SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE insurance_type = '110';",
+      "intent": "计算养老保险的平均缴费基数"
+    },
+    {
+      "example_id": "10",
+      "table": "social_insurance_payment",
+      "question": "身份证号420900199001010001这个人，2023年以单位缴费身份缴纳的、并且是有效状态的养老保险记录有哪些？",
+      "sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month >= '202301' AND pay_month <= '202312' AND insurer_status = '101' AND insurance_type = '110' AND is_valid = '1';",
+      "intent": "多条件筛选特定人员在指定年份、身份、险种和有效状态下的缴费记录"
+    },
+    {
+      "example_id": "11",
+      "table": "social_insurance_payment",
+      "question": "医疗保险里缴费基数最高的是多少？",
+      "sql": "SELECT MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE insurance_type = '310';",
+      "intent": "查询医疗保险缴费记录中的最高缴费基数"
+    },
+    {
+      "example_id": "12",
+      "table": "social_insurance_payment",
+      "question": "2024年养老保险最低的缴费基数是多少？",
+      "sql": "SELECT MIN(pay_base) AS min_pay_base FROM social_insurance_payment WHERE insurance_type = '110' AND pay_month >= '202401' AND pay_month <= '202412';",
+      "intent": "在特定年份和险种条件下计算最低缴费基数"
+    },
+    {
+      "example_id": "13",
+      "table": "social_insurance_payment",
+      "question": "把2024年3月的养老保险缴费记录，按缴费基数从高到低排个序给我看看。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE pay_month = '202403' AND insurance_type = '110' ORDER BY pay_base DESC;",
+      "intent": "按缴费基数降序排列指定月份和险种的缴费记录"
+    },
+    {
+      "example_id": "14",
+      "table": "social_insurance_payment",
+      "question": "查一下2023年全年的医疗保险缴费记录，只看前10条就行。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month >= '202301' AND pay_month <= '202312' LIMIT 10;",
+      "intent": "限定返回记录数量，查询指定年份的医疗保险缴费记录"
+    },
+    {
+      "example_id": "15",
+      "table": "social_insurance_payment",
+      "question": "身份证号420900199001010001这个人，他有效状态的养老保险一共交了多少个月？",
+      "sql": "SELECT COUNT(*) AS payment_months FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '110' AND is_valid = '1';",
+      "intent": "统计特定人员有效养老保险缴费记录数"
+    },
+    {
+      "example_id": "16",
+      "table": "social_insurance_payment",
+      "question": "查一下2024年医疗保险缴费基数最低的3条记录。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month >= '202401' AND pay_month <= '202412' ORDER BY pay_base ASC LIMIT 3;",
+      "intent": "排序后取前N条记录，查询最低缴费基数记录"
+    },
+    {
+      "example_id": "17",
+      "table": "social_insurance_payment",
+      "question": "帮我查查420900199001010001这个人在2024年7月到9月这三个月所有的缴费记录。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month >= '202407' AND pay_month <= '202409';",
+      "intent": "按人员和月份范围组合查询缴费记录"
+    },
+    {
+      "example_id": "18",
+      "table": "social_insurance_payment",
+      "question": "看看单位缴费和个人灵活就业两类参保身份的社保缴费都是什么情况。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurer_status IN ('101', '102');",
+      "intent": "使用IN操作符筛选多种参保身份"
+    },
+    {
+      "example_id": "19",
+      "table": "social_insurance_payment",
+      "question": "公司ID为1001的这个单位，2024年总共缴了多少次社保？",
+      "sql": "SELECT COUNT(*) AS total_count FROM social_insurance_payment WHERE company_id = '1001' AND pay_month >= '202401' AND pay_month <= '202412';",
+      "intent": "按公司和时间范围统计缴费次数"
+    },
+    {
+      "example_id": "20",
+      "table": "social_insurance_payment",
+      "question": "2023年以单位缴费身份缴纳的、并且有效的医疗保险，一共有多少条记录？",
+      "sql": "SELECT COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '310' AND insurer_status = '101' AND is_valid = '1' AND pay_month >= '202301' AND pay_month <= '202312';",
+      "intent": "多条件复合统计，涉及险种、身份、有效性和时间范围"
+    }
+  ]
+}

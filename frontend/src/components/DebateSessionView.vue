@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import AgentCard from './AgentCard.vue'
 import EvidenceBoard from './EvidenceBoard.vue'
 import PersonaProfileCard from './PersonaProfileCard.vue'
@@ -11,6 +12,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['restart'])
+const evidenceDetailVisible = ref(false)
+const evidenceDetailText = ref('')
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api'
 
 const formatDateTime = (value) => {
   if (!value) return '未记录'
@@ -18,6 +23,20 @@ const formatDateTime = (value) => {
   if (Number.isNaN(parsed.getTime())) return value
   return parsed.toLocaleString('zh-CN', { hour12: false })
 }
+
+const canDownloadOfficialReport = (session) => Boolean(session?.session_id && session?.final_conclusion)
+
+const resolveOfficialReportUrl = (session) => {
+  if (!canDownloadOfficialReport(session)) return ''
+  const rawUrl = session?.official_report?.download_url || `/debates/${session.session_id}/official_report.pdf`
+  if (/^https?:\/\//.test(rawUrl)) return rawUrl
+  const hostBase = API_BASE.replace(/\/api\/?$/, '')
+  if (rawUrl.startsWith('/api/')) return `${hostBase}${rawUrl}`
+  if (rawUrl.startsWith('/')) return `${API_BASE}${rawUrl}`
+  return `${API_BASE}/${rawUrl}`
+}
+
+const resolveOfficialReportFilename = (session) => session?.official_report?.filename || `政务数据辅助审核裁决书_${session?.session_id || 'session'}.pdf`
 
 const hasJudgments = (session) =>
   Array.isArray(session?.history) &&
@@ -155,6 +174,11 @@ const getAgentPanels = (session) => ([
     empty: '当前没有明显的反方或保留意见',
   },
 ])
+
+const openEvidenceDetail = (evidenceRef) => {
+  evidenceDetailText.value = resolveEvidenceDetail(evidenceRef)
+  evidenceDetailVisible.value = true
+}
 </script>
 
 <template>
@@ -185,6 +209,16 @@ const getAgentPanels = (session) => ([
           >
             重新发起辩论
           </el-button>
+          <a
+            v-if="canDownloadOfficialReport(props.session)"
+            class="official-report-button"
+            :href="resolveOfficialReportUrl(props.session)"
+            :download="resolveOfficialReportFilename(props.session)"
+            target="_blank"
+            rel="noopener"
+          >
+            下载政府公文 PDF
+          </a>
           <el-tag :type="props.session.view_source === 'live' ? 'primary' : 'info'" effect="plain">
             {{ props.session.view_source === 'live' ? '实时分析' : '已保存会话' }}
           </el-tag>
@@ -433,12 +467,9 @@ const getAgentPanels = (session) => ([
             <span v-if="row.item?.manual_verified">来源：人工补证覆盖</span>
             <span v-else>来源：系统取证</span>
           </div>
-          <el-tooltip placement="top" effect="light">
-            <template #content>
-              <div class="tooltip-pre">{{ resolveEvidenceDetail(row.ref) }}</div>
-            </template>
-            <el-button text type="primary" class="evidence-detail-trigger">查看证据详情</el-button>
-          </el-tooltip>
+          <el-button text type="primary" class="evidence-detail-trigger" @click="openEvidenceDetail(row.ref)">
+            查看证据详情
+          </el-button>
         </el-card>
       </div>
       <el-empty v-else description="暂无关键采纳证据" />
@@ -512,6 +543,10 @@ const getAgentPanels = (session) => ([
         </div>
       </el-card>
     </section>
+
+    <el-dialog v-model="evidenceDetailVisible" title="证据详情" width="620px" append-to-body>
+      <div class="tooltip-pre">{{ evidenceDetailText }}</div>
+    </el-dialog>
   </div>
 </template>
 
@@ -560,6 +595,29 @@ const getAgentPanels = (session) => ([
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.official-report-button,
+.official-report-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 5px 11px;
+  border: 1px solid var(--el-color-success-light-5);
+  border-radius: 999px;
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.official-report-button:hover,
+.official-report-inline:hover {
+  border-color: var(--el-color-success);
+  background: var(--el-color-success-light-8);
 }
 
 .session-meta-grid {
@@ -694,7 +752,7 @@ const getAgentPanels = (session) => ([
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
 }

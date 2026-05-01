@@ -1,0 +1,493 @@
+﻿case_id,category,question,gold_sql,schema_tables,generated_sql,generation_success,syntax_pass,execution_success,result_match,gold_sql_error,latency_ms,failure_reason,error_message,source_file
+condition_test:01,condition_test,查一下身份证号是'420900199001010001'这个人的所有社保缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001',True,True,True,True,False,4659.164400000009,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:02,condition_test,请把所有养老保险的缴费记录调出来。,SELECT * FROM social_insurance_payment WHERE insurance_type = '110';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE insurance_type = '养老保险',True,True,True,False,False,2820.4633999994257,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:03,condition_test,帮我看看2023年11月的所有社保缴费明细。,SELECT * FROM social_insurance_payment WHERE pay_month = '202311';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE pay_month = '202311',True,True,True,True,False,4938.696400000481,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:04,condition_test,当前参保身份是单位缴费的人员，他们的社保缴费记录有哪些？,SELECT * FROM social_insurance_payment WHERE insurer_status = '101';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE insurer_status = '单位缴费' AND is_valid = '是',True,True,True,False,False,2412.5541000030353,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:05,condition_test,找出所有已经被标记为无效的缴费流水。,SELECT * FROM social_insurance_payment WHERE is_valid = '0';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE is_valid = '无效',True,True,True,True,False,3278.892000002088,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:06,condition_test,身份证号'420900199001010001'的人在2023年交过养老保险吗？帮我把记录找出来。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '110';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month LIKE '2023%' AND insurance_type = '养老保险' AND is_valid = '有效',True,True,True,True,False,4342.660100002831,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:07,condition_test,查询'420900199001010001'这位人员在2023年1月到6月期间的缴费情况。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202306';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202306',True,True,True,True,False,3776.667500002077,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:08,condition_test,核实一下，养老保险的有效缴费记录有哪些？,SELECT * FROM social_insurance_payment WHERE insurance_type = '110' AND is_valid = '1';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE insurance_type = '养老保险' AND is_valid = '有效',True,True,True,False,False,4677.165799999784,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:09,condition_test,哪些单位缴费人员的缴费基数超过了15000元？,SELECT * FROM social_insurance_payment WHERE insurer_status = '101' AND pay_base > 15000;,social_insurance_payment,"SELECT company_id, id_card, pay_base FROM social_insurance_payment WHERE pay_base > 15000",True,True,True,True,False,2125.516300002346,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:10,condition_test,看看2023年三季度（7月到9月）所有社保缴费记录。,SELECT * FROM social_insurance_payment WHERE pay_month BETWEEN '202307' AND '202309';,social_insurance_payment,"WITH filtered_data AS (
+  SELECT *
+  FROM social_insurance_payment
+  WHERE pay_month IN ('202307', '202308', '202309')
+)
+SELECT *
+FROM filtered_data",True,True,True,True,False,4903.222799999639,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:11,condition_test,找出所有缴费基数低于4000元的记录，我们重点排查一下。,SELECT * FROM social_insurance_payment WHERE pay_base < 4000;,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE pay_base < 4000,True,True,True,True,False,1668.2946000000811,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:12,condition_test,把2023年12月所有缴费基数高于10000元的有效记录列出来。,SELECT * FROM social_insurance_payment WHERE pay_month = '202312' AND pay_base > 10000 AND is_valid = '1';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE pay_month = '202312' AND pay_base > 10000 AND is_valid = '有效',True,True,True,True,False,2816.3732000029995,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:13,condition_test,我想看看身份证号'420900199001010001'在2023年，个人身份为灵活就业且缴费基数在6000到10000之间的缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND insurer_status = '102' AND pay_base BETWEEN 6000 AND 10000;,social_insurance_payment,"WITH filtered_data AS (
+  SELECT *
+  FROM social_insurance_payment
+  WHERE id_card = '420900199001010001'
+    AND pay_month LIKE '2023%'
+    AND insurer_status = '灵活就业'
+    AND pay_base BETWEEN 6000 AND 10000
+)
+SELECT *
+FROM filtered_data",True,True,True,True,False,7177.766399996472,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:14,condition_test,最新的10条有效养老保险缴费记录是哪几条？,SELECT * FROM social_insurance_payment WHERE insurance_type = '110' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 10;,social_insurance_payment,"WITH ValidPensionPayments AS (
+    SELECT *
+    FROM social_insurance_payment
+    WHERE is_valid = '是' AND insurance_type = '养老保险'
+    ORDER BY pay_month DESC
+    LIMIT 10
+)
+SELECT * FROM ValidPensionPayments",True,True,True,False,False,19742.037199997867,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:15,condition_test,把缴费基数最高的前5条记录找出来，我要看看有没有异常值。,SELECT * FROM social_insurance_payment ORDER BY pay_base DESC LIMIT 5;,social_insurance_payment,"WITH RankedPayments AS (
+    SELECT 
+        *, 
+        RANK() OVER (ORDER BY pay_base DESC) as rank
+    FROM 
+        social_insurance_payment
+)
+SELECT * FROM RankedPayments WHERE rank <= 5",True,False,False,False,False,3489.0330000052927,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'rank\n    FROM \n        social_insurance_payment\n)\nSELECT * FROM RankedPayments W' at line 4"")
+[SQL: EXPLAIN WITH RankedPayments AS (
+    SELECT 
+        *, 
+        RANK() OVER (ORDER BY pay_base DESC) as rank
+    FROM 
+        social_insurance_payment
+)
+SELECT * FROM RankedPayments WHERE rank <= 5]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:16,condition_test,帮忙计算一下2023年11月有效缴费记录一共有多少条。,SELECT COUNT(*) FROM social_insurance_payment WHERE pay_month = '202311' AND is_valid = '1';,social_insurance_payment,SELECT COUNT(*) FROM social_insurance_payment WHERE pay_month = '202311' AND is_valid = '有效',True,True,True,True,False,2210.052500005986,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:17,condition_test,统计一下身份证号'420900199001010001'在2023年缴纳养老保险的平均缴费基数是多少？,SELECT AVG(pay_base) FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND insurance_type = '110';,social_insurance_payment,"SELECT AVG(pay_base) 
+FROM social_insurance_payment 
+WHERE id_card = '420900199001010001' 
+AND pay_month LIKE '2023%' 
+AND insurance_type = '养老保险' 
+AND is_valid = '有效';",True,True,True,True,False,4737.180000003718,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:18,condition_test,我们想看看2023年所有单位缴费人员的最高缴费基数是多少？,SELECT MAX(pay_base) FROM social_insurance_payment WHERE pay_month BETWEEN '202301' AND '202312' AND insurer_status = '101';,social_insurance_payment,"WITH filtered_data AS (
+  SELECT pay_base
+  FROM social_insurance_payment
+  WHERE pay_month LIKE '2023%' AND insurer_status = '单位'
+)
+SELECT MAX(pay_base) AS max_pay_base
+FROM filtered_data",True,True,True,False,False,6109.679200002574,result_mismatch,"column_mismatch: missing_columns=['MAX(pay_base)'], extra_columns=['max_pay_base'], gold_columns=['MAX(pay_base)'], generated_columns=['max_pay_base']",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:19,condition_test,查一下公司ID为'COMP101'的，在所有有效记录里，员工交过的最低缴费基数。,SELECT MIN(pay_base) FROM social_insurance_payment WHERE company_id = 'COMP101' AND is_valid = '1';,social_insurance_payment,SELECT MIN(pay_base) FROM social_insurance_payment WHERE company_id = 'COMP101' AND is_valid = '有效',True,True,True,True,False,2639.9514000004274,,,D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:20,condition_test,那些身份是个人灵活就业的记录，他们的缴费基数总和是多少？只算有效的记录。,SELECT SUM(pay_base) FROM social_insurance_payment WHERE insurer_status = '102' AND is_valid = '1';,social_insurance_payment,SELECT SUM(pay_base) FROM social_insurance_payment WHERE insurer_status = '个人灵活就业' AND is_valid = '有效',True,True,True,False,False,2249.1076000005705,result_mismatch,"value_mismatch: gold_rows=1, generated_rows=1",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+muti_test:01,muti_test,查询身份证号为'420900199001010001'的人员姓名、性别以及所有的社保缴费记录，包括缴费月份、保险类型和缴费基数。,"SELECT p.name, p.gender, s.pay_month, s.insurance_type, s.pay_base FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.is_valid = '1';","person, social_insurance_payment","SELECT p.name, p.gender, s.pay_month, s.insurance_type, s.pay_base
+FROM person p
+JOIN social_insurance_payment s ON p.id_card = s.id_card
+WHERE p.id_card = '420900199001010001'",True,True,True,True,False,4522.204399996554,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:02,muti_test,查看就业登记中所有有效记录对应的企业名称，列出人员的身份证号、就业形式、合同起止日期和企业名称。,"SELECT e.id_card, e.employment_form, e.contract_start_date, e.contract_end_date, c.company_name FROM employment_registration e JOIN company_info c ON e.company_id = c.company_id WHERE e.is_valid = '1';","employment_registration, company_info","SELECT e.id_card, e.employment_form, e.contract_start_date, e.contract_end_date, c.company_name 
+FROM employment_registration e
+JOIN company_info c ON e.company_id = c.company_id
+WHERE e.is_valid = '有效' AND c.is_valid = '有效'",True,True,True,False,False,4229.8386999973445,result_mismatch,"column_mismatch: missing_columns=['id_card', 'employment_form', 'contract_start_date', 'contract_end_date', 'company_name'], extra_columns=[], gold_columns=['id_card', 'employment_form', 'contract_start_date', 'contract_end_date', 'company_name'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:03,muti_test,统计每家有效企业在2025年的社保缴费总人次，显示企业名称和缴费人次，按缴费人次降序排列，取前10名。,"SELECT c.company_name, COUNT(s.payment_id) AS payment_count FROM social_insurance_payment s JOIN company_info c ON s.company_id = c.company_id WHERE s.is_valid = '1' AND c.is_valid = '1' AND s.pay_month BETWEEN '202501' AND '202512' GROUP BY c.company_name ORDER BY payment_count DESC LIMIT 10;","social_insurance_payment, company_info","WITH valid_companies AS (
+    SELECT company_id
+    FROM company_info
+    WHERE is_valid = '1'
+),
+total_payers AS (
+    SELECT ci.company_name, COUNT(sip.payment_id) AS payer_count
+    FROM social_insurance_payment sip
+    JOIN valid_companies vc ON sip.company_id = vc.company_id
+    JOIN company_info ci ON vc.company_id = ci.company_id
+    WHERE sip.pay_month LIKE '2025%' AND sip.is_valid = '1'
+    GROUP BY ci.company_name
+)
+SELECT company_name, payer_count
+FROM total_payers
+ORDER BY payer_count DESC
+LIMIT 10",True,True,True,False,False,7507.7497999955085,result_mismatch,"column_mismatch: missing_columns=['payment_count'], extra_columns=['payer_count'], gold_columns=['company_name', 'payment_count'], generated_columns=['company_name', 'payer_count']",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:04,muti_test,查询身份证号为'420900199001010001'的人员是否被认定为困难人员，如果有，列出困难类别、认定机构和当前是否有效。,"SELECT p.name, h.hardship_category, h.certify_org, h.is_valid FROM person p LEFT JOIN hardship_certification h ON p.id_card = h.id_card WHERE p.id_card = '420900199001010001';","person, hardship_certification","SELECT hardship_category, certify_org, is_valid FROM hardship_certification WHERE id_card = '420900199001010001'",True,True,True,True,False,5452.134499995736,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:05,muti_test,检查已领取过补贴的人员中，哪些人还在失业登记有效期内，列出姓名、身份证号、失业日期和补贴金额。,"SELECT p.name, u.id_card, u.unemployment_date, s.grant_amount FROM person p JOIN unemployment_registration u ON p.id_card = u.id_card JOIN subsidy_payment_history s ON p.id_card = s.id_card WHERE u.is_valid = '1' AND s.is_valid = '1';","person, unemployment_registration, subsidy_payment_history","WITH subsidy_recipients AS (
+  SELECT id_card, grant_amount
+  FROM subsidy_payment_history
+  WHERE is_valid = '是'
+),
+unemployment_valid AS (
+  SELECT id_card, unemployment_date
+  FROM unemployment_registration
+  WHERE is_valid = '是' AND (cancel_date IS NULL OR cancel_date > CURDATE())
+)
+SELECT p.name, u.id_card, u.unemployment_date, s.grant_amount
+FROM person p
+JOIN unemployment_valid u ON p.id_card = u.id_card
+JOIN subsidy_recipients s ON s.id_card = p.id_card;",True,True,True,False,False,5301.587299996754,result_mismatch,"column_mismatch: missing_columns=['name', 'id_card', 'unemployment_date', 'grant_amount'], extra_columns=[], gold_columns=['name', 'id_card', 'unemployment_date', 'grant_amount'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:06,muti_test,查询在'COMP101'企业就业且已缴纳社保的人员名单，列出姓名、身份证号、就业形式和社保缴费基数，按缴费月份从近到远排序。,"SELECT p.name, e.id_card, e.employment_form, s.pay_base FROM person p JOIN employment_registration e ON p.id_card = e.id_card JOIN social_insurance_payment s ON p.id_card = s.id_card AND e.company_id = s.company_id WHERE e.company_id = 'COMP101' AND e.is_valid = '1' AND s.is_valid = '1' ORDER BY s.pay_month DESC;","person, employment_registration, social_insurance_payment","WITH employed_with_insurance AS (
+    SELECT 
+        p.name, 
+        p.id_card, 
+        er.employment_form, 
+        sip.pay_base, 
+        sip.pay_month
+    FROM 
+        person p
+    JOIN 
+        employment_registration er ON p.id_card = er.id_card
+    JOIN 
+        social_insurance_payment sip ON p.id_card = sip.id_card
+    WHERE 
+        er.company_id = 'COMP101' AND
+        er.is_valid = '是' AND
+        sip.is_valid = '是'
+)
+SELECT 
+    name, 
+    id_card, 
+    employment_form, 
+    pay_base
+FROM 
+    employed_with_insurance
+ORDER BY 
+    pay_month DESC",True,True,True,True,False,14683.107699995162,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:07,muti_test,统计政策编码为'POLICY_001'的补贴发放总金额和领取人数。,"SELECT s.policy_code, COUNT(DISTINCT p.id_card) AS recipient_count, SUM(s.grant_amount) AS total_amount FROM subsidy_payment_history s JOIN person p ON s.id_card = p.id_card WHERE s.policy_code = 'POLICY_001' AND s.is_valid = '1' GROUP BY s.policy_code;","person, subsidy_payment_history","SELECT SUM(grant_amount) AS total_grant_amount, COUNT(DISTINCT id_card) AS recipient_count 
+FROM subsidy_payment_history 
+WHERE policy_code = 'POLICY_001' AND is_valid = '是'",True,True,True,False,False,3841.480100003537,result_mismatch,"column_mismatch: missing_columns=[], extra_columns=['total_grant_amount', 'recipient_count'], gold_columns=[], generated_columns=['total_grant_amount', 'recipient_count']",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:08,muti_test,查询有社保缴费记录但未做就业登记的人员，列出身份证号和姓名。,"SELECT DISTINCT p.id_card, p.name FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card LEFT JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' WHERE s.is_valid = '1' AND e.record_id IS NULL;","person, social_insurance_payment, employment_registration","SELECT p.id_card, p.name
+FROM person p
+JOIN social_insurance_payment sip ON p.id_card = sip.id_card
+LEFT JOIN employment_registration er ON p.id_card = er.id_card
+WHERE er.record_id IS NULL",True,True,True,True,False,4512.506999999459,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:09,muti_test,查看身份证号为'420900199001010001'的人员所有有效补贴发放记录，以及每次补贴对应的政策编码和享受月份起止。,"SELECT p.name, s.policy_code, s.apply_start_month, s.apply_end_month, s.first_enjoy_month, s.grant_months, s.grant_amount FROM person p JOIN subsidy_payment_history s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.is_valid = '1' ORDER BY s.grant_date;","person, subsidy_payment_history","SELECT policy_code, apply_start_month, apply_end_month, grant_months, grant_amount, grant_date
+FROM subsidy_payment_history
+WHERE id_card = '420900199001010001' AND is_valid = '有效'",True,True,True,True,False,5591.447599996172,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:10,muti_test,找出所有困难人员认定有效，并且有社保缴费记录的人员，列出姓名、困难类别、社保缴费月份和缴费基数。,"SELECT p.name, h.hardship_category, s.pay_month, s.pay_base FROM person p JOIN hardship_certification h ON p.id_card = h.id_card AND h.is_valid = '1' JOIN social_insurance_payment s ON p.id_card = s.id_card AND s.is_valid = '1' ORDER BY s.pay_month DESC;","person, hardship_certification, social_insurance_payment","WITH valid_hardship AS (
+  SELECT id_card, hardship_category
+  FROM hardship_certification
+  WHERE is_valid = '是'
+),
+social_insurance AS (
+  SELECT id_card, pay_month, pay_base
+  FROM social_insurance_payment
+  WHERE is_valid = '是'
+)
+SELECT p.name, vh.hardship_category, si.pay_month, si.pay_base
+FROM person p
+JOIN valid_hardship vh ON p.id_card = vh.id_card
+JOIN social_insurance si ON p.id_card = si.id_card",True,True,True,False,False,6995.97669999639,result_mismatch,"column_mismatch: missing_columns=['name', 'hardship_category', 'pay_month', 'pay_base'], extra_columns=[], gold_columns=['name', 'hardship_category', 'pay_month', 'pay_base'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:11,muti_test,查询每家企业为其员工缴纳社保的平均缴费基数，显示企业名称和平均缴费基数，只显示平均基数大于5000的企业。,"SELECT c.company_name, AVG(s.pay_base) AS avg_pay_base FROM social_insurance_payment s JOIN company_info c ON s.company_id = c.company_id WHERE s.is_valid = '1' AND c.is_valid = '1' GROUP BY c.company_name HAVING AVG(s.pay_base) > 5000;","social_insurance_payment, company_info","WITH avg_pay_base AS (
+  SELECT 
+    c.company_name, 
+    AVG(s.pay_base) AS average_base
+  FROM 
+    social_insurance_payment s
+  JOIN 
+    company_info c ON s.company_id = c.company_id
+  WHERE 
+    s.is_valid = '有效' AND c.is_valid = '有效'
+  GROUP BY 
+    c.company_name
+)
+SELECT 
+  company_name, 
+  average_base
+FROM 
+  avg_pay_base
+WHERE 
+  average_base > 5000;",True,True,True,False,False,11226.903199996741,result_mismatch,"column_mismatch: missing_columns=['company_name', 'avg_pay_base'], extra_columns=[], gold_columns=['company_name', 'avg_pay_base'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:12,muti_test,查询身份证号为'420900199001010001'的人员，在公司编号为'COMP101'的企业，社保缴费的最高和最低缴费基数。,"SELECT p.name, MAX(s.pay_base) AS max_pay_base, MIN(s.pay_base) AS min_pay_base FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.company_id = 'COMP101' AND s.is_valid = '1' GROUP BY p.name;","person, social_insurance_payment","SELECT MAX(pay_base) AS max_pay_base, MIN(pay_base) AS min_pay_base 
+FROM social_insurance_payment 
+WHERE id_card = '420900199001010001' AND company_id = 'COMP101'",True,True,True,False,False,5503.611699998146,result_mismatch,"column_mismatch: missing_columns=[], extra_columns=['max_pay_base', 'min_pay_base'], gold_columns=[], generated_columns=['max_pay_base', 'min_pay_base']",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:13,muti_test,查看'COMP101'这家企业的所有有效补贴领取人员，显示姓名、身份证号、政策编码和发放金额，按发放日期降序排列。,"SELECT p.name, s.id_card, s.policy_code, s.grant_amount FROM subsidy_payment_history s JOIN person p ON s.id_card = p.id_card JOIN employment_registration e ON p.id_card = e.id_card AND e.company_id = 'COMP101' WHERE s.is_valid = '1' AND e.is_valid = '1' ORDER BY s.grant_date DESC;","subsidy_payment_history, person, employment_registration","SELECT p.name, p.id_card, sph.policy_code, sph.grant_amount
+FROM subsidy_payment_history sph
+JOIN person p ON sph.id_card = p.id_card
+WHERE sph.is_valid = '有效' AND p.business_role = 'COMP101'
+ORDER BY sph.grant_date DESC",True,True,True,True,False,4604.181299997435,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:14,muti_test,查询同时存在就业登记和失业登记记录的人员，列出身份证号、姓名、就业企业名称和失业日期。,"SELECT p.id_card, p.name, c.company_name, u.unemployment_date FROM person p JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' JOIN unemployment_registration u ON p.id_card = u.id_card AND u.is_valid = '1' LEFT JOIN company_info c ON e.company_id = c.company_id;","person, employment_registration, unemployment_registration, company_info","WITH employment_unemployment AS (
+    SELECT 
+        e.id_card,
+        p.name,
+        c.company_name,
+        u.unemployment_date
+    FROM 
+        employment_registration e
+    JOIN 
+        person p ON e.id_card = p.id_card
+    JOIN 
+        company_info c ON e.company_id = c.company_id
+    JOIN 
+        unemployment_registration u ON e.id_card = u.id_card
+    WHERE 
+        e.is_valid = '是' AND u.is_valid = '是'
+)
+SELECT * FROM employment_unemployment",True,True,True,False,False,8233.010700001614,result_mismatch,"column_mismatch: missing_columns=['id_card', 'name', 'company_name', 'unemployment_date'], extra_columns=[], gold_columns=['id_card', 'name', 'company_name', 'unemployment_date'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:15,muti_test,统计困难认定类别为'低保'且当前认定有效的人员中，有多少人已享受过补贴，以及补贴总额。,"SELECT COUNT(DISTINCT h.id_card) AS person_count, SUM(s.grant_amount) AS total_subsidy FROM hardship_certification h JOIN subsidy_payment_history s ON h.id_card = s.id_card WHERE h.hardship_category = '低保' AND h.is_valid = '1' AND s.is_valid = '1';","hardship_certification, subsidy_payment_history","WITH valid_certifications AS (
+    SELECT id_card
+    FROM hardship_certification
+    WHERE hardship_category = '低保' AND is_valid = '是' AND (cancel_date IS NULL OR cancel_date > CURDATE())
+),
+subsidy_recipients AS (
+    SELECT id_card, SUM(grant_amount) AS total_grant
+    FROM subsidy_payment_history
+    WHERE id_card IN (SELECT id_card FROM valid_certifications)
+    GROUP BY id_card
+)
+SELECT COUNT(*) AS recipient_count, COALESCE(SUM(total_grant), 0) AS total_grant_amount
+FROM subsidy_recipients;",True,True,True,False,False,8554.92690000392,result_mismatch,"column_mismatch: missing_columns=['person_count', 'total_subsidy'], extra_columns=['recipient_count', 'total_grant_amount'], gold_columns=['person_count', 'total_subsidy'], generated_columns=['recipient_count', 'total_grant_amount']",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:16,muti_test,查询2024年1月后做过就业登记，但至今没有社保缴费记录的人员，列出身份证号和就业企业编号。,"SELECT e.id_card, e.company_id FROM employment_registration e LEFT JOIN social_insurance_payment s ON e.id_card = s.id_card AND s.is_valid = '1' WHERE e.employment_date > '2024-01-01' AND e.is_valid = '1' AND s.payment_id IS NULL;","employment_registration, social_insurance_payment","WITH employment AS (
+    SELECT id_card, company_id
+    FROM employment_registration
+    WHERE employment_date > '2024-01-01' AND is_valid = '是'
+),
+insurance AS (
+    SELECT id_card
+    FROM social_insurance_payment
+    WHERE is_valid = '是'
+)
+SELECT e.id_card, e.company_id
+FROM employment e
+LEFT JOIN insurance i ON e.id_card = i.id_card
+WHERE i.id_card IS NULL",True,True,True,False,False,7168.73779999878,result_mismatch,"column_mismatch: missing_columns=['id_card', 'company_id'], extra_columns=[], gold_columns=['id_card', 'company_id'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:17,muti_test,查询法律实体身份证号为'420900199001010001'的企业名下，所有在职员工的社保缴费记录，显示企业名称、员工姓名、缴费月份和缴费基数。,"SELECT c.company_name, p.name, s.pay_month, s.pay_base FROM company_info c JOIN employment_registration e ON c.company_id = e.company_id AND e.is_valid = '1' JOIN person p ON e.id_card = p.id_card JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE c.legal_person_id_card = '420900199001010001' AND c.is_valid = '1' AND s.is_valid = '1' ORDER BY s.pay_month DESC;","company_info, employment_registration, person, social_insurance_payment","WITH company_employees AS (
+  SELECT c.company_name, p.name, e.id_card
+  FROM employment_registration e
+  JOIN company_info c ON e.company_id = c.company_id
+  JOIN person p ON e.id_card = p.id_card
+  WHERE c.legal_person_id_card = '420900199001010001' AND e.is_valid = '是'
+)
+SELECT ce.company_name, ce.name, sip.pay_month, sip.pay_base
+FROM company_employees ce
+JOIN social_insurance_payment sip ON ce.id_card = sip.id_card
+WHERE sip.is_valid = '是';",True,True,True,True,False,8152.086300004157,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:18,muti_test,查询在'COMP101'企业就业，人员状态正常且合同开始日期在2023年之后的人员中，哪些人没有困难人员认定记录，显示姓名和身份证号。,"SELECT p.name, p.id_card FROM person p JOIN employment_registration e ON p.id_card = e.id_card LEFT JOIN hardship_certification h ON p.id_card = h.id_card AND h.is_valid = '1' WHERE e.company_id = 'COMP101' AND p.system_status = '1' AND e.contract_start_date > '2023-01-01' AND e.is_valid = '1' AND h.cert_id IS NULL;","person, employment_registration, hardship_certification","WITH valid_employment AS (
+    SELECT id_card
+    FROM employment_registration
+    WHERE company_id = 'COMP101' AND system_status = '正常' AND contract_start_date > '2023-01-01'
+),
+no_hardship_certification AS (
+    SELECT id_card
+    FROM person
+    WHERE id_card NOT IN (SELECT id_card FROM hardship_certification)
+)
+SELECT p.name, p.id_card
+FROM person p
+JOIN valid_employment ve ON p.id_card = ve.id_card
+JOIN no_hardship_certification nhc ON p.id_card = nhc.id_card;",True,False,False,False,False,11775.14560000418,syntax_error,"(pymysql.err.OperationalError) (1054, ""Unknown column 'system_status' in 'where clause'"")
+[SQL: EXPLAIN WITH valid_employment AS (
+    SELECT id_card
+    FROM employment_registration
+    WHERE company_id = 'COMP101' AND system_status = '正常' AND contract_start_date > '2023-01-01'
+),
+no_hardship_certification AS (
+    SELECT id_card
+    FROM person
+    WHERE id_card NOT IN (SELECT id_card FROM hardship_certification)
+)
+SELECT p.name, p.id_card
+FROM person p
+JOIN valid_employment ve ON p.id_card = ve.id_card
+JOIN no_hardship_certification nhc ON p.id_card = nhc.id_card]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:19,muti_test,统计每种失业原因下，已领取过补贴的人数，按人数降序排列，只显示人数超过5的失业原因。,"SELECT u.unemployment_reason, COUNT(DISTINCT s.id_card) AS recipient_count FROM unemployment_registration u JOIN subsidy_payment_history s ON u.id_card = s.id_card WHERE u.is_valid = '1' AND s.is_valid = '1' GROUP BY u.unemployment_reason HAVING COUNT(DISTINCT s.id_card) > 5 ORDER BY recipient_count DESC;","unemployment_registration, subsidy_payment_history","WITH subsidy_recipients AS (
+  SELECT DISTINCT id_card
+  FROM subsidy_payment_history
+  WHERE is_valid = '1'
+),
+unemployment_reasons AS (
+  SELECT unemployment_reason, COUNT(DISTINCT ur.id_card) AS recipient_count
+  FROM unemployment_registration ur
+  JOIN subsidy_recipients sr ON ur.id_card = sr.id_card
+  WHERE ur.is_valid = '1'
+  GROUP BY unemployment_reason
+)
+SELECT unemployment_reason, recipient_count
+FROM unemployment_reasons
+WHERE recipient_count > 5
+ORDER BY recipient_count DESC;",True,True,True,True,False,7086.017699999502,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:20,muti_test,查询政策编码为'POLICY_001'的补贴发放记录中，每位领取人员的姓名、身份证号、领取金额和领取日期，以及该人员当前是否在就业登记有效状态。,"SELECT p.name, s.id_card, s.grant_amount, s.grant_date, CASE WHEN e.record_id IS NOT NULL THEN '是' ELSE '否' END AS is_employed FROM person p JOIN subsidy_payment_history s ON p.id_card = s.id_card LEFT JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' WHERE s.policy_code = 'POLICY_001' AND s.is_valid = '1';","person, subsidy_payment_history, employment_registration","WITH subsidy_info AS (
+  SELECT 
+    p.name, 
+    s.id_card, 
+    s.grant_amount, 
+    s.grant_date,
+    er.is_valid AS employment_registration_status
+  FROM 
+    subsidy_payment_history s
+  JOIN 
+    person p ON s.id_card = p.id_card
+  LEFT JOIN 
+    (SELECT id_card, is_valid FROM employment_registration WHERE is_valid = '有效' ORDER BY sync_date DESC LIMIT 1) er 
+    ON s.id_card = er.id_card
+  WHERE 
+    s.policy_code = 'POLICY_001'
+)
+SELECT 
+  name, 
+  id_card, 
+  grant_amount, 
+  grant_date, 
+  CASE 
+    WHEN employment_registration_status = '有效' THEN '是'
+    ELSE '否'
+  END AS is_currently_registered
+FROM 
+  subsidy_info",True,True,True,True,False,20137.274400003662,,,D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+simple_test:01,simple_test,帮我查一下身份证号为420900199001010001这个人的所有社保缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001',True,True,True,True,False,3164.6022999993875,,,D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:02,simple_test,查询所有养老保险的缴费记录，看看都有哪些人交过。,SELECT * FROM social_insurance_payment WHERE insurance_type = '110';,social_insurance_payment,SELECT id_card FROM social_insurance_payment WHERE insurance_type = '养老保险' GROUP BY id_card,True,True,True,False,False,2351.425900000322,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:03,simple_test,2024年1月份一共有哪些社保缴费记录，把那个月的缴费记录调出来看看。,SELECT * FROM social_insurance_payment WHERE pay_month = '202401';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE pay_month = '202401' AND is_valid = '有效',True,True,True,True,False,2992.905300001439,,,D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:04,simple_test,身份证号420900199001010001这个人，他的医疗保险都交了哪几个月？,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '310';,social_insurance_payment,SELECT pay_month FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '医疗保险',True,True,True,True,False,7036.906100001943,,,D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:05,simple_test,查一下2023年7月到2023年12月这半年期间，所有人员的社保缴费情况。,SELECT * FROM social_insurance_payment WHERE pay_month >= '202307' AND pay_month <= '202312';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE pay_month BETWEEN '202307' AND '202312',True,True,True,True,False,2771.5571000007913,,,D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:06,simple_test,看看以个人灵活就业身份参保的人，他们的缴费记录有哪些。,SELECT * FROM social_insurance_payment WHERE insurer_status = '102';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE insurer_status = '个人灵活就业',True,True,True,False,False,2073.0746000044746,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:07,simple_test,把状态正常的有效缴费记录都查出来，作废的那些不要。,SELECT * FROM social_insurance_payment WHERE is_valid = '1';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE insurer_status = '正常' AND is_valid = '有效',True,True,True,False,False,3637.0535000023665,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:08,simple_test,统计一下，到目前为止养老保险一共有多少条缴费记录？,SELECT COUNT(*) AS payment_count FROM social_insurance_payment WHERE insurance_type = '110';,social_insurance_payment,SELECT COUNT(*) FROM social_insurance_payment WHERE insurance_type = '养老保险',True,True,True,False,False,1628.5001000069315,result_mismatch,"column_mismatch: missing_columns=['payment_count'], extra_columns=['COUNT(*)'], gold_columns=['payment_count'], generated_columns=['COUNT(*)']",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:09,simple_test,养老保险的缴费基数平均下来是多少钱？,SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE insurance_type = '110';,social_insurance_payment,SELECT AVG(pay_base) FROM social_insurance_payment WHERE insurance_type = '养老保险' AND is_valid = '有效',True,True,True,False,False,2561.3875999988522,result_mismatch,"column_mismatch: missing_columns=['avg_pay_base'], extra_columns=['AVG(pay_base)'], gold_columns=['avg_pay_base'], generated_columns=['AVG(pay_base)']",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:10,simple_test,身份证号420900199001010001这个人，2023年以单位缴费身份缴纳的、并且是有效状态的养老保险记录有哪些？,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month >= '202301' AND pay_month <= '202312' AND insurer_status = '101' AND insurance_type = '110' AND is_valid = '1';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month LIKE '2023%' AND insurer_status = '单位缴费' AND insurance_type = '养老保险' AND is_valid = '有效',True,True,True,True,False,5228.972500000964,,,D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:11,simple_test,医疗保险里缴费基数最高的是多少？,SELECT MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE insurance_type = '310';,social_insurance_payment,SELECT MAX(pay_base) FROM social_insurance_payment WHERE insurance_type = '医疗保险' AND is_valid = '有效',True,True,True,False,False,2500.9009999994305,result_mismatch,"column_mismatch: missing_columns=['max_pay_base'], extra_columns=['MAX(pay_base)'], gold_columns=['max_pay_base'], generated_columns=['MAX(pay_base)']",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:12,simple_test,2024年养老保险最低的缴费基数是多少？,SELECT MIN(pay_base) AS min_pay_base FROM social_insurance_payment WHERE insurance_type = '110' AND pay_month >= '202401' AND pay_month <= '202412';,social_insurance_payment,SELECT MIN(pay_base) FROM social_insurance_payment WHERE insurance_type = '养老保险' AND pay_month LIKE '2024%' AND is_valid = '有效',True,True,True,False,False,2443.880300001183,result_mismatch,"column_mismatch: missing_columns=['min_pay_base'], extra_columns=['MIN(pay_base)'], gold_columns=['min_pay_base'], generated_columns=['MIN(pay_base)']",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:13,simple_test,把2024年3月的养老保险缴费记录，按缴费基数从高到低排个序给我看看。,SELECT * FROM social_insurance_payment WHERE pay_month = '202403' AND insurance_type = '110' ORDER BY pay_base DESC;,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE pay_month = '202403' AND insurance_type = '养老保险' ORDER BY pay_base DESC,True,True,True,True,False,2459.9980999992113,,,D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:14,simple_test,查一下2023年全年的医疗保险缴费记录，只看前10条就行。,SELECT * FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month >= '202301' AND pay_month <= '202312' LIMIT 10;,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE insurance_type = '医疗保险' AND pay_month LIKE '2023%' AND is_valid = '有效' LIMIT 10,True,True,True,True,False,3437.6092000020435,,,D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:15,simple_test,身份证号420900199001010001这个人，他有效状态的养老保险一共交了多少个月？,SELECT COUNT(*) AS payment_months FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '110' AND is_valid = '1';,social_insurance_payment,"WITH valid_pensions AS (
+    SELECT 
+        pay_month
+    FROM 
+        social_insurance_payment
+    WHERE 
+        id_card = '420900199001010001'
+        AND insurance_type = '养老保险'
+        AND is_valid = '有效'
+)
+SELECT 
+    COUNT(pay_month) AS total_months
+FROM 
+    valid_pensions;",True,True,True,False,False,5736.3014000002295,result_mismatch,"column_mismatch: missing_columns=['payment_months'], extra_columns=['total_months'], gold_columns=['payment_months'], generated_columns=['total_months']",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:16,simple_test,查一下2024年医疗保险缴费基数最低的3条记录。,SELECT * FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month >= '202401' AND pay_month <= '202412' ORDER BY pay_base ASC LIMIT 3;,social_insurance_payment,"WITH ranked_payments AS (
+  SELECT *, RANK() OVER (ORDER BY pay_base ASC) as rank
+  FROM social_insurance_payment
+  WHERE insurance_type = '医疗保险' AND pay_month LIKE '2024%'
+)
+SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid
+FROM ranked_payments
+WHERE rank <= 3;",True,False,False,False,False,5623.558100000082,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'rank\n  FROM social_insurance_payment\n  WHERE insurance_type = '医疗保险' AND' at line 2"")
+[SQL: EXPLAIN WITH ranked_payments AS (
+  SELECT *, RANK() OVER (ORDER BY pay_base ASC) as rank
+  FROM social_insurance_payment
+  WHERE insurance_type = '医疗保险' AND pay_month LIKE '2024%%'
+)
+SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid
+FROM ranked_payments
+WHERE rank <= 3]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:17,simple_test,帮我查查420900199001010001这个人在2024年7月到9月这三个月所有的缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month >= '202407' AND pay_month <= '202409';,social_insurance_payment,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '2407' AND '2409',True,True,True,True,False,8002.133100002538,,,D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:18,simple_test,看看单位缴费和个人灵活就业两类参保身份的社保缴费都是什么情况。,"SELECT * FROM social_insurance_payment WHERE insurer_status IN ('101', '102');",social_insurance_payment,"WITH insurer_data AS (
+  SELECT 
+    insurer_status,
+    insurance_type,
+    COUNT(*) AS payment_count,
+    AVG(pay_base) AS average_pay_base
+  FROM 
+    social_insurance_payment
+  WHERE 
+    insurer_status IN ('单位缴费', '个人灵活就业')
+  GROUP BY 
+    insurer_status, insurance_type
+)
+SELECT * FROM insurer_data",True,True,True,False,False,5892.280799998844,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:19,simple_test,公司ID为1001的这个单位，2024年总共缴了多少次社保？,SELECT COUNT(*) AS total_count FROM social_insurance_payment WHERE company_id = '1001' AND pay_month >= '202401' AND pay_month <= '202412';,social_insurance_payment,SELECT COUNT(*) FROM social_insurance_payment WHERE company_id = '1001' AND pay_month LIKE '2024%' AND is_valid = '有效',True,True,True,False,False,4394.158199997037,result_mismatch,"column_mismatch: missing_columns=['total_count'], extra_columns=['COUNT(*)'], gold_columns=['total_count'], generated_columns=['COUNT(*)']",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:20,simple_test,2023年以单位缴费身份缴纳的、并且有效的医疗保险，一共有多少条记录？,SELECT COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '310' AND insurer_status = '101' AND is_valid = '1' AND pay_month >= '202301' AND pay_month <= '202312';,social_insurance_payment,SELECT COUNT(*) FROM social_insurance_payment WHERE insurer_status = '单位' AND insurance_type = '医疗保险' AND is_valid = '有效' AND pay_month LIKE '2023%',True,True,True,False,False,3239.0508000025875,result_mismatch,"column_mismatch: missing_columns=['record_count'], extra_columns=['COUNT(*)'], gold_columns=['record_count'], generated_columns=['COUNT(*)']",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+sum_test:01,sum_test,系统里总共有多少条社保缴费记录？,SELECT COUNT(*) AS total_count FROM social_insurance_payment;,social_insurance_payment,SELECT COUNT(*) FROM social_insurance_payment,True,True,True,False,False,1406.176399999822,result_mismatch,"column_mismatch: missing_columns=['total_count'], extra_columns=['COUNT(*)'], gold_columns=['total_count'], generated_columns=['COUNT(*)']",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:02,sum_test,有多少名不同的参保人至少有过一次缴费记录？按身份证号去重统计。,SELECT COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment;,social_insurance_payment,SELECT COUNT(DISTINCT id_card) FROM social_insurance_payment,True,True,True,False,False,1638.5240000017802,result_mismatch,"column_mismatch: missing_columns=['person_count'], extra_columns=['COUNT(DISTINCT id_card)'], gold_columns=['person_count'], generated_columns=['COUNT(DISTINCT id_card)']",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:03,sum_test,2023年11月医保的有效缴费总金额（缴费基数求和）是多少？,SELECT SUM(pay_base) AS total_pay_base FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month = '202311' AND is_valid = '1';,social_insurance_payment,SELECT SUM(pay_base) FROM social_insurance_payment WHERE pay_month = '202311' AND insurance_type = '医保' AND is_valid = '有效',True,True,True,False,False,3554.7535000005155,result_mismatch,"column_mismatch: missing_columns=['total_pay_base'], extra_columns=['SUM(pay_base)'], gold_columns=['total_pay_base'], generated_columns=['SUM(pay_base)']",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:04,sum_test,所有缴费记录中，个人灵活就业身份的平均缴费基数是多少？,SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE insurer_status = '102';,social_insurance_payment,SELECT AVG(pay_base) FROM social_insurance_payment WHERE insurer_status = '个人灵活就业',True,True,True,False,False,3029.587899996841,result_mismatch,"column_mismatch: missing_columns=['avg_pay_base'], extra_columns=['AVG(pay_base)'], gold_columns=['avg_pay_base'], generated_columns=['AVG(pay_base)']",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:05,sum_test,单位缴费记录里缴费基数的最高值和最低值分别是多少？,"SELECT MAX(pay_base) AS max_pay_base, MIN(pay_base) AS min_pay_base FROM social_insurance_payment WHERE insurer_status = '101';",social_insurance_payment,"SELECT MAX(pay_base) AS max_pay_base, MIN(pay_base) AS min_pay_base FROM social_insurance_payment",True,True,True,True,False,2879.7293999959948,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:06,sum_test,各个险种的缴费人数是多少？按险种分组统计，只统计有效记录。,"SELECT insurance_type, COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY insurance_type;",social_insurance_payment,"SELECT insurance_type, COUNT(*) AS number_of_payers
+FROM social_insurance_payment
+WHERE is_valid = '有效'
+GROUP BY insurance_type",True,True,True,False,False,3518.792399998347,result_mismatch,"column_mismatch: missing_columns=['insurance_type', 'person_count'], extra_columns=[], gold_columns=['insurance_type', 'person_count'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:07,sum_test,2024年各月的缴费记录数有多少？按月份分组，并按月份升序排列。,"SELECT pay_month, COUNT(*) AS record_count FROM social_insurance_payment WHERE pay_month BETWEEN '202401' AND '202412' GROUP BY pay_month ORDER BY pay_month ASC;",social_insurance_payment,"SELECT pay_month, COUNT(*) AS payment_count 
+FROM social_insurance_payment
+WHERE pay_month LIKE '2024%'
+GROUP BY pay_month
+ORDER BY pay_month ASC",True,True,True,True,False,3303.8197999994736,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:08,sum_test,哪些企业的有效缴费平均基数超过了8000元？只显示企业编号和平均基数。,"SELECT company_id, AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id HAVING AVG(pay_base) > 8000;",social_insurance_payment,"SELECT company_id, AVG(pay_base) AS avg_pay_base
+FROM social_insurance_payment
+WHERE is_valid = '是'
+GROUP BY company_id
+HAVING AVG(pay_base) > 8000;",True,True,True,True,False,3921.283100004075,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:09,sum_test,身份证号'420900199001010001'的这个人，在2023年所有有效缴费月份中，最高缴费基数是多少？,SELECT MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND is_valid = '1';,social_insurance_payment,"WITH valid_payments AS (
+  SELECT pay_base
+  FROM social_insurance_payment
+  WHERE id_card = '420900199001010001'
+    AND pay_month LIKE '2023%'
+    AND is_valid = '有效'
+)
+SELECT MAX(pay_base) AS max_pay_base
+FROM valid_payments",True,True,True,True,False,5861.473599994497,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:10,sum_test,统计各险种的有效缴费记录数，只显示记录数大于100的险种，并按记录数从高到低排序。,"SELECT insurance_type, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY insurance_type HAVING COUNT(*) > 100 ORDER BY record_count DESC;",social_insurance_payment,"SELECT insurance_type, COUNT(*) AS valid_count
+FROM social_insurance_payment
+WHERE is_valid = '是'
+GROUP BY insurance_type
+HAVING valid_count > 100
+ORDER BY valid_count DESC",True,True,True,True,False,4060.394499996619,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:11,sum_test,缴费基数低于3957元的记录有多少条？,SELECT COUNT(*) AS low_base_count FROM social_insurance_payment WHERE pay_base < 3957;,social_insurance_payment,SELECT COUNT(*) FROM social_insurance_payment WHERE pay_base < 3957,True,True,True,False,False,2072.966300002008,result_mismatch,"column_mismatch: missing_columns=['low_base_count'], extra_columns=['COUNT(*)'], gold_columns=['low_base_count'], generated_columns=['COUNT(*)']",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:12,sum_test,企业'COMP101'在2023年11月的有效缴费记录中，缴费基数在5000到10000之间的记录有多少条？,SELECT COUNT(*) AS record_count FROM social_insurance_payment WHERE company_id = 'COMP101' AND pay_month = '202311' AND is_valid = '1' AND pay_base BETWEEN 5000 AND 10000;,social_insurance_payment,SELECT COUNT(*) FROM social_insurance_payment WHERE company_id = 'COMP101' AND pay_month = '202311' AND is_valid = '是' AND pay_base BETWEEN 5000 AND 10000,True,True,True,False,False,5017.373299997416,result_mismatch,"column_mismatch: missing_columns=['record_count'], extra_columns=['COUNT(*)'], gold_columns=['record_count'], generated_columns=['COUNT(*)']",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:13,sum_test,2024年度，个人灵活就业与单位缴费两种身份各自的有效缴费总人数（按身份证去重）是多少？,"SELECT insurer_status, COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment WHERE pay_month BETWEEN '202401' AND '202412' AND is_valid = '1' AND insurer_status IN ('101', '102') GROUP BY insurer_status;",social_insurance_payment,"WITH valid_payments AS (
+  SELECT
+    id_card,
+    insurer_status
+  FROM
+    social_insurance_payment
+  WHERE
+    pay_month LIKE '2024%'
+    AND is_valid = '是'
+)
+SELECT
+  insurer_status,
+  COUNT(DISTINCT id_card) AS total_valid_payers
+FROM
+  valid_payments
+GROUP BY
+  insurer_status;",True,True,True,True,False,5791.690199999721,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:14,sum_test,有效缴费记录中，哪些企业的最高缴费基数排在前5名？,"SELECT company_id, MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id ORDER BY max_pay_base DESC LIMIT 5;",social_insurance_payment,"WITH valid_payments AS (
+  SELECT company_id, pay_base
+  FROM social_insurance_payment
+  WHERE is_valid = '有效'
+),
+max_pay_base_per_company AS (
+  SELECT company_id, MAX(pay_base) AS max_pay_base
+  FROM valid_payments
+  GROUP BY company_id
+)
+SELECT company_id, max_pay_base
+FROM max_pay_base_per_company
+ORDER BY max_pay_base DESC
+LIMIT 5",True,True,True,False,False,5296.781100005319,result_mismatch,"column_mismatch: missing_columns=['company_id', 'max_pay_base'], extra_columns=[], gold_columns=['company_id', 'max_pay_base'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:15,sum_test,统计2023年各月养老保险的有效缴费记录数，按月份升序排列。,"SELECT pay_month, COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '110' AND pay_month BETWEEN '202301' AND '202312' AND is_valid = '1' GROUP BY pay_month ORDER BY pay_month ASC;",social_insurance_payment,"SELECT pay_month, COUNT(*) AS valid_payment_count 
+FROM social_insurance_payment 
+WHERE insurance_type = '养老保险' AND is_valid = '有效' AND pay_month LIKE '2023%' 
+GROUP BY pay_month 
+ORDER BY pay_month ASC",True,True,True,True,False,6053.246399998898,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:16,sum_test,哪些身份证号的有效缴费记录超过5条？列出身份证号和对应的记录数。,"SELECT id_card, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY id_card HAVING COUNT(*) > 5;",social_insurance_payment,"SELECT id_card, COUNT(*) AS record_count 
+FROM social_insurance_payment 
+WHERE is_valid = '有效' 
+GROUP BY id_card 
+HAVING COUNT(*) > 5",True,True,True,False,False,3437.1492999998736,result_mismatch,"column_mismatch: missing_columns=['id_card', 'record_count'], extra_columns=[], gold_columns=['id_card', 'record_count'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:17,sum_test,在所有无效缴费记录中，各企业的记录数分别是多少？按企业分组统计。,"SELECT company_id, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '0' AND company_id IS NOT NULL GROUP BY company_id;",social_insurance_payment,"SELECT company_id, COUNT(*) AS record_count 
+FROM social_insurance_payment 
+WHERE is_valid = '无效' 
+GROUP BY company_id",True,True,True,True,False,2432.1098000000347,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:18,sum_test,2024年前三个月里，单位缴费中缴费基数大于6000的有效记录的平均缴费基数是多少？,"SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE pay_month IN ('202401', '202402', '202403') AND insurer_status = '101' AND pay_base > 6000 AND is_valid = '1';",social_insurance_payment,"WITH valid_records AS (
+    SELECT pay_base
+    FROM social_insurance_payment
+    WHERE pay_month IN ('202401', '202402', '202403')
+    AND insurer_status = '单位'
+    AND pay_base > 6000
+    AND is_valid = '是'
+)
+SELECT AVG(pay_base) AS average_pay_base
+FROM valid_records;",True,True,True,False,False,5490.0448999978835,result_mismatch,"column_mismatch: missing_columns=['avg_pay_base'], extra_columns=['average_pay_base'], gold_columns=['avg_pay_base'], generated_columns=['average_pay_base']",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:19,sum_test,参加医疗保险的缴费记录中，最低的10个缴费基数分别对应多少条记录？按缴费基数升序排列。,"SELECT pay_base, COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '310' GROUP BY pay_base ORDER BY pay_base ASC LIMIT 10;",social_insurance_payment,"WITH ranked_payments AS (
+  SELECT pay_base, COUNT(*) AS record_count
+  FROM social_insurance_payment
+  WHERE insurance_type = '医疗保险' AND is_valid = '有效'
+  GROUP BY pay_base
+  ORDER BY pay_base ASC
+  LIMIT 10
+)
+SELECT pay_base, record_count
+FROM ranked_payments
+ORDER BY pay_base ASC",True,True,True,False,False,5236.724700000195,result_mismatch,"column_mismatch: missing_columns=['pay_base', 'record_count'], extra_columns=[], gold_columns=['pay_base', 'record_count'], generated_columns=[]",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:20,sum_test,统计各企业各险种的有效缴费总金额（缴费基数求和），并找出总金额超过50万的组合，按总金额从高到低排序。,"SELECT company_id, insurance_type, SUM(pay_base) AS total_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id, insurance_type HAVING SUM(pay_base) > 500000 ORDER BY total_pay_base DESC;",social_insurance_payment,"WITH valid_payments AS (
+  SELECT company_id, insurance_type, SUM(pay_base) AS total_amount
+  FROM social_insurance_payment
+  WHERE is_valid = '有效'
+  GROUP BY company_id, insurance_type
+  HAVING total_amount > 500000
+)
+SELECT company_id, insurance_type, total_amount
+FROM valid_payments
+ORDER BY total_amount DESC",True,True,True,True,False,6771.193500004301,,,D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json

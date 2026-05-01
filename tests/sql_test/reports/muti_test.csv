@@ -1,0 +1,558 @@
+﻿case_id,category,question,gold_sql,first_generated_sql,final_generated_sql,first_generation_success,first_syntax_pass,first_execution_success,first_result_match,retry_triggered,retry_count,retry_success,final_success,final_syntax_pass,final_execution_success,final_result_match,first_latency_ms,total_latency_ms,failure_reason,error_message,has_structural_warnings,structural_warnings
+muti_test:01,muti_test,查询身份证号为'420900199001010001'的人员姓名、性别以及所有的社保缴费记录，包括缴费月份、保险类型和缴费基数。,"SELECT p.name, p.gender, s.pay_month, s.insurance_type, s.pay_base FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.is_valid = '1';","SELECT 
+    p.name,
+    p.gender,
+    sip.pay_month,
+    sip.insurance_type,
+    sip.pay_base
+FROM 
+    person p
+JOIN 
+    social_insurance_payment sip
+ON 
+    p.id_card = sip.id_card
+WHERE 
+    p.id_card = '420900199001010001';","SELECT 
+    p.name,
+    p.gender,
+    sip.pay_month,
+    sip.insurance_type,
+    sip.pay_base
+FROM 
+    person p
+JOIN 
+    social_insurance_payment sip
+ON 
+    p.id_card = sip.id_card
+WHERE 
+    p.id_card = '420900199001010001';",True,True,True,True,False,0,False,True,True,True,True,9095.36450000087,9108.449800000017,,,False,[]
+muti_test:02,muti_test,查看就业登记中所有有效记录对应的企业名称，列出人员的身份证号、就业形式、合同起止日期和企业名称。,"SELECT e.id_card, e.employment_form, e.contract_start_date, e.contract_end_date, c.company_name FROM employment_registration e JOIN company_info c ON e.company_id = c.company_id WHERE e.is_valid = '1';","SELECT 
+  er.id_card,
+  er.employment_form,
+  er.contract_start_date,
+  er.contract_end_date,
+  ci.company_name
+FROM 
+  employment_registration er
+JOIN 
+  company_info ci ON er.company_id = ci.company_id
+WHERE 
+  er.is_valid = '1' AND ci.is_valid = '1';","SELECT 
+  er.id_card,
+  er.employment_form,
+  er.contract_start_date,
+  er.contract_end_date,
+  ci.company_name
+FROM 
+  employment_registration er
+JOIN 
+  company_info ci ON er.company_id = ci.company_id
+WHERE 
+  er.is_valid = '1' AND ci.is_valid = '1';",True,True,True,True,False,0,False,True,True,True,True,8566.377700000885,8568.354400000317,,,False,[]
+muti_test:03,muti_test,统计每家有效企业在2025年的社保缴费总人次，显示企业名称和缴费人次，按缴费人次降序排列，取前10名。,"SELECT c.company_name, COUNT(s.payment_id) AS payment_count FROM social_insurance_payment s JOIN company_info c ON s.company_id = c.company_id WHERE s.is_valid = '1' AND c.is_valid = '1' AND s.pay_month BETWEEN '202501' AND '202512' GROUP BY c.company_name ORDER BY payment_count DESC LIMIT 10;","SELECT 
+  c.company_name,
+  COUNT(s.payment_id) AS payment_count
+FROM 
+  social_insurance_payment s
+JOIN 
+  company_info c ON s.company_id = c.company_id
+WHERE 
+  s.pay_month LIKE '2025%' 
+  AND s.is_valid = '1' 
+  AND c.is_valid = '1'
+GROUP BY 
+  c.company_name
+ORDER BY 
+  payment_count DESC
+LIMIT 10;","SELECT 
+  c.company_name,
+  COUNT(s.payment_id) AS payment_count
+FROM 
+  social_insurance_payment s
+JOIN 
+  company_info c ON s.company_id = c.company_id
+WHERE 
+  s.pay_month LIKE '2025%' 
+  AND s.is_valid = '1' 
+  AND c.is_valid = '1'
+GROUP BY 
+  c.company_name
+ORDER BY 
+  payment_count DESC
+LIMIT 10;",True,True,True,True,False,0,False,True,True,True,True,18511.76359999954,18515.542899998763,,,False,[]
+muti_test:04,muti_test,查询身份证号为'420900199001010001'的人员是否被认定为困难人员，如果有，列出困难类别、认定机构和当前是否有效。,"SELECT p.name, h.hardship_category, h.certify_org, h.is_valid FROM person p LEFT JOIN hardship_certification h ON p.id_card = h.id_card WHERE p.id_card = '420900199001010001';","SELECT 
+  p.id_card,
+  p.name,
+  hc.hardship_category,
+  hc.certify_org,
+  CASE 
+    WHEN hc.cancel_date IS NULL THEN '有效'
+    ELSE '无效'
+  END AS is_valid
+FROM 
+  person p
+LEFT JOIN 
+  hardship_certification hc ON p.id_card = hc.id_card
+WHERE 
+  p.id_card = '420900199001010001';","SELECT 
+  p.id_card,
+  p.name,
+  hc.hardship_category,
+  hc.certify_org,
+  CASE 
+    WHEN hc.cancel_date IS NULL THEN '有效'
+    ELSE '无效'
+  END AS is_valid
+FROM 
+  person p
+LEFT JOIN 
+  hardship_certification hc ON p.id_card = hc.id_card
+WHERE 
+  p.id_card = '420900199001010001';",True,True,True,True,False,0,False,True,True,True,True,9775.708099999974,9784.377199999653,,,False,[]
+muti_test:05,muti_test,检查已领取过补贴的人员中，哪些人还在失业登记有效期内，列出姓名、身份证号、失业日期和补贴金额。,"SELECT p.name, u.id_card, u.unemployment_date, s.grant_amount FROM person p JOIN unemployment_registration u ON p.id_card = u.id_card JOIN subsidy_payment_history s ON p.id_card = s.id_card WHERE u.is_valid = '1' AND s.is_valid = '1';","SELECT 
+  p.name, 
+  p.id_card, 
+  u.unemployment_date, 
+  s.grant_amount
+FROM 
+  person p
+JOIN 
+  unemployment_registration u ON p.id_card = u.id_card
+JOIN 
+  subsidy_payment_history s ON p.id_card = s.id_card
+WHERE 
+  u.is_valid = '1' 
+  AND s.is_valid = '1' 
+  AND (u.cancel_date IS NULL OR u.cancel_date > CURDATE());","SELECT 
+  p.name, 
+  p.id_card, 
+  u.unemployment_date, 
+  s.grant_amount
+FROM 
+  person p
+JOIN 
+  unemployment_registration u ON p.id_card = u.id_card
+JOIN 
+  subsidy_payment_history s ON p.id_card = s.id_card
+WHERE 
+  u.is_valid = '1' 
+  AND s.is_valid = '1' 
+  AND (u.cancel_date IS NULL OR u.cancel_date > CURDATE());",True,True,True,True,False,0,False,True,True,True,True,16916.29439999997,16929.482199999256,,,False,[]
+muti_test:06,muti_test,查询在'COMP101'企业就业且已缴纳社保的人员名单，列出姓名、身份证号、就业形式和社保缴费基数，按缴费月份从近到远排序。,"SELECT p.name, e.id_card, e.employment_form, s.pay_base FROM person p JOIN employment_registration e ON p.id_card = e.id_card JOIN social_insurance_payment s ON p.id_card = s.id_card AND e.company_id = s.company_id WHERE e.company_id = 'COMP101' AND e.is_valid = '1' AND s.is_valid = '1' ORDER BY s.pay_month DESC;","SELECT 
+  p.name, 
+  p.id_card, 
+  e.employment_form, 
+  s.pay_base
+FROM 
+  person p
+JOIN 
+  employment_registration e ON p.id_card = e.id_card AND e.company_id = 'COMP101'
+JOIN 
+  social_insurance_payment s ON p.id_card = s.id_card AND s.company_id = 'COMP101'
+WHERE 
+  e.is_valid = '1' 
+  AND s.is_valid = '1'
+ORDER BY 
+  s.pay_month DESC;","SELECT 
+  p.name, 
+  p.id_card, 
+  e.employment_form, 
+  s.pay_base
+FROM 
+  person p
+JOIN 
+  employment_registration e ON p.id_card = e.id_card AND e.company_id = 'COMP101'
+JOIN 
+  social_insurance_payment s ON p.id_card = s.id_card AND s.company_id = 'COMP101'
+WHERE 
+  e.is_valid = '1' 
+  AND s.is_valid = '1'
+ORDER BY 
+  s.pay_month DESC;",True,True,True,True,False,0,False,True,True,True,True,16254.991400001018,16257.087100000717,,,False,[]
+muti_test:07,muti_test,统计政策编码为'POLICY_001'的补贴发放总金额和领取人数。,"SELECT s.policy_code, COUNT(DISTINCT p.id_card) AS recipient_count, SUM(s.grant_amount) AS total_amount FROM subsidy_payment_history s JOIN person p ON s.id_card = p.id_card WHERE s.policy_code = 'POLICY_001' AND s.is_valid = '1' GROUP BY s.policy_code;","SELECT 
+  SUM(sph.grant_amount) AS total_grant_amount,
+  COUNT(DISTINCT sph.id_card) AS total_recipients
+FROM 
+  subsidy_payment_history sph
+WHERE 
+  sph.policy_code = 'POLICY_001'
+  AND sph.is_valid = '1';","SELECT 
+  SUM(sph.grant_amount) AS total_grant_amount,
+  COUNT(DISTINCT sph.id_card) AS total_recipients
+FROM 
+  subsidy_payment_history sph
+WHERE 
+  sph.policy_code = 'POLICY_001';",True,True,True,False,True,2,False,False,True,True,False,6237.862699999823,19620.551300000443,result_mismatch,"column_mismatch: missing_columns=[], extra_columns=['total_grant_amount', 'total_recipients'], gold_columns=[], generated_columns=['total_grant_amount', 'total_recipients']",False,[]
+muti_test:08,muti_test,查询有社保缴费记录但未做就业登记的人员，列出身份证号和姓名。,"SELECT DISTINCT p.id_card, p.name FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card LEFT JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' WHERE s.is_valid = '1' AND e.record_id IS NULL;","SELECT 
+    p.id_card, 
+    p.name
+FROM 
+    person p
+LEFT JOIN 
+    employment_registration er 
+ON 
+    p.id_card = er.id_card AND er.is_valid = '1'
+JOIN 
+    social_insurance_payment sip 
+ON 
+    p.id_card = sip.id_card AND sip.is_valid = '1'
+WHERE 
+    er.record_id IS NULL;","SELECT 
+    p.id_card, 
+    p.name
+FROM 
+    person p
+LEFT JOIN 
+    employment_registration er 
+ON 
+    p.id_card = er.id_card AND er.is_valid = '1'
+JOIN 
+    social_insurance_payment sip 
+ON 
+    p.id_card = sip.id_card AND sip.is_valid = '1'
+WHERE 
+    er.record_id IS NULL;",True,True,True,True,False,0,False,True,True,True,True,8225.81960000025,8229.055599998901,,,False,[]
+muti_test:09,muti_test,查看身份证号为'420900199001010001'的人员所有有效补贴发放记录，以及每次补贴对应的政策编码和享受月份起止。,"SELECT p.name, s.policy_code, s.apply_start_month, s.apply_end_month, s.first_enjoy_month, s.grant_months, s.grant_amount FROM person p JOIN subsidy_payment_history s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.is_valid = '1' ORDER BY s.grant_date;","SELECT 
+  sph.payment_id,
+  sph.id_card,
+  p.name,
+  sph.policy_code,
+  sph.apply_start_month,
+  sph.apply_end_month,
+  sph.first_enjoy_month,
+  sph.grant_months,
+  sph.grant_amount,
+  sph.grant_date
+FROM 
+  subsidy_payment_history sph
+JOIN 
+  person p ON sph.id_card = p.id_card
+WHERE 
+  sph.id_card = '420900199001010001'
+  AND sph.is_valid = '1'
+ORDER BY 
+  sph.grant_date;","SELECT 
+  sph.payment_id,
+  sph.id_card,
+  p.name,
+  sph.policy_code,
+  sph.apply_start_month,
+  sph.apply_end_month,
+  sph.first_enjoy_month,
+  sph.grant_months,
+  sph.grant_amount,
+  sph.grant_date
+FROM 
+  subsidy_payment_history sph
+JOIN 
+  person p ON sph.id_card = p.id_card
+WHERE 
+  sph.id_card = '420900199001010001'
+  AND sph.is_valid = '1'
+ORDER BY 
+  sph.grant_date;",True,True,True,True,False,0,False,True,True,True,True,10297.818500001085,10299.9405999999,,,False,[]
+muti_test:10,muti_test,找出所有困难人员认定有效，并且有社保缴费记录的人员，列出姓名、困难类别、社保缴费月份和缴费基数。,"SELECT p.name, h.hardship_category, s.pay_month, s.pay_base FROM person p JOIN hardship_certification h ON p.id_card = h.id_card AND h.is_valid = '1' JOIN social_insurance_payment s ON p.id_card = s.id_card AND s.is_valid = '1' ORDER BY s.pay_month DESC;","SELECT 
+  p.name,
+  hc.hardship_category,
+  sip.pay_month,
+  sip.pay_base
+FROM 
+  person p
+JOIN 
+  hardship_certification hc ON p.id_card = hc.id_card AND hc.is_valid = '1'
+JOIN 
+  social_insurance_payment sip ON p.id_card = sip.id_card AND sip.is_valid = '1'
+WHERE 
+  hc.cancel_date IS NULL;","SELECT 
+  p.name,
+  hc.hardship_category,
+  sip.pay_month,
+  sip.pay_base
+FROM 
+  person p
+JOIN 
+  hardship_certification hc ON p.id_card = hc.id_card AND hc.is_valid = '1' AND hc.cancel_date IS NULL
+JOIN 
+  social_insurance_payment sip ON p.id_card = sip.id_card AND sip.is_valid = '1';",True,True,True,False,True,2,False,False,True,True,False,11577.660999999352,38342.885600000955,result_mismatch,"value_mismatch: gold_rows=86, generated_rows=86",False,[]
+muti_test:11,muti_test,查询每家企业为其员工缴纳社保的平均缴费基数，显示企业名称和平均缴费基数，只显示平均基数大于5000的企业。,"SELECT c.company_name, AVG(s.pay_base) AS avg_pay_base FROM social_insurance_payment s JOIN company_info c ON s.company_id = c.company_id WHERE s.is_valid = '1' AND c.is_valid = '1' GROUP BY c.company_name HAVING AVG(s.pay_base) > 5000;","SELECT 
+    c.company_name,
+    AVG(s.pay_base) AS avg_pay_base
+FROM 
+    social_insurance_payment s
+JOIN 
+    company_info c ON s.company_id = c.company_id
+WHERE 
+    s.is_valid = '1' AND c.is_valid = '1'
+GROUP BY 
+    c.company_id, c.company_name
+HAVING 
+    AVG(s.pay_base) > 5000;","SELECT 
+    c.company_name,
+    AVG(s.pay_base) AS avg_pay_base
+FROM 
+    social_insurance_payment s
+JOIN 
+    company_info c ON s.company_id = c.company_id
+WHERE 
+    s.is_valid = '1' AND c.is_valid = '1'
+GROUP BY 
+    c.company_id, c.company_name
+HAVING 
+    AVG(s.pay_base) > 5000;",True,True,True,True,False,0,False,True,True,True,True,11773.70560000054,11776.190500000666,,,False,[]
+muti_test:12,muti_test,查询身份证号为'420900199001010001'的人员，在公司编号为'COMP101'的企业，社保缴费的最高和最低缴费基数。,"SELECT p.name, MAX(s.pay_base) AS max_pay_base, MIN(s.pay_base) AS min_pay_base FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.company_id = 'COMP101' AND s.is_valid = '1' GROUP BY p.name;","SELECT 
+  MAX(sip.pay_base) AS max_pay_base,
+  MIN(sip.pay_base) AS min_pay_base
+FROM 
+  social_insurance_payment sip
+JOIN 
+  person p ON sip.id_card = p.id_card
+WHERE 
+  sip.id_card = '420900199001010001'
+  AND sip.company_id = 'COMP101';","SELECT 
+  MAX(sip.pay_base) AS max_pay_base,
+  MIN(sip.pay_base) AS min_pay_base
+FROM 
+  social_insurance_payment sip
+WHERE 
+  sip.id_card = '420900199001010001'
+  AND sip.company_id = 'COMP101';",True,True,True,False,True,2,False,False,True,True,False,7754.942800000208,22831.001700000343,result_mismatch,"column_mismatch: missing_columns=[], extra_columns=['max_pay_base', 'min_pay_base'], gold_columns=[], generated_columns=['max_pay_base', 'min_pay_base']",False,[]
+muti_test:13,muti_test,查看'COMP101'这家企业的所有有效补贴领取人员，显示姓名、身份证号、政策编码和发放金额，按发放日期降序排列。,"SELECT p.name, s.id_card, s.policy_code, s.grant_amount FROM subsidy_payment_history s JOIN person p ON s.id_card = p.id_card JOIN employment_registration e ON p.id_card = e.id_card AND e.company_id = 'COMP101' WHERE s.is_valid = '1' AND e.is_valid = '1' ORDER BY s.grant_date DESC;","SELECT 
+  p.name, 
+  p.id_card, 
+  sph.policy_code, 
+  sph.grant_amount
+FROM 
+  person p
+JOIN 
+  employment_registration er ON p.id_card = er.id_card
+JOIN 
+  subsidy_payment_history sph ON p.id_card = sph.id_card
+WHERE 
+  er.company_id = 'COMP101' 
+  AND er.is_valid = '1'
+  AND sph.is_valid = '1'
+ORDER BY 
+  sph.grant_date DESC;","SELECT 
+  p.name, 
+  p.id_card, 
+  sph.policy_code, 
+  sph.grant_amount
+FROM 
+  person p
+JOIN 
+  employment_registration er ON p.id_card = er.id_card
+JOIN 
+  subsidy_payment_history sph ON p.id_card = sph.id_card
+WHERE 
+  er.company_id = 'COMP101' 
+  AND er.is_valid = '1'
+  AND sph.is_valid = '1'
+ORDER BY 
+  sph.grant_date DESC;",True,True,True,True,False,0,False,True,True,True,True,13426.387000001341,13428.324900000007,,,False,[]
+muti_test:14,muti_test,查询同时存在就业登记和失业登记记录的人员，列出身份证号、姓名、就业企业名称和失业日期。,"SELECT p.id_card, p.name, c.company_name, u.unemployment_date FROM person p JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' JOIN unemployment_registration u ON p.id_card = u.id_card AND u.is_valid = '1' LEFT JOIN company_info c ON e.company_id = c.company_id;","SELECT 
+    p.id_card, 
+    p.name, 
+    c.company_name AS employment_company_name, 
+    u.unemployment_date
+FROM 
+    person p
+JOIN 
+    employment_registration e ON p.id_card = e.id_card
+JOIN 
+    company_info c ON e.company_id = c.company_id
+JOIN 
+    unemployment_registration u ON p.id_card = u.id_card
+WHERE 
+    e.is_valid = '1' AND 
+    u.is_valid = '1';","SELECT 
+    p.id_card, 
+    p.name, 
+    c.company_name, 
+    u.unemployment_date
+FROM 
+    person p
+JOIN 
+    employment_registration e ON p.id_card = e.id_card
+JOIN 
+    company_info c ON e.company_id = c.company_id
+JOIN 
+    unemployment_registration u ON p.id_card = u.id_card
+WHERE 
+    e.is_valid = '1' AND 
+    u.is_valid = '1';",True,True,True,False,True,2,False,False,True,True,False,11802.312799998617,56695.85470000129,result_mismatch,"row_count_mismatch: gold_rows=16, generated_rows=2",True,['extra_is_valid_filter']
+muti_test:15,muti_test,统计困难认定类别为'低保'且当前认定有效的人员中，有多少人已享受过补贴，以及补贴总额。,"SELECT COUNT(DISTINCT h.id_card) AS person_count, SUM(s.grant_amount) AS total_subsidy FROM hardship_certification h JOIN subsidy_payment_history s ON h.id_card = s.id_card WHERE h.hardship_category = '低保' AND h.is_valid = '1' AND s.is_valid = '1';","SELECT 
+  COUNT(DISTINCT sph.id_card) AS num_people_enjoyed_subsidy,
+  SUM(sph.grant_amount) AS total_subsidy_amount
+FROM 
+  hardship_certification hc
+JOIN 
+  subsidy_payment_history sph
+ON 
+  hc.id_card = sph.id_card
+WHERE 
+  hc.hardship_category = '低保'
+  AND hc.is_valid = '1'
+  AND sph.is_valid = '1';","SELECT 
+  COUNT(DISTINCT sph.id_card) AS person_count,
+  SUM(sph.grant_amount) AS total_subsidy
+FROM 
+  hardship_certification hc
+JOIN 
+  subsidy_payment_history sph
+ON 
+  hc.id_card = sph.id_card
+WHERE 
+  hc.hardship_category = '低保'
+  AND hc.is_valid = '1'
+  AND sph.is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,6999.186399998507,17280.715099999725,,,False,[]
+muti_test:16,muti_test,查询2024年1月后做过就业登记，但至今没有社保缴费记录的人员，列出身份证号和就业企业编号。,"SELECT e.id_card, e.company_id FROM employment_registration e LEFT JOIN social_insurance_payment s ON e.id_card = s.id_card AND s.is_valid = '1' WHERE e.employment_date > '2024-01-01' AND e.is_valid = '1' AND s.payment_id IS NULL;","SELECT 
+  er.id_card, 
+  er.company_id
+FROM 
+  employment_registration er
+LEFT JOIN 
+  social_insurance_payment sip 
+ON 
+  er.id_card = sip.id_card
+WHERE 
+  er.sync_date >= '2024-01-01' 
+  AND sip.payment_id IS NULL;","SELECT 
+  er.id_card, 
+  er.company_id
+FROM 
+  employment_registration er
+LEFT JOIN 
+  social_insurance_payment sip 
+ON 
+  er.id_card = sip.id_card
+WHERE 
+  er.sync_date >= '2024-01-01' 
+  AND sip.payment_id IS NULL;",True,True,True,True,False,0,False,True,True,True,True,9437.573499999417,9439.465199999177,,,False,[]
+muti_test:17,muti_test,查询法律实体身份证号为'420900199001010001'的企业名下，所有在职员工的社保缴费记录，显示企业名称、员工姓名、缴费月份和缴费基数。,"SELECT c.company_name, p.name, s.pay_month, s.pay_base FROM company_info c JOIN employment_registration e ON c.company_id = e.company_id AND e.is_valid = '1' JOIN person p ON e.id_card = p.id_card JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE c.legal_person_id_card = '420900199001010001' AND c.is_valid = '1' AND s.is_valid = '1' ORDER BY s.pay_month DESC;","SELECT 
+  c.company_name,
+  p.name AS employee_name,
+  sip.pay_month,
+  sip.pay_base
+FROM 
+  company_info c
+JOIN 
+  employment_registration er ON c.company_id = er.company_id
+JOIN 
+  person p ON er.id_card = p.id_card
+JOIN 
+  social_insurance_payment sip ON er.id_card = sip.id_card AND er.company_id = sip.company_id
+WHERE 
+  c.legal_person_id_card = '420900199001010001'
+  AND er.is_valid = '1'
+  AND sip.is_valid = '1';","SELECT 
+  c.company_name,
+  p.name AS employee_name,
+  sip.pay_month,
+  sip.pay_base
+FROM 
+  company_info c
+JOIN 
+  employment_registration er ON c.company_id = er.company_id
+JOIN 
+  person p ON er.id_card = p.id_card
+JOIN 
+  social_insurance_payment sip ON er.id_card = sip.id_card AND er.company_id = sip.company_id
+WHERE 
+  c.legal_person_id_card = '420900199001010001'
+  AND er.is_valid = '1'
+  AND sip.is_valid = '1';",True,True,True,True,False,0,False,True,True,True,True,9433.796000001166,9435.555000000022,,,False,[]
+muti_test:18,muti_test,查询在'COMP101'企业就业，人员状态正常且合同开始日期在2023年之后的人员中，哪些人没有困难人员认定记录，显示姓名和身份证号。,"SELECT p.name, p.id_card FROM person p JOIN employment_registration e ON p.id_card = e.id_card LEFT JOIN hardship_certification h ON p.id_card = h.id_card AND h.is_valid = '1' WHERE e.company_id = 'COMP101' AND p.system_status = '1' AND e.contract_start_date > '2023-01-01' AND e.is_valid = '1' AND h.cert_id IS NULL;","SELECT 
+  p.name, 
+  p.id_card
+FROM 
+  person p
+JOIN 
+  employment_registration er ON p.id_card = er.id_card
+LEFT JOIN 
+  hardship_certification hc ON p.id_card = hc.id_card AND hc.is_valid = '1'
+WHERE 
+  er.company_id = 'COMP101' 
+  AND er.contract_start_date >= '2023-01-01'
+  AND er.is_valid = '1'
+  AND p.system_status = '1'
+  AND hc.cert_id IS NULL;","SELECT 
+  p.name, 
+  p.id_card
+FROM 
+  person p
+JOIN 
+  employment_registration er ON p.id_card = er.id_card
+LEFT JOIN 
+  hardship_certification hc ON p.id_card = hc.id_card AND hc.is_valid = '1'
+WHERE 
+  er.company_id = 'COMP101' 
+  AND er.contract_start_date >= '2023-01-01'
+  AND er.is_valid = '1'
+  AND p.system_status = '1'
+  AND hc.cert_id IS NULL;",True,True,True,True,False,0,False,True,True,True,True,12440.44010000107,12441.967299999305,,,False,[]
+muti_test:19,muti_test,统计每种失业原因下，已领取过补贴的人数，按人数降序排列，只显示人数超过5的失业原因。,"SELECT u.unemployment_reason, COUNT(DISTINCT s.id_card) AS recipient_count FROM unemployment_registration u JOIN subsidy_payment_history s ON u.id_card = s.id_card WHERE u.is_valid = '1' AND s.is_valid = '1' GROUP BY u.unemployment_reason HAVING COUNT(DISTINCT s.id_card) > 5 ORDER BY recipient_count DESC;","SELECT 
+  ur.unemployment_reason,
+  COUNT(DISTINCT sph.id_card) AS subsidy_recipients_count
+FROM 
+  unemployment_registration ur
+JOIN 
+  subsidy_payment_history sph 
+ON 
+  ur.id_card = sph.id_card
+WHERE 
+  ur.is_valid = '1' AND sph.is_valid = '1'
+GROUP BY 
+  ur.unemployment_reason
+HAVING 
+  subsidy_recipients_count > 5
+ORDER BY 
+  subsidy_recipients_count DESC;","SELECT 
+  ur.unemployment_reason,
+  COUNT(DISTINCT sph.id_card) AS subsidy_recipients_count
+FROM 
+  unemployment_registration ur
+JOIN 
+  subsidy_payment_history sph 
+ON 
+  ur.id_card = sph.id_card
+WHERE 
+  ur.is_valid = '1' AND sph.is_valid = '1'
+GROUP BY 
+  ur.unemployment_reason
+HAVING 
+  subsidy_recipients_count > 5
+ORDER BY 
+  subsidy_recipients_count DESC;",True,True,True,True,False,0,False,True,True,True,True,12318.958200001362,12321.833899999547,,,False,[]
+muti_test:20,muti_test,查询政策编码为'POLICY_001'的补贴发放记录中，每位领取人员的姓名、身份证号、领取金额和领取日期，以及该人员当前是否在就业登记有效状态。,"SELECT p.name, s.id_card, s.grant_amount, s.grant_date, CASE WHEN e.record_id IS NOT NULL THEN '是' ELSE '否' END AS is_employed FROM person p JOIN subsidy_payment_history s ON p.id_card = s.id_card LEFT JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' WHERE s.policy_code = 'POLICY_001' AND s.is_valid = '1';","SELECT 
+    p.name,
+    p.id_card,
+    sph.grant_amount,
+    sph.grant_date,
+    CASE 
+        WHEN er.is_valid = '1' AND CURRENT_DATE BETWEEN er.employment_date AND COALESCE(er.contract_end_date, '9999-12-31') THEN '是'
+        ELSE '否'
+    END AS is_employed
+FROM 
+    subsidy_payment_history sph
+JOIN 
+    person p ON sph.id_card = p.id_card
+LEFT JOIN 
+    employment_registration er ON sph.id_card = er.id_card
+WHERE 
+    sph.policy_code = 'POLICY_001';","SELECT 
+    p.name,
+    p.id_card,
+    sph.grant_amount,
+    sph.grant_date,
+    CASE 
+        WHEN er.is_valid = '1' AND CURRENT_DATE BETWEEN er.employment_date AND COALESCE(er.contract_end_date, '9999-12-31') THEN '是'
+        ELSE '否'
+    END AS is_employed
+FROM 
+    subsidy_payment_history sph
+JOIN 
+    person p ON sph.id_card = p.id_card
+LEFT JOIN 
+    employment_registration er ON sph.id_card = er.id_card
+WHERE 
+    sph.policy_code = 'POLICY_001';",True,True,True,True,False,0,False,True,True,True,True,12293.691999999282,12295.370899999398,,,False,[]

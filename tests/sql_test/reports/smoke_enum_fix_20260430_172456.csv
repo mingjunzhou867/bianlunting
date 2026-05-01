@@ -1,0 +1,132 @@
+﻿case_id,category,question,gold_sql,first_generated_sql,final_generated_sql,first_generation_success,first_syntax_pass,first_execution_success,first_result_match,retry_triggered,retry_count,retry_success,final_success,final_syntax_pass,final_execution_success,final_result_match,first_latency_ms,total_latency_ms,failure_reason,error_message,has_structural_warnings,structural_warnings
+simple_test:01,simple_test,帮我查一下身份证号为420900199001010001这个人的所有社保缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001';",True,True,True,True,False,0,False,True,True,True,True,5687.955900000816,5705.686499997682,,,False,[]
+simple_test:02,simple_test,查询所有养老保险的缴费记录，看看都有哪些人交过。,SELECT * FROM social_insurance_payment WHERE insurance_type = '110';,"SELECT 
+  id_card, 
+  company_id, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '110';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '110';",True,True,True,False,True,1,True,True,True,True,True,3797.9489999997895,7678.315900000598,,,False,[]
+simple_test:03,simple_test,2024年1月份一共有哪些社保缴费记录，把那个月的缴费记录调出来看看。,SELECT * FROM social_insurance_payment WHERE pay_month = '202401';,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month = '202401';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month = '202401';",True,True,True,True,False,0,False,True,True,True,True,8244.166100001166,8245.706300000165,,,False,[]
+simple_test:04,simple_test,身份证号420900199001010001这个人，他的医疗保险都交了哪几个月？,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '310';,"SELECT pay_month
+FROM social_insurance_payment
+WHERE id_card = '420900199001010001'
+  AND insurance_type = '310';","SELECT pay_month
+FROM social_insurance_payment
+WHERE id_card = '420900199001010001'
+  AND insurance_type = '310';",True,True,True,True,False,0,False,True,True,True,True,4757.27470000129,4758.664400000271,,,False,[]
+simple_test:05,simple_test,查一下2023年7月到2023年12月这半年期间，所有人员的社保缴费情况。,SELECT * FROM social_insurance_payment WHERE pay_month >= '202307' AND pay_month <= '202312';,"SELECT 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month BETWEEN '202307' AND '202312'
+ORDER BY 
+  id_card, 
+  pay_month;","SELECT 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month BETWEEN '202307' AND '202312'
+ORDER BY 
+  id_card, 
+  pay_month;",True,True,True,True,False,0,False,True,True,True,True,5771.000700002332,5774.892700002965,,,False,[]
+simple_test:06,simple_test,看看以个人灵活就业身份参保的人，他们的缴费记录有哪些。,SELECT * FROM social_insurance_payment WHERE insurer_status = '102';,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status = '102';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status = '102';",True,True,True,True,False,0,False,True,True,True,True,8993.99959999937,8999.851499997021,,,False,[]

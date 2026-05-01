@@ -1,0 +1,145 @@
+{
+  "meta": "AI辅助生成：DeepSeek-R1-0528, 2026-4-24",
+  "data": [
+    {
+      "example_id": "01",
+      "table": "social_insurance_payment",
+      "question": "查一下身份证号是'420900199001010001'这个人的所有社保缴费记录。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';",
+      "intent": "单一条件查询（身份证号）"
+    },
+    {
+      "example_id": "02",
+      "table": "social_insurance_payment",
+      "question": "请把所有养老保险的缴费记录调出来。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurance_type = '110';",
+      "intent": "单一条件查询（险种类型）"
+    },
+    {
+      "example_id": "03",
+      "table": "social_insurance_payment",
+      "question": "帮我看看2023年11月的所有社保缴费明细。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE pay_month = '202311';",
+      "intent": "单一条件查询（缴费月份）"
+    },
+    {
+      "example_id": "04",
+      "table": "social_insurance_payment",
+      "question": "当前参保身份是单位缴费的人员，他们的社保缴费记录有哪些？",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurer_status = '101';",
+      "intent": "单一条件查询（参保身份）"
+    },
+    {
+      "example_id": "05",
+      "table": "social_insurance_payment",
+      "question": "找出所有已经被标记为无效的缴费流水。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE is_valid = '0';",
+      "intent": "单一条件查询（是否有效）"
+    },
+    {
+      "example_id": "06",
+      "table": "social_insurance_payment",
+      "question": "身份证号'420900199001010001'的人在2023年交过养老保险吗？帮我把记录找出来。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '110';",
+      "intent": "多条件组合查询（身份证号 + 险种类型）"
+    },
+    {
+      "example_id": "07",
+      "table": "social_insurance_payment",
+      "question": "查询'420900199001010001'这位人员在2023年1月到6月期间的缴费情况。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202306';",
+      "intent": "多条件组合查询（身份证号 + 缴费月份范围）"
+    },
+    {
+      "example_id": "08",
+      "table": "social_insurance_payment",
+      "question": "核实一下，养老保险的有效缴费记录有哪些？",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurance_type = '110' AND is_valid = '1';",
+      "intent": "多条件组合查询（险种类型 + 有效记录）"
+    },
+    {
+      "example_id": "09",
+      "table": "social_insurance_payment",
+      "question": "哪些单位缴费人员的缴费基数超过了15000元？",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurer_status = '101' AND pay_base > 15000;",
+      "intent": "多条件组合查询（参保身份 + 缴费基数范围）"
+    },
+    {
+      "example_id": "10",
+      "table": "social_insurance_payment",
+      "question": "看看2023年三季度（7月到9月）所有社保缴费记录。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE pay_month BETWEEN '202307' AND '202309';",
+      "intent": "范围条件查询（月份区间）"
+    },
+    {
+      "example_id": "11",
+      "table": "social_insurance_payment",
+      "question": "找出所有缴费基数低于4000元的记录，我们重点排查一下。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE pay_base < 4000;",
+      "intent": "范围条件查询（缴费基数低于某值）"
+    },
+    {
+      "example_id": "12",
+      "table": "social_insurance_payment",
+      "question": "把2023年12月所有缴费基数高于10000元的有效记录列出来。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE pay_month = '202312' AND pay_base > 10000 AND is_valid = '1';",
+      "intent": "等值与范围条件混合查询"
+    },
+    {
+      "example_id": "13",
+      "table": "social_insurance_payment",
+      "question": "我想看看身份证号'420900199001010001'在2023年，个人身份为灵活就业且缴费基数在6000到10000之间的缴费记录。",
+      "sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND insurer_status = '102' AND pay_base BETWEEN 6000 AND 10000;",
+      "intent": "AND 条件组合查询"
+    },
+    {
+      "example_id": "14",
+      "table": "social_insurance_payment",
+      "question": "最新的10条有效养老保险缴费记录是哪几条？",
+      "sql": "SELECT * FROM social_insurance_payment WHERE insurance_type = '110' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 10;",
+      "intent": "包含排序或限制返回数量"
+    },
+    {
+      "example_id": "15",
+      "table": "social_insurance_payment",
+      "question": "把缴费基数最高的前5条记录找出来，我要看看有没有异常值。",
+      "sql": "SELECT * FROM social_insurance_payment ORDER BY pay_base DESC LIMIT 5;",
+      "intent": "包含排序或限制返回数量"
+    },
+    {
+      "example_id": "16",
+      "table": "social_insurance_payment",
+      "question": "帮忙计算一下2023年11月有效缴费记录一共有多少条。",
+      "sql": "SELECT COUNT(*) FROM social_insurance_payment WHERE pay_month = '202311' AND is_valid = '1';",
+      "intent": "条件筛选后的统计查询（计数）"
+    },
+    {
+      "example_id": "17",
+      "table": "social_insurance_payment",
+      "question": "统计一下身份证号'420900199001010001'在2023年缴纳养老保险的平均缴费基数是多少？",
+      "sql": "SELECT AVG(pay_base) FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND insurance_type = '110';",
+      "intent": "条件筛选后的统计查询（平均缴费基数）"
+    },
+    {
+      "example_id": "18",
+      "table": "social_insurance_payment",
+      "question": "我们想看看2023年所有单位缴费人员的最高缴费基数是多少？",
+      "sql": "SELECT MAX(pay_base) FROM social_insurance_payment WHERE pay_month BETWEEN '202301' AND '202312' AND insurer_status = '101';",
+      "intent": "条件筛选后的统计查询（最高缴费基数）"
+    },
+    {
+      "example_id": "19",
+      "table": "social_insurance_payment",
+      "question": "查一下公司ID为'COMP101'的，在所有有效记录里，员工交过的最低缴费基数。",
+      "sql": "SELECT MIN(pay_base) FROM social_insurance_payment WHERE company_id = 'COMP101' AND is_valid = '1';",
+      "intent": "条件筛选后的统计查询（最低缴费基数）"
+    },
+    {
+      "example_id": "20",
+      "table": "social_insurance_payment",
+      "question": "那些身份是个人灵活就业的记录，他们的缴费基数总和是多少？只算有效的记录。",
+      "sql": "SELECT SUM(pay_base) FROM social_insurance_payment WHERE insurer_status = '102' AND is_valid = '1';",
+      "intent": "条件筛选后的统计查询（汇总缴费基数）"
+    }
+  ]
+}

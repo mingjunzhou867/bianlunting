@@ -94,6 +94,7 @@ const handleRerun = () => {
   if (props.disabled) return
   emit('rerun-review')
 }
+
 </script>
 
 <template>
@@ -103,17 +104,19 @@ const handleRerun = () => {
         <div>
           <div class="manual-panel-title">补证复核</div>
           <div class="manual-panel-subtitle">
-            人工核验证据优先级最高。提交后进入“已提交待复核”，重新复核后会直接按人工核验结果采纳。
+            人工核验证据优先级最高。可先提交补证，也可不提交补证；形成裁决结果后即可在会话详情中下载 PDF 裁决报告。
           </div>
         </div>
-        <el-button
-          type="primary"
-          plain
-          :disabled="props.disabled || pendingCount === 0"
-          @click="handleRerun"
-        >
-          重新复核 ({{ pendingCount }})
-        </el-button>
+        <div class="manual-panel-actions">
+          <el-button
+            type="primary"
+            plain
+            :disabled="props.disabled || pendingCount === 0"
+            @click="handleRerun"
+          >
+            重新复核 ({{ pendingCount }})
+          </el-button>
+        </div>
       </div>
     </template>
 
@@ -196,8 +199,16 @@ const handleRerun = () => {
   gap: 12px;
 }
 
+.manual-panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .manual-panel-title {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -292,4 +303,3 @@ const handleRerun = () => {
   }
 }
 </style>
-

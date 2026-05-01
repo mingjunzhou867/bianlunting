@@ -15,11 +15,14 @@ const formatDateTime = (value) => {
     return '未记录'
   }
 
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return value
+  const raw = String(value).trim()
+  const normalized = raw.replace('T', ' ').replace(/\.\d+Z?$/, '').replace(/Z$/, '')
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(normalized)) {
+    return normalized
   }
 
+  const parsed = new Date(raw)
+  if (Number.isNaN(parsed.getTime())) return raw
   return parsed.toLocaleString('zh-CN', { hour12: false })
 }
 
@@ -133,7 +136,7 @@ const policyTagType = (policyId) => {
 }
 
 .history-title {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
 }

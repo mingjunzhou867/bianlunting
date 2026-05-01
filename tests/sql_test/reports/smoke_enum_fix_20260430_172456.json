@@ -1,0 +1,331 @@
+{
+  "summary": {
+    "total_cases": 6,
+    "testset_health": {
+      "files": [
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\condition_test\\condition_example.json",
+          "json_parse_success": true,
+          "required_fields_present": 20,
+          "case_count": 20,
+          "error": ""
+        },
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\muti_test\\muti_example.json",
+          "json_parse_success": true,
+          "required_fields_present": 20,
+          "case_count": 20,
+          "error": ""
+        },
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\reports\\all_samples_20260430_165314.json",
+          "json_parse_success": true,
+          "required_fields_present": 0,
+          "case_count": 0,
+          "error": ""
+        },
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\reports\\condition_test.json",
+          "json_parse_success": true,
+          "required_fields_present": 0,
+          "case_count": 0,
+          "error": ""
+        },
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\reports\\muti_test.json",
+          "json_parse_success": true,
+          "required_fields_present": 0,
+          "case_count": 0,
+          "error": ""
+        },
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\reports\\simple_test.json",
+          "json_parse_success": true,
+          "required_fields_present": 0,
+          "case_count": 0,
+          "error": ""
+        },
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\reports\\sum_test.json",
+          "json_parse_success": true,
+          "required_fields_present": 0,
+          "case_count": 0,
+          "error": ""
+        },
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\simple_test\\simple_example.json",
+          "json_parse_success": true,
+          "required_fields_present": 20,
+          "case_count": 20,
+          "error": ""
+        },
+        {
+          "file": "D:\\AI\\bysj_t2s-master\\tests\\sql_test\\sum_test\\sum_example.json",
+          "json_parse_success": true,
+          "required_fields_present": 20,
+          "case_count": 20,
+          "error": ""
+        }
+      ],
+      "json_parse_success_rate": 1.0,
+      "required_fields_present": 80
+    },
+    "sql_generation_success_rate": 1.0,
+    "first_syntax_pass_rate": 1.0,
+    "first_execution_success_rate": 1.0,
+    "first_result_match_rate": 0.8333,
+    "final_syntax_pass_rate": 1.0,
+    "final_execution_success_rate": 1.0,
+    "final_result_match_rate": 1.0,
+    "retry_trigger_rate": 0.1667,
+    "retry_repair_success_rate": 1.0,
+    "avg_retry_count": 0.1667,
+    "first_avg_latency_ms": 6208.72,
+    "final_avg_latency_ms": 6860.52,
+    "p95_final_latency_ms": 8999.85,
+    "failure_reasons": {},
+    "structural_warning_rate": 0.0,
+    "structural_warnings": {}
+  },
+  "cases": [
+    {
+      "case_id": "simple_test:01",
+      "category": "simple_test",
+      "question": "帮我查一下身份证号为420900199001010001这个人的所有社保缴费记录。",
+      "gold_sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';",
+      "first_generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  id_card = '420900199001010001';",
+      "final_generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  id_card = '420900199001010001';",
+      "first_generation_success": true,
+      "first_syntax_pass": true,
+      "first_execution_success": true,
+      "first_result_match": true,
+      "retry_triggered": false,
+      "retry_count": 0,
+      "retry_success": false,
+      "final_success": true,
+      "final_syntax_pass": true,
+      "final_execution_success": true,
+      "final_result_match": true,
+      "first_latency_ms": 5687.955900000816,
+      "total_latency_ms": 5705.686499997682,
+      "failure_reason": "",
+      "error_message": "",
+      "structural_warnings": [],
+      "has_structural_warnings": false,
+      "attempts": [
+        {
+          "attempt_no": 1,
+          "generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  id_card = '420900199001010001';",
+          "generation_success": true,
+          "syntax_pass": true,
+          "execution_success": true,
+          "result_match": true,
+          "latency_ms": 5687.955900000816,
+          "failure_reason": "",
+          "error_message": ""
+        }
+      ]
+    },
+    {
+      "case_id": "simple_test:02",
+      "category": "simple_test",
+      "question": "查询所有养老保险的缴费记录，看看都有哪些人交过。",
+      "gold_sql": "SELECT * FROM social_insurance_payment WHERE insurance_type = '110';",
+      "first_generated_sql": "SELECT \n  id_card, \n  company_id, \n  pay_month, \n  insurer_status, \n  pay_base\nFROM \n  social_insurance_payment\nWHERE \n  insurance_type = '110';",
+      "final_generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  insurance_type = '110';",
+      "first_generation_success": true,
+      "first_syntax_pass": true,
+      "first_execution_success": true,
+      "first_result_match": false,
+      "retry_triggered": true,
+      "retry_count": 1,
+      "retry_success": true,
+      "final_success": true,
+      "final_syntax_pass": true,
+      "final_execution_success": true,
+      "final_result_match": true,
+      "first_latency_ms": 3797.9489999997895,
+      "total_latency_ms": 7678.315900000598,
+      "failure_reason": "",
+      "error_message": "",
+      "structural_warnings": [],
+      "has_structural_warnings": false,
+      "attempts": [
+        {
+          "attempt_no": 1,
+          "generated_sql": "SELECT \n  id_card, \n  company_id, \n  pay_month, \n  insurer_status, \n  pay_base\nFROM \n  social_insurance_payment\nWHERE \n  insurance_type = '110';",
+          "generation_success": true,
+          "syntax_pass": true,
+          "execution_success": true,
+          "result_match": false,
+          "latency_ms": 3797.9489999997895,
+          "failure_reason": "result_mismatch",
+          "error_message": "column_mismatch: missing_columns=['payment_id', 'insurance_type', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=['id_card', 'company_id', 'pay_month', 'insurer_status', 'pay_base']"
+        },
+        {
+          "attempt_no": 2,
+          "generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  insurance_type = '110';",
+          "generation_success": true,
+          "syntax_pass": true,
+          "execution_success": true,
+          "result_match": true,
+          "latency_ms": 3877.127499999915,
+          "failure_reason": "",
+          "error_message": ""
+        }
+      ]
+    },
+    {
+      "case_id": "simple_test:03",
+      "category": "simple_test",
+      "question": "2024年1月份一共有哪些社保缴费记录，把那个月的缴费记录调出来看看。",
+      "gold_sql": "SELECT * FROM social_insurance_payment WHERE pay_month = '202401';",
+      "first_generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  pay_month = '202401';",
+      "final_generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  pay_month = '202401';",
+      "first_generation_success": true,
+      "first_syntax_pass": true,
+      "first_execution_success": true,
+      "first_result_match": true,
+      "retry_triggered": false,
+      "retry_count": 0,
+      "retry_success": false,
+      "final_success": true,
+      "final_syntax_pass": true,
+      "final_execution_success": true,
+      "final_result_match": true,
+      "first_latency_ms": 8244.166100001166,
+      "total_latency_ms": 8245.706300000165,
+      "failure_reason": "",
+      "error_message": "",
+      "structural_warnings": [],
+      "has_structural_warnings": false,
+      "attempts": [
+        {
+          "attempt_no": 1,
+          "generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  pay_month = '202401';",
+          "generation_success": true,
+          "syntax_pass": true,
+          "execution_success": true,
+          "result_match": true,
+          "latency_ms": 8244.166100001166,
+          "failure_reason": "",
+          "error_message": ""
+        }
+      ]
+    },
+    {
+      "case_id": "simple_test:04",
+      "category": "simple_test",
+      "question": "身份证号420900199001010001这个人，他的医疗保险都交了哪几个月？",
+      "gold_sql": "SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '310';",
+      "first_generated_sql": "SELECT pay_month\nFROM social_insurance_payment\nWHERE id_card = '420900199001010001'\n  AND insurance_type = '310';",
+      "final_generated_sql": "SELECT pay_month\nFROM social_insurance_payment\nWHERE id_card = '420900199001010001'\n  AND insurance_type = '310';",
+      "first_generation_success": true,
+      "first_syntax_pass": true,
+      "first_execution_success": true,
+      "first_result_match": true,
+      "retry_triggered": false,
+      "retry_count": 0,
+      "retry_success": false,
+      "final_success": true,
+      "final_syntax_pass": true,
+      "final_execution_success": true,
+      "final_result_match": true,
+      "first_latency_ms": 4757.27470000129,
+      "total_latency_ms": 4758.664400000271,
+      "failure_reason": "",
+      "error_message": "",
+      "structural_warnings": [],
+      "has_structural_warnings": false,
+      "attempts": [
+        {
+          "attempt_no": 1,
+          "generated_sql": "SELECT pay_month\nFROM social_insurance_payment\nWHERE id_card = '420900199001010001'\n  AND insurance_type = '310';",
+          "generation_success": true,
+          "syntax_pass": true,
+          "execution_success": true,
+          "result_match": true,
+          "latency_ms": 4757.27470000129,
+          "failure_reason": "",
+          "error_message": ""
+        }
+      ]
+    },
+    {
+      "case_id": "simple_test:05",
+      "category": "simple_test",
+      "question": "查一下2023年7月到2023年12月这半年期间，所有人员的社保缴费情况。",
+      "gold_sql": "SELECT * FROM social_insurance_payment WHERE pay_month >= '202307' AND pay_month <= '202312';",
+      "first_generated_sql": "SELECT \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base\nFROM \n  social_insurance_payment\nWHERE \n  pay_month BETWEEN '202307' AND '202312'\nORDER BY \n  id_card, \n  pay_month;",
+      "final_generated_sql": "SELECT \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base\nFROM \n  social_insurance_payment\nWHERE \n  pay_month BETWEEN '202307' AND '202312'\nORDER BY \n  id_card, \n  pay_month;",
+      "first_generation_success": true,
+      "first_syntax_pass": true,
+      "first_execution_success": true,
+      "first_result_match": true,
+      "retry_triggered": false,
+      "retry_count": 0,
+      "retry_success": false,
+      "final_success": true,
+      "final_syntax_pass": true,
+      "final_execution_success": true,
+      "final_result_match": true,
+      "first_latency_ms": 5771.000700002332,
+      "total_latency_ms": 5774.892700002965,
+      "failure_reason": "",
+      "error_message": "",
+      "structural_warnings": [],
+      "has_structural_warnings": false,
+      "attempts": [
+        {
+          "attempt_no": 1,
+          "generated_sql": "SELECT \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base\nFROM \n  social_insurance_payment\nWHERE \n  pay_month BETWEEN '202307' AND '202312'\nORDER BY \n  id_card, \n  pay_month;",
+          "generation_success": true,
+          "syntax_pass": true,
+          "execution_success": true,
+          "result_match": true,
+          "latency_ms": 5771.000700002332,
+          "failure_reason": "",
+          "error_message": ""
+        }
+      ]
+    },
+    {
+      "case_id": "simple_test:06",
+      "category": "simple_test",
+      "question": "看看以个人灵活就业身份参保的人，他们的缴费记录有哪些。",
+      "gold_sql": "SELECT * FROM social_insurance_payment WHERE insurer_status = '102';",
+      "first_generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  insurer_status = '102';",
+      "final_generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  insurer_status = '102';",
+      "first_generation_success": true,
+      "first_syntax_pass": true,
+      "first_execution_success": true,
+      "first_result_match": true,
+      "retry_triggered": false,
+      "retry_count": 0,
+      "retry_success": false,
+      "final_success": true,
+      "final_syntax_pass": true,
+      "final_execution_success": true,
+      "final_result_match": true,
+      "first_latency_ms": 8993.99959999937,
+      "total_latency_ms": 8999.851499997021,
+      "failure_reason": "",
+      "error_message": "",
+      "structural_warnings": [],
+      "has_structural_warnings": false,
+      "attempts": [
+        {
+          "attempt_no": 1,
+          "generated_sql": "SELECT \n  payment_id, \n  id_card, \n  company_id, \n  insurance_type, \n  pay_month, \n  insurer_status, \n  pay_base, \n  is_valid\nFROM \n  social_insurance_payment\nWHERE \n  insurer_status = '102';",
+          "generation_success": true,
+          "syntax_pass": true,
+          "execution_success": true,
+          "result_match": true,
+          "latency_ms": 8993.99959999937,
+          "failure_reason": "",
+          "error_message": ""
+        }
+      ]
+    }
+  ]
+}

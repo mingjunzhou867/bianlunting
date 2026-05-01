@@ -1,0 +1,350 @@
+﻿case_id,category,question,gold_sql,first_generated_sql,final_generated_sql,first_generation_success,first_syntax_pass,first_execution_success,first_result_match,retry_triggered,retry_count,retry_success,final_success,final_syntax_pass,final_execution_success,final_result_match,first_latency_ms,total_latency_ms,failure_reason,error_message,has_structural_warnings,structural_warnings
+simple_test:01,simple_test,帮我查一下身份证号为420900199001010001这个人的所有社保缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001';",True,True,True,True,False,0,False,True,True,True,True,11762.662099999943,11776.925099999062,,,False,[]
+simple_test:02,simple_test,查询所有养老保险的缴费记录，看看都有哪些人交过。,SELECT * FROM social_insurance_payment WHERE insurance_type = '110';,"SELECT 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '110'","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '110';",True,True,True,False,True,1,True,True,True,True,True,4125.912299999982,9525.599599999623,,,False,[]
+simple_test:03,simple_test,2024年1月份一共有哪些社保缴费记录，把那个月的缴费记录调出来看看。,SELECT * FROM social_insurance_payment WHERE pay_month = '202401';,"SELECT *
+FROM social_insurance_payment
+WHERE pay_month = '202401';","SELECT *
+FROM social_insurance_payment
+WHERE pay_month = '202401';",True,True,True,True,False,0,False,True,True,True,True,5689.587799999572,5691.534100000354,,,False,[]
+simple_test:04,simple_test,身份证号420900199001010001这个人，他的医疗保险都交了哪几个月？,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '310';,"SELECT pay_month
+FROM social_insurance_payment
+WHERE id_card = '420900199001010001'
+  AND insurance_type = '310'
+  AND is_valid = '1';","SELECT pay_month
+FROM social_insurance_payment
+WHERE id_card = '420900199001010001'
+  AND insurance_type = '310'
+  AND is_valid = '1';",True,True,True,True,False,0,False,True,True,True,True,10114.035200000217,10115.891999999803,,,True,['extra_is_valid_filter']
+simple_test:05,simple_test,查一下2023年7月到2023年12月这半年期间，所有人员的社保缴费情况。,SELECT * FROM social_insurance_payment WHERE pay_month >= '202307' AND pay_month <= '202312';,"SELECT 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month BETWEEN '202307' AND '202312'
+  AND is_valid = '1';","SELECT 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month BETWEEN '202307' AND '202312'
+  AND is_valid = '1';",True,True,True,True,False,0,False,True,True,True,True,5183.638200000132,5185.636700000032,,,True,['extra_is_valid_filter']
+simple_test:06,simple_test,看看以个人灵活就业身份参保的人，他们的缴费记录有哪些。,SELECT * FROM social_insurance_payment WHERE insurer_status = '102';,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status = '102个人灵活就业';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status = '102个人灵活就业';",True,True,True,False,True,2,False,False,True,True,False,7730.587899999591,26111.687199998414,result_mismatch,"column_mismatch: missing_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], extra_columns=[], gold_columns=['payment_id', 'id_card', 'company_id', 'insurance_type', 'pay_month', 'insurer_status', 'pay_base', 'is_valid'], generated_columns=[]",False,[]
+simple_test:07,simple_test,把状态正常的有效缴费记录都查出来，作废的那些不要。,SELECT * FROM social_insurance_payment WHERE is_valid = '1';,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,5456.55540000007,12261.51469999968,,,False,[]
+simple_test:08,simple_test,统计一下，到目前为止养老保险一共有多少条缴费记录？,SELECT COUNT(*) AS payment_count FROM social_insurance_payment WHERE insurance_type = '110';,"SELECT COUNT(*) AS total_records
+FROM social_insurance_payment
+WHERE insurance_type = '110';","SELECT COUNT(*) AS payment_count
+FROM social_insurance_payment
+WHERE insurance_type = '110';",True,True,True,False,True,1,True,True,True,True,True,4065.8101000008173,8477.933699999994,,,False,[]
+simple_test:09,simple_test,养老保险的缴费基数平均下来是多少钱？,SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE insurance_type = '110';,"SELECT AVG(pay_base) AS average_pay_base
+FROM social_insurance_payment
+WHERE insurance_type = '110' AND is_valid = '1';","SELECT AVG(pay_base) AS avg_pay_base
+FROM social_insurance_payment
+WHERE insurance_type = '110' AND is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,4169.566999999006,8412.080699999933,,,True,['extra_is_valid_filter']
+simple_test:10,simple_test,身份证号420900199001010001这个人，2023年以单位缴费身份缴纳的、并且是有效状态的养老保险记录有哪些？,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month >= '202301' AND pay_month <= '202312' AND insurer_status = '101' AND insurance_type = '110' AND is_valid = '1';,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001'
+  AND insurer_status = '101单位缴费'
+  AND insurance_type = '110养老'
+  AND pay_month LIKE '2023%'
+  AND is_valid = '1';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001'
+  AND insurer_status = '101单位缴费'
+  AND insurance_type = '110养老'
+  AND pay_month LIKE '2023%'
+  AND is_valid = '1';",True,True,True,True,False,0,False,True,True,True,True,10110.834800001612,10112.86999999902,,,False,[]
+simple_test:11,simple_test,医疗保险里缴费基数最高的是多少？,SELECT MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE insurance_type = '310';,"SELECT MAX(pay_base) AS max_pay_base
+FROM social_insurance_payment
+WHERE insurance_type = '310';","SELECT MAX(pay_base) AS max_pay_base
+FROM social_insurance_payment
+WHERE insurance_type = '310';",True,True,True,True,False,0,False,True,True,True,True,6055.854700000054,6057.405800000197,,,False,[]
+simple_test:12,simple_test,2024年养老保险最低的缴费基数是多少？,SELECT MIN(pay_base) AS min_pay_base FROM social_insurance_payment WHERE insurance_type = '110' AND pay_month >= '202401' AND pay_month <= '202412';,"SELECT MIN(pay_base) AS min_pay_base
+FROM social_insurance_payment
+WHERE pay_month LIKE '2024%' 
+  AND insurance_type = '110' 
+  AND is_valid = '1';","SELECT MIN(pay_base) AS min_pay_base
+FROM social_insurance_payment
+WHERE pay_month LIKE '2024%' 
+  AND insurance_type = '110' 
+  AND is_valid = '1';",True,True,True,True,False,0,False,True,True,True,True,4612.087399998927,4613.886999999522,,,True,['extra_is_valid_filter']
+simple_test:13,simple_test,把2024年3月的养老保险缴费记录，按缴费基数从高到低排个序给我看看。,SELECT * FROM social_insurance_payment WHERE pay_month = '202403' AND insurance_type = '110' ORDER BY pay_base DESC;,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month = '202403' 
+  AND insurance_type = '110'
+ORDER BY 
+  pay_base DESC;","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month = '202403' 
+  AND insurance_type = '110'
+ORDER BY 
+  pay_base DESC;",True,True,True,True,False,0,False,True,True,True,True,8872.06370000058,8873.647299998993,,,False,[]
+simple_test:14,simple_test,查一下2023年全年的医疗保险缴费记录，只看前10条就行。,SELECT * FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month >= '202301' AND pay_month <= '202312' LIMIT 10;,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '310' 
+  AND pay_month BETWEEN '202301' AND '202312'
+ORDER BY 
+  pay_month, payment_id
+LIMIT 10;","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '310' 
+  AND pay_month BETWEEN '202301' AND '202312'
+ORDER BY 
+  pay_month, payment_id
+LIMIT 10;",True,True,True,True,False,0,False,True,True,True,True,9034.744900000078,9036.395700000867,,,False,[]
+simple_test:15,simple_test,身份证号420900199001010001这个人，他有效状态的养老保险一共交了多少个月？,SELECT COUNT(*) AS payment_months FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '110' AND is_valid = '1';,"SELECT 
+  COUNT(*) AS total_months
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001'
+  AND insurance_type = '110'
+  AND is_valid = '1';","SELECT 
+  COUNT(*) AS payment_months
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001'
+  AND insurance_type = '110'
+  AND is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,7292.8243999995175,14615.627699999095,,,False,[]
+simple_test:16,simple_test,查一下2024年医疗保险缴费基数最低的3条记录。,SELECT * FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month >= '202401' AND pay_month <= '202412' ORDER BY pay_base ASC LIMIT 3;,"SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base
+FROM social_insurance_payment
+WHERE insurance_type = '310' AND pay_month LIKE '2024%'
+  AND is_valid = '1'
+ORDER BY pay_base ASC
+LIMIT 3;","SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base
+FROM social_insurance_payment
+WHERE insurance_type = '310' AND pay_month LIKE '2024%'
+  AND is_valid = '1'
+ORDER BY pay_base ASC
+LIMIT 3;",True,True,True,True,False,0,False,True,True,True,True,7792.220899998938,7793.976900000416,,,True,['extra_is_valid_filter']
+simple_test:17,simple_test,帮我查查420900199001010001这个人在2024年7月到9月这三个月所有的缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month >= '202407' AND pay_month <= '202409';,"SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001'
+  AND pay_month BETWEEN '202407' AND '202409';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  id_card = '420900199001010001'
+  AND pay_month BETWEEN '202407' AND '202409';",True,True,True,True,False,0,False,True,True,True,True,11708.863300000303,11710.767599999599,,,False,[]
+simple_test:18,simple_test,看看单位缴费和个人灵活就业两类参保身份的社保缴费都是什么情况。,"SELECT * FROM social_insurance_payment WHERE insurer_status IN ('101', '102');","SELECT 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status IN ('101', '102')
+  AND is_valid = '1';","SELECT 
+  payment_id, 
+  id_card, 
+  company_id, 
+  insurance_type, 
+  pay_month, 
+  insurer_status, 
+  pay_base, 
+  is_valid
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status IN ('101', '102')
+  AND is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,8957.905400000527,15970.49270000025,,,True,['extra_is_valid_filter']
+simple_test:19,simple_test,公司ID为1001的这个单位，2024年总共缴了多少次社保？,SELECT COUNT(*) AS total_count FROM social_insurance_payment WHERE company_id = '1001' AND pay_month >= '202401' AND pay_month <= '202412';,"SELECT COUNT(*) AS payment_count
+FROM social_insurance_payment
+WHERE company_id = '1001'
+  AND pay_month LIKE '2024%';","SELECT COUNT(*) AS total_count
+FROM social_insurance_payment
+WHERE company_id = '1001'
+  AND pay_month LIKE '2024%';",True,True,True,False,True,1,True,True,True,True,True,6036.995200000092,13032.46399999989,,,False,[]
+simple_test:20,simple_test,2023年以单位缴费身份缴纳的、并且有效的医疗保险，一共有多少条记录？,SELECT COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '310' AND insurer_status = '101' AND is_valid = '1' AND pay_month >= '202301' AND pay_month <= '202312';,"SELECT COUNT(*) 
+FROM social_insurance_payment 
+WHERE insurance_type = '310' 
+  AND insurer_status = '101' 
+  AND is_valid = '1' 
+  AND pay_month BETWEEN '202301' AND '202312';","SELECT COUNT(*) AS record_count
+FROM social_insurance_payment 
+WHERE insurance_type = '310' 
+  AND insurer_status = '101' 
+  AND is_valid = '1' 
+  AND pay_month BETWEEN '202301' AND '202312';",True,True,True,False,True,1,True,True,True,True,True,9240.616999999475,22750.290899999527,,,False,[]

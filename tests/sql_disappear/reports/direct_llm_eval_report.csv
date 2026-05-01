@@ -1,0 +1,1343 @@
+﻿case_id,category,question,gold_sql,generated_sql,generation_success,syntax_pass,execution_success,result_match,gold_sql_error,latency_ms,failure_reason,error_message,source_file
+condition_test:01,condition_test,查一下身份证号是'420900199001010001'这个人的所有社保缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';,SELECT * FROM social_security_records WHERE id_number = '420900199001010001',True,False,False,False,False,5254.765300000145,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security_records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM social_security_records WHERE id_number = '420900199001010001']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:02,condition_test,请把所有养老保险的缴费记录调出来。,SELECT * FROM social_insurance_payment WHERE insurance_type = '110';,SELECT * FROM payment_records WHERE insurance_type = '养老保险',True,False,False,False,False,1846.6404999999213,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM payment_records WHERE insurance_type = '养老保险']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:03,condition_test,帮我看看2023年11月的所有社保缴费明细。,SELECT * FROM social_insurance_payment WHERE pay_month = '202311';,SELECT * FROM 社保缴费明细 WHERE 缴费年月 = '2023-11',True,False,False,False,False,2798.114199998963,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.社保缴费明细' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM 社保缴费明细 WHERE 缴费年月 = '2023-11']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:04,condition_test,当前参保身份是单位缴费的人员，他们的社保缴费记录有哪些？,SELECT * FROM social_insurance_payment WHERE insurer_status = '101';,"WITH参保人员 AS (
+  SELECT * 
+  FROM 社保记录
+  WHERE 参保身份 = '单位缴费'
+)
+SELECT *
+FROM 参保人员",True,False,False,False,False,4612.5842000037665,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'AS (\n  SELECT * \n  FROM 社保记录\n  WHERE 参保身份 = '单位缴费'\n)\nSEL' at line 1"")
+[SQL: EXPLAIN WITH参保人员 AS (
+  SELECT * 
+  FROM 社保记录
+  WHERE 参保身份 = '单位缴费'
+)
+SELECT *
+FROM 参保人员]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:05,condition_test,找出所有已经被标记为无效的缴费流水。,SELECT * FROM social_insurance_payment WHERE is_valid = '0';,SELECT * FROM payment_transactions WHERE status = 'invalid',True,False,False,False,False,1566.827500006184,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_transactions' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM payment_transactions WHERE status = 'invalid']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:06,condition_test,身份证号'420900199001010001'的人在2023年交过养老保险吗？帮我把记录找出来。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '110';,"WITH person_records AS (
+  SELECT * 
+  FROM pension_records
+  WHERE id_number = '420900199001010001'
+)
+SELECT *
+FROM person_records
+WHERE YEAR(payment_date) = 2023",True,False,False,False,False,5044.0822999953525,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_records' doesn't exist"")
+[SQL: EXPLAIN WITH person_records AS (
+  SELECT * 
+  FROM pension_records
+  WHERE id_number = '420900199001010001'
+)
+SELECT *
+FROM person_records
+WHERE YEAR(payment_date) = 2023]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:07,condition_test,查询'420900199001010001'这位人员在2023年1月到6月期间的缴费情况。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202306';,"WITH payment_data AS (
+    SELECT *
+    FROM payments
+    WHERE person_id = '420900199001010001'
+      AND payment_date BETWEEN '2023-01-01' AND '2023-06-30'
+)
+SELECT *
+FROM payment_data",True,False,False,False,False,7118.672600001446,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payments' doesn't exist"")
+[SQL: EXPLAIN WITH payment_data AS (
+    SELECT *
+    FROM payments
+    WHERE person_id = '420900199001010001'
+      AND payment_date BETWEEN '2023-01-01' AND '2023-06-30'
+)
+SELECT *
+FROM payment_data]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:08,condition_test,核实一下，养老保险的有效缴费记录有哪些？,SELECT * FROM social_insurance_payment WHERE insurance_type = '110' AND is_valid = '1';,SELECT * FROM pension_insurance_records WHERE status = 'valid',True,False,False,False,False,1968.018600004143,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_insurance_records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM pension_insurance_records WHERE status = 'valid']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:09,condition_test,哪些单位缴费人员的缴费基数超过了15000元？,SELECT * FROM social_insurance_payment WHERE insurer_status = '101' AND pay_base > 15000;,"SELECT 缴费人员, 缴费基数 FROM 单位缴费表 WHERE 缴费基数 > 15000",True,False,False,False,False,2500.7207000016933,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.单位缴费表' doesn't exist"")
+[SQL: EXPLAIN SELECT 缴费人员, 缴费基数 FROM 单位缴费表 WHERE 缴费基数 > 15000]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:10,condition_test,看看2023年三季度（7月到9月）所有社保缴费记录。,SELECT * FROM social_insurance_payment WHERE pay_month BETWEEN '202307' AND '202309';,SELECT * FROM 社保缴费记录 WHERE 缴费日期 BETWEEN '2023-07-01' AND '2023-09-30',True,False,False,False,False,2618.634699996619,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.社保缴费记录' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM 社保缴费记录 WHERE 缴费日期 BETWEEN '2023-07-01' AND '2023-09-30']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:11,condition_test,找出所有缴费基数低于4000元的记录，我们重点排查一下。,SELECT * FROM social_insurance_payment WHERE pay_base < 4000;,SELECT * FROM records WHERE payment_base < 4000,True,False,False,False,False,2100.5766999951447,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM records WHERE payment_base < 4000]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:12,condition_test,把2023年12月所有缴费基数高于10000元的有效记录列出来。,SELECT * FROM social_insurance_payment WHERE pay_month = '202312' AND pay_base > 10000 AND is_valid = '1';,"SELECT * FROM payment_records WHERE contribution_base > 10000 AND is_valid = true AND date_part('year', payment_date) = 2023 AND date_part('month', payment_date) = 12",True,False,False,False,False,4673.899300003541,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM payment_records WHERE contribution_base > 10000 AND is_valid = true AND date_part('year', payment_date) = 2023 AND date_part('month', payment_date) = 12]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:13,condition_test,我想看看身份证号'420900199001010001'在2023年，个人身份为灵活就业且缴费基数在6000到10000之间的缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND insurer_status = '102' AND pay_base BETWEEN 6000 AND 10000;,"WITH filtered_records AS (
+    SELECT *
+    FROM payment_records
+    WHERE id_number = '420900199001010001'
+      AND year = 2023
+      AND identity_type = '灵活就业'
+      AND contribution_base BETWEEN 6000 AND 10000
+)
+SELECT *
+FROM filtered_records",True,False,False,False,False,13221.715500003484,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_records' doesn't exist"")
+[SQL: EXPLAIN WITH filtered_records AS (
+    SELECT *
+    FROM payment_records
+    WHERE id_number = '420900199001010001'
+      AND year = 2023
+      AND identity_type = '灵活就业'
+      AND contribution_base BETWEEN 6000 AND 10000
+)
+SELECT *
+FROM filtered_records]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:14,condition_test,最新的10条有效养老保险缴费记录是哪几条？,SELECT * FROM social_insurance_payment WHERE insurance_type = '110' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 10;,"WITH LatestRecords AS (
+    SELECT *
+    FROM PensionPayments
+    WHERE PaymentStatus = '有效'
+    ORDER BY PaymentDate DESC
+    LIMIT 10
+)
+SELECT *
+FROM LatestRecords",True,False,False,False,False,4507.723999995505,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pensionpayments' doesn't exist"")
+[SQL: EXPLAIN WITH LatestRecords AS (
+    SELECT *
+    FROM PensionPayments
+    WHERE PaymentStatus = '有效'
+    ORDER BY PaymentDate DESC
+    LIMIT 10
+)
+SELECT *
+FROM LatestRecords]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:15,condition_test,把缴费基数最高的前5条记录找出来，我要看看有没有异常值。,SELECT * FROM social_insurance_payment ORDER BY pay_base DESC LIMIT 5;,SELECT * FROM payment_base ORDER BY base_amount DESC LIMIT 5,True,False,False,False,False,1484.194299999217,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_base' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM payment_base ORDER BY base_amount DESC LIMIT 5]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:16,condition_test,帮忙计算一下2023年11月有效缴费记录一共有多少条。,SELECT COUNT(*) FROM social_insurance_payment WHERE pay_month = '202311' AND is_valid = '1';,SELECT COUNT(*) FROM payment_records WHERE payment_date >= '2023-11-01' AND payment_date < '2023-12-01' AND is_valid = 1,True,False,False,False,False,4959.9423999970895,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_records' doesn't exist"")
+[SQL: EXPLAIN SELECT COUNT(*) FROM payment_records WHERE payment_date >= '2023-11-01' AND payment_date < '2023-12-01' AND is_valid = 1]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:17,condition_test,统计一下身份证号'420900199001010001'在2023年缴纳养老保险的平均缴费基数是多少？,SELECT AVG(pay_base) FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND insurance_type = '110';,"WITH pension_data AS (
+    SELECT *
+    FROM pension_contributions
+    WHERE id_number = '420900199001010001' AND YEAR(contribution_date) = 2023
+)
+SELECT AVG(contribution_base) AS average_contribution_base
+FROM pension_data",True,False,False,False,False,5445.376199997554,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_contributions' doesn't exist"")
+[SQL: EXPLAIN WITH pension_data AS (
+    SELECT *
+    FROM pension_contributions
+    WHERE id_number = '420900199001010001' AND YEAR(contribution_date) = 2023
+)
+SELECT AVG(contribution_base) AS average_contribution_base
+FROM pension_data]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:18,condition_test,我们想看看2023年所有单位缴费人员的最高缴费基数是多少？,SELECT MAX(pay_base) FROM social_insurance_payment WHERE pay_month BETWEEN '202301' AND '202312' AND insurer_status = '101';,"SELECT MAX(contribution_base) AS max_contribution_base
+FROM contribution_records
+WHERE YEAR(contribution_date) = 2023",True,False,False,False,False,13457.321999994747,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.contribution_records' doesn't exist"")
+[SQL: EXPLAIN SELECT MAX(contribution_base) AS max_contribution_base
+FROM contribution_records
+WHERE YEAR(contribution_date) = 2023]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:19,condition_test,查一下公司ID为'COMP101'的，在所有有效记录里，员工交过的最低缴费基数。,SELECT MIN(pay_base) FROM social_insurance_payment WHERE company_id = 'COMP101' AND is_valid = '1';,"WITH valid_records AS (
+    SELECT *
+    FROM records
+    WHERE company_id = 'COMP101' AND is_valid = 1
+)
+SELECT MIN(payment_base) AS min_payment_base
+FROM valid_records",True,False,False,False,False,3234.8916999981157,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.records' doesn't exist"")
+[SQL: EXPLAIN WITH valid_records AS (
+    SELECT *
+    FROM records
+    WHERE company_id = 'COMP101' AND is_valid = 1
+)
+SELECT MIN(payment_base) AS min_payment_base
+FROM valid_records]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+condition_test:20,condition_test,那些身份是个人灵活就业的记录，他们的缴费基数总和是多少？只算有效的记录。,SELECT SUM(pay_base) FROM social_insurance_payment WHERE insurer_status = '102' AND is_valid = '1';,"SELECT SUM(payment_base) 
+FROM records 
+WHERE employment_status = '个人灵活就业' AND record_status = '有效';",True,False,False,False,False,5054.057500005001,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.records' doesn't exist"")
+[SQL: EXPLAIN SELECT SUM(payment_base) 
+FROM records 
+WHERE employment_status = '个人灵活就业' AND record_status = '有效']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\condition_test\condition_example.json
+muti_test:01,muti_test,查询身份证号为'420900199001010001'的人员姓名、性别以及所有的社保缴费记录，包括缴费月份、保险类型和缴费基数。,"SELECT p.name, p.gender, s.pay_month, s.insurance_type, s.pay_base FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.is_valid = '1';","WITH person_info AS (
+    SELECT name, gender FROM persons WHERE id_number = '420900199001010001'
+), 
+payment_records AS (
+    SELECT month, insurance_type, base_amount 
+    FROM social_security_payments 
+    WHERE person_id = (SELECT id FROM persons WHERE id_number = '420900199001010001')
+)
+SELECT p.name, p.gender, r.month, r.insurance_type, r.base_amount
+FROM person_info p, payment_records r;",True,False,False,False,False,9637.284100004763,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.persons' doesn't exist"")
+[SQL: EXPLAIN WITH person_info AS (
+    SELECT name, gender FROM persons WHERE id_number = '420900199001010001'
+), 
+payment_records AS (
+    SELECT month, insurance_type, base_amount 
+    FROM social_security_payments 
+    WHERE person_id = (SELECT id FROM persons WHERE id_number = '420900199001010001')
+)
+SELECT p.name, p.gender, r.month, r.insurance_type, r.base_amount
+FROM person_info p, payment_records r]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:02,muti_test,查看就业登记中所有有效记录对应的企业名称，列出人员的身份证号、就业形式、合同起止日期和企业名称。,"SELECT e.id_card, e.employment_form, e.contract_start_date, e.contract_end_date, c.company_name FROM employment_registration e JOIN company_info c ON e.company_id = c.company_id WHERE e.is_valid = '1';","SELECT p.id_number, e.employment_form, e.contract_start_date, e.contract_end_date, c.company_name
+FROM employment_registration e
+JOIN person p ON e.person_id = p.id
+JOIN company c ON e.company_id = c.id
+WHERE e.status = '有效'",True,False,False,False,False,4734.636399996816,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.company' doesn't exist"")
+[SQL: EXPLAIN SELECT p.id_number, e.employment_form, e.contract_start_date, e.contract_end_date, c.company_name
+FROM employment_registration e
+JOIN person p ON e.person_id = p.id
+JOIN company c ON e.company_id = c.id
+WHERE e.status = '有效']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:03,muti_test,统计每家有效企业在2025年的社保缴费总人次，显示企业名称和缴费人次，按缴费人次降序排列，取前10名。,"SELECT c.company_name, COUNT(s.payment_id) AS payment_count FROM social_insurance_payment s JOIN company_info c ON s.company_id = c.company_id WHERE s.is_valid = '1' AND c.is_valid = '1' AND s.pay_month BETWEEN '202501' AND '202512' GROUP BY c.company_name ORDER BY payment_count DESC LIMIT 10;","WITH valid_companies AS (
+  SELECT company_name, COUNT(*) AS payment_count
+  FROM social_security_payments
+  WHERE year = 2025 AND is_valid_company = 1
+  GROUP BY company_name
+)
+SELECT company_name, payment_count
+FROM valid_companies
+ORDER BY payment_count DESC
+LIMIT 10",True,False,False,False,False,4695.206699994742,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security_payments' doesn't exist"")
+[SQL: EXPLAIN WITH valid_companies AS (
+  SELECT company_name, COUNT(*) AS payment_count
+  FROM social_security_payments
+  WHERE year = 2025 AND is_valid_company = 1
+  GROUP BY company_name
+)
+SELECT company_name, payment_count
+FROM valid_companies
+ORDER BY payment_count DESC
+LIMIT 10]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:04,muti_test,查询身份证号为'420900199001010001'的人员是否被认定为困难人员，如果有，列出困难类别、认定机构和当前是否有效。,"SELECT p.name, h.hardship_category, h.certify_org, h.is_valid FROM person p LEFT JOIN hardship_certification h ON p.id_card = h.id_card WHERE p.id_card = '420900199001010001';","SELECT 困难类别, 认定机构, 当前是否有效
+FROM 困难人员认定表
+WHERE 身份证号 = '420900199001010001'",True,False,False,False,False,4184.950299997581,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.困难人员认定表' doesn't exist"")
+[SQL: EXPLAIN SELECT 困难类别, 认定机构, 当前是否有效
+FROM 困难人员认定表
+WHERE 身份证号 = '420900199001010001']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:05,muti_test,检查已领取过补贴的人员中，哪些人还在失业登记有效期内，列出姓名、身份证号、失业日期和补贴金额。,"SELECT p.name, u.id_card, u.unemployment_date, s.grant_amount FROM person p JOIN unemployment_registration u ON p.id_card = u.id_card JOIN subsidy_payment_history s ON p.id_card = s.id_card WHERE u.is_valid = '1' AND s.is_valid = '1';","WITH补贴领取人员 AS (
+  SELECT 姓名, 身份证号, 失业日期, 补贴金额
+  FROM 补贴记录表
+),
+失业登记人员 AS (
+  SELECT 姓名, 身份证号, 登记日期, 失效日期
+  FROM 失业登记表
+  WHERE CURRENT_DATE BETWEEN 登记日期 AND 失效日期
+)
+SELECT bl.姓名, bl.身份证号, bl.失业日期, bl.补贴金额
+FROM 补贴领取人员 bl
+JOIN 失业登记人员 sy ON bl.身份证号 = sy.身份证号",True,False,False,False,False,7667.65260000102,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'AS (\n  SELECT 姓名, 身份证号, 失业日期, 补贴金额\n  FROM 补贴记å' at line 1"")
+[SQL: EXPLAIN WITH补贴领取人员 AS (
+  SELECT 姓名, 身份证号, 失业日期, 补贴金额
+  FROM 补贴记录表
+),
+失业登记人员 AS (
+  SELECT 姓名, 身份证号, 登记日期, 失效日期
+  FROM 失业登记表
+  WHERE CURRENT_DATE BETWEEN 登记日期 AND 失效日期
+)
+SELECT bl.姓名, bl.身份证号, bl.失业日期, bl.补贴金额
+FROM 补贴领取人员 bl
+JOIN 失业登记人员 sy ON bl.身份证号 = sy.身份证号]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:06,muti_test,查询在'COMP101'企业就业且已缴纳社保的人员名单，列出姓名、身份证号、就业形式和社保缴费基数，按缴费月份从近到远排序。,"SELECT p.name, e.id_card, e.employment_form, s.pay_base FROM person p JOIN employment_registration e ON p.id_card = e.id_card JOIN social_insurance_payment s ON p.id_card = s.id_card AND e.company_id = s.company_id WHERE e.company_id = 'COMP101' AND e.is_valid = '1' AND s.is_valid = '1' ORDER BY s.pay_month DESC;","WITH Employment AS (
+    SELECT 
+        e.name, 
+        e.id_number, 
+        e.employment_type, 
+        s.contribution_base, 
+        s.contribution_month
+    FROM 
+        employees e
+    JOIN 
+        social_security s ON e.id = s.employee_id
+    WHERE 
+        e.company = 'COMP101' AND s.contribution_status = 'paid'
+)
+SELECT 
+    name, 
+    id_number, 
+    employment_type, 
+    contribution_base
+FROM 
+    Employment
+ORDER BY 
+    contribution_month DESC",True,False,False,False,False,11930.116099996667,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.employees' doesn't exist"")
+[SQL: EXPLAIN WITH Employment AS (
+    SELECT 
+        e.name, 
+        e.id_number, 
+        e.employment_type, 
+        s.contribution_base, 
+        s.contribution_month
+    FROM 
+        employees e
+    JOIN 
+        social_security s ON e.id = s.employee_id
+    WHERE 
+        e.company = 'COMP101' AND s.contribution_status = 'paid'
+)
+SELECT 
+    name, 
+    id_number, 
+    employment_type, 
+    contribution_base
+FROM 
+    Employment
+ORDER BY 
+    contribution_month DESC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:07,muti_test,统计政策编码为'POLICY_001'的补贴发放总金额和领取人数。,"SELECT s.policy_code, COUNT(DISTINCT p.id_card) AS recipient_count, SUM(s.grant_amount) AS total_amount FROM subsidy_payment_history s JOIN person p ON s.id_card = p.id_card WHERE s.policy_code = 'POLICY_001' AND s.is_valid = '1' GROUP BY s.policy_code;","WITH policy_data AS (
+    SELECT 
+        SUM(amount) AS total_amount,
+        COUNT(DISTINCT recipient_id) AS recipient_count
+    FROM 
+        subsidies
+    WHERE 
+        policy_code = 'POLICY_001'
+)
+SELECT * FROM policy_data",True,False,False,False,False,3238.8062000027276,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.subsidies' doesn't exist"")
+[SQL: EXPLAIN WITH policy_data AS (
+    SELECT 
+        SUM(amount) AS total_amount,
+        COUNT(DISTINCT recipient_id) AS recipient_count
+    FROM 
+        subsidies
+    WHERE 
+        policy_code = 'POLICY_001'
+)
+SELECT * FROM policy_data]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:08,muti_test,查询有社保缴费记录但未做就业登记的人员，列出身份证号和姓名。,"SELECT DISTINCT p.id_card, p.name FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card LEFT JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' WHERE s.is_valid = '1' AND e.record_id IS NULL;","WITH social_security AS (
+  SELECT DISTINCT id_number, name
+  FROM social_security_records
+),
+employment_registration AS (
+  SELECT DISTINCT id_number
+  FROM employment_registration_records
+)
+SELECT s.id_number, s.name
+FROM social_security s
+LEFT JOIN employment_registration e ON s.id_number = e.id_number
+WHERE e.id_number IS NULL;",True,False,False,False,False,4325.369699996372,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security_records' doesn't exist"")
+[SQL: EXPLAIN WITH social_security AS (
+  SELECT DISTINCT id_number, name
+  FROM social_security_records
+),
+employment_registration AS (
+  SELECT DISTINCT id_number
+  FROM employment_registration_records
+)
+SELECT s.id_number, s.name
+FROM social_security s
+LEFT JOIN employment_registration e ON s.id_number = e.id_number
+WHERE e.id_number IS NULL]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:09,muti_test,查看身份证号为'420900199001010001'的人员所有有效补贴发放记录，以及每次补贴对应的政策编码和享受月份起止。,"SELECT p.name, s.policy_code, s.apply_start_month, s.apply_end_month, s.first_enjoy_month, s.grant_months, s.grant_amount FROM person p JOIN subsidy_payment_history s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.is_valid = '1' ORDER BY s.grant_date;","WITH valid_subsidies AS (
+    SELECT 
+        s.subsidy_id,
+        s.policy_code,
+        s.start_month,
+        s.end_month
+    FROM 
+        subsidies s
+    WHERE 
+        s.id_number = '420900199001010001' 
+        AND s.status = '有效'
+)
+SELECT 
+    vs.subsidy_id,
+    vs.policy_code,
+    vs.start_month,
+    vs.end_month
+FROM 
+    valid_subsidies vs",True,False,False,False,False,6733.194300002651,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.subsidies' doesn't exist"")
+[SQL: EXPLAIN WITH valid_subsidies AS (
+    SELECT 
+        s.subsidy_id,
+        s.policy_code,
+        s.start_month,
+        s.end_month
+    FROM 
+        subsidies s
+    WHERE 
+        s.id_number = '420900199001010001' 
+        AND s.status = '有效'
+)
+SELECT 
+    vs.subsidy_id,
+    vs.policy_code,
+    vs.start_month,
+    vs.end_month
+FROM 
+    valid_subsidies vs]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:10,muti_test,找出所有困难人员认定有效，并且有社保缴费记录的人员，列出姓名、困难类别、社保缴费月份和缴费基数。,"SELECT p.name, h.hardship_category, s.pay_month, s.pay_base FROM person p JOIN hardship_certification h ON p.id_card = h.id_card AND h.is_valid = '1' JOIN social_insurance_payment s ON p.id_card = s.id_card AND s.is_valid = '1' ORDER BY s.pay_month DESC;","WITH valid_difficult_persons AS (
+  SELECT person_id, name, difficulty_category
+  FROM difficult_persons
+  WHERE status = '有效'
+),
+social_security_payments AS (
+  SELECT person_id, payment_month, payment_base
+  FROM social_security_records
+)
+SELECT vdp.name, vdp.difficulty_category, ssp.payment_month, ssp.payment_base
+FROM valid_difficult_persons vdp
+JOIN social_security_payments ssp ON vdp.person_id = ssp.person_id",True,False,False,False,False,13633.844900003169,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.difficult_persons' doesn't exist"")
+[SQL: EXPLAIN WITH valid_difficult_persons AS (
+  SELECT person_id, name, difficulty_category
+  FROM difficult_persons
+  WHERE status = '有效'
+),
+social_security_payments AS (
+  SELECT person_id, payment_month, payment_base
+  FROM social_security_records
+)
+SELECT vdp.name, vdp.difficulty_category, ssp.payment_month, ssp.payment_base
+FROM valid_difficult_persons vdp
+JOIN social_security_payments ssp ON vdp.person_id = ssp.person_id]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:11,muti_test,查询每家企业为其员工缴纳社保的平均缴费基数，显示企业名称和平均缴费基数，只显示平均基数大于5000的企业。,"SELECT c.company_name, AVG(s.pay_base) AS avg_pay_base FROM social_insurance_payment s JOIN company_info c ON s.company_id = c.company_id WHERE s.is_valid = '1' AND c.is_valid = '1' GROUP BY c.company_name HAVING AVG(s.pay_base) > 5000;","WITH avg_base AS (
+    SELECT company_name, AVG(contribution_base) AS avg_base
+    FROM social_security_contributions
+    GROUP BY company_name
+)
+SELECT company_name, avg_base
+FROM avg_base
+WHERE avg_base > 5000",True,False,False,False,False,3892.8183000025456,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security_contributions' doesn't exist"")
+[SQL: EXPLAIN WITH avg_base AS (
+    SELECT company_name, AVG(contribution_base) AS avg_base
+    FROM social_security_contributions
+    GROUP BY company_name
+)
+SELECT company_name, avg_base
+FROM avg_base
+WHERE avg_base > 5000]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:12,muti_test,查询身份证号为'420900199001010001'的人员，在公司编号为'COMP101'的企业，社保缴费的最高和最低缴费基数。,"SELECT p.name, MAX(s.pay_base) AS max_pay_base, MIN(s.pay_base) AS min_pay_base FROM person p JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE p.id_card = '420900199001010001' AND s.company_id = 'COMP101' AND s.is_valid = '1' GROUP BY p.name;","WITH社保缴费信息 AS (
+    SELECT 
+        缴费基数
+    FROM 
+        社保缴费记录
+    WHERE 
+        身份证号 = '420900199001010001' 
+        AND 公司编号 = 'COMP101'
+)
+SELECT 
+    MAX(缴费基数) AS 最高缴费基数,
+    MIN(缴费基数) AS 最低缴费基数
+FROM 
+    社保缴费信息",True,False,False,False,False,10048.430299997563,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'AS (\n    SELECT \n        缴费基数\n    FROM \n        社保缴费记录\n    W' at line 1"")
+[SQL: EXPLAIN WITH社保缴费信息 AS (
+    SELECT 
+        缴费基数
+    FROM 
+        社保缴费记录
+    WHERE 
+        身份证号 = '420900199001010001' 
+        AND 公司编号 = 'COMP101'
+)
+SELECT 
+    MAX(缴费基数) AS 最高缴费基数,
+    MIN(缴费基数) AS 最低缴费基数
+FROM 
+    社保缴费信息]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:13,muti_test,查看'COMP101'这家企业的所有有效补贴领取人员，显示姓名、身份证号、政策编码和发放金额，按发放日期降序排列。,"SELECT p.name, s.id_card, s.policy_code, s.grant_amount FROM subsidy_payment_history s JOIN person p ON s.id_card = p.id_card JOIN employment_registration e ON p.id_card = e.id_card AND e.company_id = 'COMP101' WHERE s.is_valid = '1' AND e.is_valid = '1' ORDER BY s.grant_date DESC;","SELECT p.姓名, p.身份证号, s.政策编码, s.发放金额
+FROM 人员 p
+JOIN 补贴 s ON p.身份证号 = s.领取人身份证号
+WHERE s.企业名称 = 'COMP101' AND s.状态 = '有效'
+ORDER BY s.发放日期 DESC",True,False,False,False,False,5702.821899998526,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.人员' doesn't exist"")
+[SQL: EXPLAIN SELECT p.姓名, p.身份证号, s.政策编码, s.发放金额
+FROM 人员 p
+JOIN 补贴 s ON p.身份证号 = s.领取人身份证号
+WHERE s.企业名称 = 'COMP101' AND s.状态 = '有效'
+ORDER BY s.发放日期 DESC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:14,muti_test,查询同时存在就业登记和失业登记记录的人员，列出身份证号、姓名、就业企业名称和失业日期。,"SELECT p.id_card, p.name, c.company_name, u.unemployment_date FROM person p JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' JOIN unemployment_registration u ON p.id_card = u.id_card AND u.is_valid = '1' LEFT JOIN company_info c ON e.company_id = c.company_id;","WITH employment AS (
+  SELECT id_number, name, company_name
+  FROM employment_registration
+),
+unemployment AS (
+  SELECT id_number, unemployment_date
+  FROM unemployment_registration
+)
+SELECT e.id_number, e.name, e.company_name, u.unemployment_date
+FROM employment e
+JOIN unemployment u ON e.id_number = u.id_number",True,False,False,False,False,3674.179900001036,syntax_error,"(pymysql.err.OperationalError) (1054, ""Unknown column 'id_number' in 'field list'"")
+[SQL: EXPLAIN WITH employment AS (
+  SELECT id_number, name, company_name
+  FROM employment_registration
+),
+unemployment AS (
+  SELECT id_number, unemployment_date
+  FROM unemployment_registration
+)
+SELECT e.id_number, e.name, e.company_name, u.unemployment_date
+FROM employment e
+JOIN unemployment u ON e.id_number = u.id_number]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:15,muti_test,统计困难认定类别为'低保'且当前认定有效的人员中，有多少人已享受过补贴，以及补贴总额。,"SELECT COUNT(DISTINCT h.id_card) AS person_count, SUM(s.grant_amount) AS total_subsidy FROM hardship_certification h JOIN subsidy_payment_history s ON h.id_card = s.id_card WHERE h.hardship_category = '低保' AND h.is_valid = '1' AND s.is_valid = '1';","WITH valid_recognitions AS (
+  SELECT person_id
+  FROM recognitions
+  WHERE category = '低保' AND is_valid = true
+),
+subsidy_recipients AS (
+  SELECT person_id, SUM(amount) as total_subsidy
+  FROM subsidies
+  WHERE person_id IN (SELECT person_id FROM valid_recognitions)
+  GROUP BY person_id
+)
+SELECT COUNT(*) as recipient_count, COALESCE(SUM(total_subsidy), 0) as total_subsidy_amount
+FROM subsidy_recipients;",True,False,False,False,False,7372.736600002099,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.subsidies' doesn't exist"")
+[SQL: EXPLAIN WITH valid_recognitions AS (
+  SELECT person_id
+  FROM recognitions
+  WHERE category = '低保' AND is_valid = true
+),
+subsidy_recipients AS (
+  SELECT person_id, SUM(amount) as total_subsidy
+  FROM subsidies
+  WHERE person_id IN (SELECT person_id FROM valid_recognitions)
+  GROUP BY person_id
+)
+SELECT COUNT(*) as recipient_count, COALESCE(SUM(total_subsidy), 0) as total_subsidy_amount
+FROM subsidy_recipients]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:16,muti_test,查询2024年1月后做过就业登记，但至今没有社保缴费记录的人员，列出身份证号和就业企业编号。,"SELECT e.id_card, e.company_id FROM employment_registration e LEFT JOIN social_insurance_payment s ON e.id_card = s.id_card AND s.is_valid = '1' WHERE e.employment_date > '2024-01-01' AND e.is_valid = '1' AND s.payment_id IS NULL;","WITH Employment AS (
+    SELECT 
+        id_card, 
+        company_id
+    FROM 
+        employment_registration
+    WHERE 
+        registration_date > '2024-01-01'
+),
+SocialSecurity AS (
+    SELECT 
+        id_card
+    FROM 
+        social_security_records
+)
+SELECT 
+    E.id_card, 
+    E.company_id
+FROM 
+    Employment E
+LEFT JOIN 
+    SocialSecurity S ON E.id_card = S.id_card
+WHERE 
+    S.id_card IS NULL",True,False,False,False,False,6638.211600002251,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security_records' doesn't exist"")
+[SQL: EXPLAIN WITH Employment AS (
+    SELECT 
+        id_card, 
+        company_id
+    FROM 
+        employment_registration
+    WHERE 
+        registration_date > '2024-01-01'
+),
+SocialSecurity AS (
+    SELECT 
+        id_card
+    FROM 
+        social_security_records
+)
+SELECT 
+    E.id_card, 
+    E.company_id
+FROM 
+    Employment E
+LEFT JOIN 
+    SocialSecurity S ON E.id_card = S.id_card
+WHERE 
+    S.id_card IS NULL]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:17,muti_test,查询法律实体身份证号为'420900199001010001'的企业名下，所有在职员工的社保缴费记录，显示企业名称、员工姓名、缴费月份和缴费基数。,"SELECT c.company_name, p.name, s.pay_month, s.pay_base FROM company_info c JOIN employment_registration e ON c.company_id = e.company_id AND e.is_valid = '1' JOIN person p ON e.id_card = p.id_card JOIN social_insurance_payment s ON p.id_card = s.id_card WHERE c.legal_person_id_card = '420900199001010001' AND c.is_valid = '1' AND s.is_valid = '1' ORDER BY s.pay_month DESC;","WITH CompanyInfo AS (
+    SELECT 
+        company_name
+    FROM 
+        companies
+    WHERE 
+        legal_entity_id = '420900199001010001'
+), EmployeeInfo AS (
+    SELECT 
+        employee_name, 
+        social_security_number
+    FROM 
+        employees
+    WHERE 
+        employment_status = '在职' AND
+        company_id = (SELECT id FROM companies WHERE legal_entity_id = '420900199001010001')
+)
+SELECT 
+    ci.company_name,
+    ei.employee_name,
+    ss.payment_month,
+    ss.contribution_base
+FROM 
+    social_security ss
+JOIN 
+    EmployeeInfo ei ON ss.employee_id = ei.social_security_number
+CROSS JOIN 
+    CompanyInfo ci",True,False,False,False,False,21911.688400003186,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security' doesn't exist"")
+[SQL: EXPLAIN WITH CompanyInfo AS (
+    SELECT 
+        company_name
+    FROM 
+        companies
+    WHERE 
+        legal_entity_id = '420900199001010001'
+), EmployeeInfo AS (
+    SELECT 
+        employee_name, 
+        social_security_number
+    FROM 
+        employees
+    WHERE 
+        employment_status = '在职' AND
+        company_id = (SELECT id FROM companies WHERE legal_entity_id = '420900199001010001')
+)
+SELECT 
+    ci.company_name,
+    ei.employee_name,
+    ss.payment_month,
+    ss.contribution_base
+FROM 
+    social_security ss
+JOIN 
+    EmployeeInfo ei ON ss.employee_id = ei.social_security_number
+CROSS JOIN 
+    CompanyInfo ci]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:18,muti_test,查询在'COMP101'企业就业，人员状态正常且合同开始日期在2023年之后的人员中，哪些人没有困难人员认定记录，显示姓名和身份证号。,"SELECT p.name, p.id_card FROM person p JOIN employment_registration e ON p.id_card = e.id_card LEFT JOIN hardship_certification h ON p.id_card = h.id_card AND h.is_valid = '1' WHERE e.company_id = 'COMP101' AND p.system_status = '1' AND e.contract_start_date > '2023-01-01' AND e.is_valid = '1' AND h.cert_id IS NULL;","WITH NormalEmployees AS (
+    SELECT e.name, e.id_number
+    FROM employees e
+    JOIN employment_contracts ec ON e.id = ec.employee_id
+    WHERE ec.company_code = 'COMP101' AND e.status = '正常' AND ec.contract_start_date > '2023-01-01'
+),
+DifficultPersonnel AS (
+    SELECT dp.employee_id
+    FROM difficult_personnel dp
+)
+SELECT ne.name, ne.id_number
+FROM NormalEmployees ne
+LEFT JOIN DifficultPersonnel dp ON ne.id_number = dp.employee_id
+WHERE dp.employee_id IS NULL",True,False,False,False,False,6428.7107000054675,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.employees' doesn't exist"")
+[SQL: EXPLAIN WITH NormalEmployees AS (
+    SELECT e.name, e.id_number
+    FROM employees e
+    JOIN employment_contracts ec ON e.id = ec.employee_id
+    WHERE ec.company_code = 'COMP101' AND e.status = '正常' AND ec.contract_start_date > '2023-01-01'
+),
+DifficultPersonnel AS (
+    SELECT dp.employee_id
+    FROM difficult_personnel dp
+)
+SELECT ne.name, ne.id_number
+FROM NormalEmployees ne
+LEFT JOIN DifficultPersonnel dp ON ne.id_number = dp.employee_id
+WHERE dp.employee_id IS NULL]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:19,muti_test,统计每种失业原因下，已领取过补贴的人数，按人数降序排列，只显示人数超过5的失业原因。,"SELECT u.unemployment_reason, COUNT(DISTINCT s.id_card) AS recipient_count FROM unemployment_registration u JOIN subsidy_payment_history s ON u.id_card = s.id_card WHERE u.is_valid = '1' AND s.is_valid = '1' GROUP BY u.unemployment_reason HAVING COUNT(DISTINCT s.id_card) > 5 ORDER BY recipient_count DESC;","WITH SubsidyRecipients AS (
+    SELECT 
+        UnemploymentReason,
+        COUNT(DISTINCT PersonID) AS RecipientCount
+    FROM 
+        UnemploymentSubsidy
+    WHERE 
+        SubsidyReceived = 1
+    GROUP BY 
+        UnemploymentReason
+)
+SELECT 
+    UnemploymentReason, 
+    RecipientCount
+FROM 
+    SubsidyRecipients
+WHERE 
+    RecipientCount > 5
+ORDER BY 
+    RecipientCount DESC",True,False,False,False,False,6143.821000005119,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.unemploymentsubsidy' doesn't exist"")
+[SQL: EXPLAIN WITH SubsidyRecipients AS (
+    SELECT 
+        UnemploymentReason,
+        COUNT(DISTINCT PersonID) AS RecipientCount
+    FROM 
+        UnemploymentSubsidy
+    WHERE 
+        SubsidyReceived = 1
+    GROUP BY 
+        UnemploymentReason
+)
+SELECT 
+    UnemploymentReason, 
+    RecipientCount
+FROM 
+    SubsidyRecipients
+WHERE 
+    RecipientCount > 5
+ORDER BY 
+    RecipientCount DESC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+muti_test:20,muti_test,查询政策编码为'POLICY_001'的补贴发放记录中，每位领取人员的姓名、身份证号、领取金额和领取日期，以及该人员当前是否在就业登记有效状态。,"SELECT p.name, s.id_card, s.grant_amount, s.grant_date, CASE WHEN e.record_id IS NOT NULL THEN '是' ELSE '否' END AS is_employed FROM person p JOIN subsidy_payment_history s ON p.id_card = s.id_card LEFT JOIN employment_registration e ON p.id_card = e.id_card AND e.is_valid = '1' WHERE s.policy_code = 'POLICY_001' AND s.is_valid = '1';","WITH subsidy_records AS (
+  SELECT 
+    p.name,
+    p.id_number,
+    s.amount,
+    s.receive_date,
+    e.is_employed
+  FROM 
+    subsidies s
+  JOIN 
+    persons p ON s.person_id = p.id
+  LEFT JOIN 
+    employment e ON p.id = e.person_id
+  WHERE 
+    s.policy_code = 'POLICY_001'
+)
+SELECT 
+  name, 
+  id_number, 
+  amount, 
+  receive_date, 
+  CASE 
+    WHEN is_employed IS TRUE THEN '是'
+    ELSE '否'
+  END AS is_employed_status
+FROM 
+  subsidy_records",True,False,False,False,False,8011.723499999789,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.subsidies' doesn't exist"")
+[SQL: EXPLAIN WITH subsidy_records AS (
+  SELECT 
+    p.name,
+    p.id_number,
+    s.amount,
+    s.receive_date,
+    e.is_employed
+  FROM 
+    subsidies s
+  JOIN 
+    persons p ON s.person_id = p.id
+  LEFT JOIN 
+    employment e ON p.id = e.person_id
+  WHERE 
+    s.policy_code = 'POLICY_001'
+)
+SELECT 
+  name, 
+  id_number, 
+  amount, 
+  receive_date, 
+  CASE 
+    WHEN is_employed IS TRUE THEN '是'
+    ELSE '否'
+  END AS is_employed_status
+FROM 
+  subsidy_records]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\muti_test\muti_example.json
+simple_test:01,simple_test,帮我查一下身份证号为420900199001010001这个人的所有社保缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001';,SELECT * FROM social_security_records WHERE id_number = '420900199001010001',True,False,False,False,False,2681.974299994181,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security_records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM social_security_records WHERE id_number = '420900199001010001']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:02,simple_test,查询所有养老保险的缴费记录，看看都有哪些人交过。,SELECT * FROM social_insurance_payment WHERE insurance_type = '110';,SELECT DISTINCT person_id FROM pension_payment_records,True,False,False,False,False,1936.6300999972736,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_payment_records' doesn't exist"")
+[SQL: EXPLAIN SELECT DISTINCT person_id FROM pension_payment_records]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:03,simple_test,2024年1月份一共有哪些社保缴费记录，把那个月的缴费记录调出来看看。,SELECT * FROM social_insurance_payment WHERE pay_month = '202401';,"WITH PaymentRecords AS (
+    SELECT *
+    FROM SocialSecurityPayments
+    WHERE PaymentDate >= '2024-01-01' AND PaymentDate < '2024-02-01'
+)
+SELECT *
+FROM PaymentRecords",True,False,False,False,False,4462.228500000492,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.socialsecuritypayments' doesn't exist"")
+[SQL: EXPLAIN WITH PaymentRecords AS (
+    SELECT *
+    FROM SocialSecurityPayments
+    WHERE PaymentDate >= '2024-01-01' AND PaymentDate < '2024-02-01'
+)
+SELECT *
+FROM PaymentRecords]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:04,simple_test,身份证号420900199001010001这个人，他的医疗保险都交了哪几个月？,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '310';,"WITH person_insurance AS (
+    SELECT 
+        payment_month
+    FROM 
+        insurance_payments
+    WHERE 
+        id_number = '420900199001010001'
+)
+SELECT 
+    payment_month
+FROM 
+    person_insurance",True,False,False,False,False,3803.4293000018806,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.insurance_payments' doesn't exist"")
+[SQL: EXPLAIN WITH person_insurance AS (
+    SELECT 
+        payment_month
+    FROM 
+        insurance_payments
+    WHERE 
+        id_number = '420900199001010001'
+)
+SELECT 
+    payment_month
+FROM 
+    person_insurance]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:05,simple_test,查一下2023年7月到2023年12月这半年期间，所有人员的社保缴费情况。,SELECT * FROM social_insurance_payment WHERE pay_month >= '202307' AND pay_month <= '202312';,"WITH社保缴费情况 AS (
+  SELECT 
+    员工编号, 
+    姓名, 
+    社保月份, 
+    缴费金额
+  FROM 
+    社保缴费记录
+  WHERE 
+    社保月份 BETWEEN '2023-07-01' AND '2023-12-31'
+)
+SELECT * FROM 社保缴费情况",True,False,False,False,False,4814.811700001883,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'AS (\n  SELECT \n    员工编号, \n    姓名, \n    社保月份, \n    缴费金é' at line 1"")
+[SQL: EXPLAIN WITH社保缴费情况 AS (
+  SELECT 
+    员工编号, 
+    姓名, 
+    社保月份, 
+    缴费金额
+  FROM 
+    社保缴费记录
+  WHERE 
+    社保月份 BETWEEN '2023-07-01' AND '2023-12-31'
+)
+SELECT * FROM 社保缴费情况]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:06,simple_test,看看以个人灵活就业身份参保的人，他们的缴费记录有哪些。,SELECT * FROM social_insurance_payment WHERE insurer_status = '102';,SELECT * FROM payment_records WHERE参保身份 = '个人灵活就业',True,False,False,False,False,2806.105800002115,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '= '个人灵活就业'' at line 1"")
+[SQL: EXPLAIN SELECT * FROM payment_records WHERE参保身份 = '个人灵活就业']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:07,simple_test,把状态正常的有效缴费记录都查出来，作废的那些不要。,SELECT * FROM social_insurance_payment WHERE is_valid = '1';,SELECT * FROM payment_records WHERE status = '正常' AND is_valid = 1,True,False,False,False,False,1724.234699999215,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM payment_records WHERE status = '正常' AND is_valid = 1]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:08,simple_test,统计一下，到目前为止养老保险一共有多少条缴费记录？,SELECT COUNT(*) AS payment_count FROM social_insurance_payment WHERE insurance_type = '110';,SELECT COUNT(*) FROM pension_insurance_records,True,False,False,False,False,1864.0789999990375,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_insurance_records' doesn't exist"")
+[SQL: EXPLAIN SELECT COUNT(*) FROM pension_insurance_records]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:09,simple_test,养老保险的缴费基数平均下来是多少钱？,SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE insurance_type = '110';,SELECT AVG(payment_base) AS average_payment_base FROM pension_insurance_contributions,True,False,False,False,False,2429.346600001736,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_insurance_contributions' doesn't exist"")
+[SQL: EXPLAIN SELECT AVG(payment_base) AS average_payment_base FROM pension_insurance_contributions]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:10,simple_test,身份证号420900199001010001这个人，2023年以单位缴费身份缴纳的、并且是有效状态的养老保险记录有哪些？,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month >= '202301' AND pay_month <= '202312' AND insurer_status = '101' AND insurance_type = '110' AND is_valid = '1';,"WITH valid_pension_records AS (
+    SELECT *
+    FROM pension_records
+    WHERE id_number = '420900199001010001'
+      AND payment_type = '单位缴费'
+      AND status = '有效'
+      AND YEAR(payment_date) = 2023
+)
+SELECT *
+FROM valid_pension_records",True,False,False,False,False,6573.398400003498,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_records' doesn't exist"")
+[SQL: EXPLAIN WITH valid_pension_records AS (
+    SELECT *
+    FROM pension_records
+    WHERE id_number = '420900199001010001'
+      AND payment_type = '单位缴费'
+      AND status = '有效'
+      AND YEAR(payment_date) = 2023
+)
+SELECT *
+FROM valid_pension_records]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:11,simple_test,医疗保险里缴费基数最高的是多少？,SELECT MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE insurance_type = '310';,SELECT MAX(payment_base) FROM medical_insurance,True,False,False,False,False,1878.9041999989422,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.medical_insurance' doesn't exist"")
+[SQL: EXPLAIN SELECT MAX(payment_base) FROM medical_insurance]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:12,simple_test,2024年养老保险最低的缴费基数是多少？,SELECT MIN(pay_base) AS min_pay_base FROM social_insurance_payment WHERE insurance_type = '110' AND pay_month >= '202401' AND pay_month <= '202412';,"WITH pension_data AS (
+    SELECT 
+        MIN(contribution_base) AS min_contribution_base
+    FROM 
+        pension_contributions
+    WHERE 
+        YEAR(contribution_year) = 2024
+)
+SELECT min_contribution_base FROM pension_data",True,False,False,False,False,4361.671400001796,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_contributions' doesn't exist"")
+[SQL: EXPLAIN WITH pension_data AS (
+    SELECT 
+        MIN(contribution_base) AS min_contribution_base
+    FROM 
+        pension_contributions
+    WHERE 
+        YEAR(contribution_year) = 2024
+)
+SELECT min_contribution_base FROM pension_data]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:13,simple_test,把2024年3月的养老保险缴费记录，按缴费基数从高到低排个序给我看看。,SELECT * FROM social_insurance_payment WHERE pay_month = '202403' AND insurance_type = '110' ORDER BY pay_base DESC;,SELECT * FROM pension_records WHERE YEAR(payment_date) = 2024 AND MONTH(payment_date) = 3 ORDER BY payment_base DESC,True,False,False,False,False,3239.7608999963268,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM pension_records WHERE YEAR(payment_date) = 2024 AND MONTH(payment_date) = 3 ORDER BY payment_base DESC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:14,simple_test,查一下2023年全年的医疗保险缴费记录，只看前10条就行。,SELECT * FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month >= '202301' AND pay_month <= '202312' LIMIT 10;,SELECT * FROM medical_insurance_records WHERE payment_date BETWEEN '2023-01-01' AND '2023-12-31' LIMIT 10,True,False,False,False,False,7136.281600003713,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.medical_insurance_records' doesn't exist"")
+[SQL: EXPLAIN SELECT * FROM medical_insurance_records WHERE payment_date BETWEEN '2023-01-01' AND '2023-12-31' LIMIT 10]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:15,simple_test,身份证号420900199001010001这个人，他有效状态的养老保险一共交了多少个月？,SELECT COUNT(*) AS payment_months FROM social_insurance_payment WHERE id_card = '420900199001010001' AND insurance_type = '110' AND is_valid = '1';,"WITH valid_pensions AS (
+    SELECT 
+        COUNT(*) AS months_paid
+    FROM 
+        pension_records
+    WHERE 
+        id_number = '420900199001010001' 
+        AND status = '有效'
+)
+SELECT 
+    months_paid
+FROM 
+    valid_pensions",True,False,False,False,False,5008.39210000413,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_records' doesn't exist"")
+[SQL: EXPLAIN WITH valid_pensions AS (
+    SELECT 
+        COUNT(*) AS months_paid
+    FROM 
+        pension_records
+    WHERE 
+        id_number = '420900199001010001' 
+        AND status = '有效'
+)
+SELECT 
+    months_paid
+FROM 
+    valid_pensions]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:16,simple_test,查一下2024年医疗保险缴费基数最低的3条记录。,SELECT * FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month >= '202401' AND pay_month <= '202412' ORDER BY pay_base ASC LIMIT 3;,"WITH RankedData AS (
+    SELECT 
+        *,
+        RANK() OVER (ORDER BY 缴费基数 ASC) as rnk
+    FROM 
+        医疗保险表
+    WHERE 
+        YEAR(缴费年份) = 2024
+)
+SELECT * FROM RankedData WHERE rnk <= 3",True,False,False,False,False,7149.877000003471,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.医疗保险表' doesn't exist"")
+[SQL: EXPLAIN WITH RankedData AS (
+    SELECT 
+        *,
+        RANK() OVER (ORDER BY 缴费基数 ASC) as rnk
+    FROM 
+        医疗保险表
+    WHERE 
+        YEAR(缴费年份) = 2024
+)
+SELECT * FROM RankedData WHERE rnk <= 3]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:17,simple_test,帮我查查420900199001010001这个人在2024年7月到9月这三个月所有的缴费记录。,SELECT * FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month >= '202407' AND pay_month <= '202409';,"WITH date_range AS (
+  SELECT '2024-07-01' AS start_date, '2024-09-30' AS end_date
+)
+SELECT *
+FROM payment_records
+WHERE id_number = '420900199001010001'
+AND payment_date BETWEEN (SELECT start_date FROM date_range) AND (SELECT end_date FROM date_range);",True,False,False,False,False,5181.896400004916,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_records' doesn't exist"")
+[SQL: EXPLAIN WITH date_range AS (
+  SELECT '2024-07-01' AS start_date, '2024-09-30' AS end_date
+)
+SELECT *
+FROM payment_records
+WHERE id_number = '420900199001010001'
+AND payment_date BETWEEN (SELECT start_date FROM date_range) AND (SELECT end_date FROM date_range)]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:18,simple_test,看看单位缴费和个人灵活就业两类参保身份的社保缴费都是什么情况。,"SELECT * FROM social_insurance_payment WHERE insurer_status IN ('101', '102');","WITH 社保缴费情况 AS (
+SELECT 
+    CASE 
+        WHEN 参保身份 = '单位缴费' THEN '单位缴费'
+        WHEN 参保身份 = '个人灵活就业' THEN '个人灵活就业'
+    END AS 参保类型,
+    COUNT(*) AS 缴费人数,
+    SUM(缴费金额) AS 总缴费金额
+FROM 
+    社保缴费记录
+WHERE 
+    参保身份 IN ('单位缴费', '个人灵活就业')
+GROUP BY 
+    参保身份
+)
+SELECT * FROM 社保缴费情况",True,False,False,False,False,7216.453599998204,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.社保缴费记录' doesn't exist"")
+[SQL: EXPLAIN WITH 社保缴费情况 AS (
+SELECT 
+    CASE 
+        WHEN 参保身份 = '单位缴费' THEN '单位缴费'
+        WHEN 参保身份 = '个人灵活就业' THEN '个人灵活就业'
+    END AS 参保类型,
+    COUNT(*) AS 缴费人数,
+    SUM(缴费金额) AS 总缴费金额
+FROM 
+    社保缴费记录
+WHERE 
+    参保身份 IN ('单位缴费', '个人灵活就业')
+GROUP BY 
+    参保身份
+)
+SELECT * FROM 社保缴费情况]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:19,simple_test,公司ID为1001的这个单位，2024年总共缴了多少次社保？,SELECT COUNT(*) AS total_count FROM social_insurance_payment WHERE company_id = '1001' AND pay_month >= '202401' AND pay_month <= '202412';,"SELECT COUNT(*) 
+FROM social_security_payments 
+WHERE company_id = 1001 AND payment_date BETWEEN '2024-01-01' AND '2024-12-31'",True,False,False,False,False,3572.507700002461,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security_payments' doesn't exist"")
+[SQL: EXPLAIN SELECT COUNT(*) 
+FROM social_security_payments 
+WHERE company_id = 1001 AND payment_date BETWEEN '2024-01-01' AND '2024-12-31']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+simple_test:20,simple_test,2023年以单位缴费身份缴纳的、并且有效的医疗保险，一共有多少条记录？,SELECT COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '310' AND insurer_status = '101' AND is_valid = '1' AND pay_month >= '202301' AND pay_month <= '202312';,SELECT COUNT(*) FROM insurance_records WHERE payment_identity = '单位' AND insurance_type = '医疗保险' AND validity = '有效' AND YEAR(payment_date) = 2023;,True,False,False,False,False,5587.6993000056245,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.insurance_records' doesn't exist"")
+[SQL: EXPLAIN SELECT COUNT(*) FROM insurance_records WHERE payment_identity = '单位' AND insurance_type = '医疗保险' AND validity = '有效' AND YEAR(payment_date) = 2023]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\simple_test\simple_example.json
+sum_test:01,sum_test,系统里总共有多少条社保缴费记录？,SELECT COUNT(*) AS total_count FROM social_insurance_payment;,SELECT COUNT(*) FROM social_security_payments,True,False,False,False,False,3514.4574999940232,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.social_security_payments' doesn't exist"")
+[SQL: EXPLAIN SELECT COUNT(*) FROM social_security_payments]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:02,sum_test,有多少名不同的参保人至少有过一次缴费记录？按身份证号去重统计。,SELECT COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment;,SELECT COUNT(DISTINCT 身份证号) FROM 缴费记录,True,False,False,False,False,2606.1360000021523,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.缴费记录' doesn't exist"")
+[SQL: EXPLAIN SELECT COUNT(DISTINCT 身份证号) FROM 缴费记录]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:03,sum_test,2023年11月医保的有效缴费总金额（缴费基数求和）是多少？,SELECT SUM(pay_base) AS total_pay_base FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month = '202311' AND is_valid = '1';,"WITH valid_payments AS (
+    SELECT SUM(payment_base) AS total_payment
+    FROM payments
+    WHERE payment_date BETWEEN '2023-11-01' AND '2023-11-30'
+      AND payment_status = 'valid'
+)
+SELECT total_payment
+FROM valid_payments;",True,False,False,False,False,4860.114799994335,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payments' doesn't exist"")
+[SQL: EXPLAIN WITH valid_payments AS (
+    SELECT SUM(payment_base) AS total_payment
+    FROM payments
+    WHERE payment_date BETWEEN '2023-11-01' AND '2023-11-30'
+      AND payment_status = 'valid'
+)
+SELECT total_payment
+FROM valid_payments]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:04,sum_test,所有缴费记录中，个人灵活就业身份的平均缴费基数是多少？,SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE insurer_status = '102';,"SELECT AVG(payment_base) 
+FROM payment_records
+WHERE employment_status = '个人灵活就业'",True,False,False,False,False,2090.7382999939728,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_records' doesn't exist"")
+[SQL: EXPLAIN SELECT AVG(payment_base) 
+FROM payment_records
+WHERE employment_status = '个人灵活就业']
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:05,sum_test,单位缴费记录里缴费基数的最高值和最低值分别是多少？,"SELECT MAX(pay_base) AS max_pay_base, MIN(pay_base) AS min_pay_base FROM social_insurance_payment WHERE insurer_status = '101';","WITH缴费记录 AS (
+  SELECT 缴费基数
+  FROM 单位缴费记录
+)
+SELECT MAX(缴费基数) AS 最高缴费基数, MIN(缴费基数) AS 最低缴费基数
+FROM 缴费记录",True,False,False,False,False,5532.820599997649,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'AS (\n  SELECT 缴费基数\n  FROM 单位缴费记录\n)\nSELECT MAX(缴费基数) ' at line 1"")
+[SQL: EXPLAIN WITH缴费记录 AS (
+  SELECT 缴费基数
+  FROM 单位缴费记录
+)
+SELECT MAX(缴费基数) AS 最高缴费基数, MIN(缴费基数) AS 最低缴费基数
+FROM 缴费记录]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:06,sum_test,各个险种的缴费人数是多少？按险种分组统计，只统计有效记录。,"SELECT insurance_type, COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY insurance_type;","SELECT 险种, COUNT(*) AS 缴费人数
+FROM 保险记录
+WHERE 记录状态 = '有效'
+GROUP BY 险种",True,False,False,False,False,2678.4218000029796,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.保险记录' doesn't exist"")
+[SQL: EXPLAIN SELECT 险种, COUNT(*) AS 缴费人数
+FROM 保险记录
+WHERE 记录状态 = '有效'
+GROUP BY 险种]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:07,sum_test,2024年各月的缴费记录数有多少？按月份分组，并按月份升序排列。,"SELECT pay_month, COUNT(*) AS record_count FROM social_insurance_payment WHERE pay_month BETWEEN '202401' AND '202412' GROUP BY pay_month ORDER BY pay_month ASC;","SELECT MONTH(payment_date) AS month, COUNT(*) AS payment_count
+FROM payments
+WHERE YEAR(payment_date) = 2024
+GROUP BY MONTH(payment_date)
+ORDER BY MONTH(payment_date) ASC",True,False,False,False,False,3031.462200000533,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payments' doesn't exist"")
+[SQL: EXPLAIN SELECT MONTH(payment_date) AS month, COUNT(*) AS payment_count
+FROM payments
+WHERE YEAR(payment_date) = 2024
+GROUP BY MONTH(payment_date)
+ORDER BY MONTH(payment_date) ASC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:08,sum_test,哪些企业的有效缴费平均基数超过了8000元？只显示企业编号和平均基数。,"SELECT company_id, AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id HAVING AVG(pay_base) > 8000;","SELECT 企业编号, AVG(缴费基数) AS 平均基数
+FROM 缴费记录
+WHERE 缴费状态 = '有效'
+GROUP BY 企业编号
+HAVING AVG(缴费基数) > 8000;",True,False,False,False,False,5438.294699997641,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.缴费记录' doesn't exist"")
+[SQL: EXPLAIN SELECT 企业编号, AVG(缴费基数) AS 平均基数
+FROM 缴费记录
+WHERE 缴费状态 = '有效'
+GROUP BY 企业编号
+HAVING AVG(缴费基数) > 8000]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:09,sum_test,身份证号'420900199001010001'的这个人，在2023年所有有效缴费月份中，最高缴费基数是多少？,SELECT MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND is_valid = '1';,"WITH valid_months AS (
+    SELECT DISTINCT EXTRACT(MONTH FROM payment_date) AS month
+    FROM payments
+    WHERE EXTRACT(YEAR FROM payment_date) = 2023 AND id_number = '420900199001010001' AND is_valid = true
+),
+max_base AS (
+    SELECT MAX(payment_base) AS max_payment_base
+    FROM payments
+    WHERE EXTRACT(YEAR FROM payment_date) = 2023 AND id_number = '420900199001010001' AND is_valid = true
+)
+SELECT max_payment_base
+FROM max_base;",True,False,False,False,False,11199.1205000013,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payments' doesn't exist"")
+[SQL: EXPLAIN WITH valid_months AS (
+    SELECT DISTINCT EXTRACT(MONTH FROM payment_date) AS month
+    FROM payments
+    WHERE EXTRACT(YEAR FROM payment_date) = 2023 AND id_number = '420900199001010001' AND is_valid = true
+),
+max_base AS (
+    SELECT MAX(payment_base) AS max_payment_base
+    FROM payments
+    WHERE EXTRACT(YEAR FROM payment_date) = 2023 AND id_number = '420900199001010001' AND is_valid = true
+)
+SELECT max_payment_base
+FROM max_base]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:10,sum_test,统计各险种的有效缴费记录数，只显示记录数大于100的险种，并按记录数从高到低排序。,"SELECT insurance_type, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY insurance_type HAVING COUNT(*) > 100 ORDER BY record_count DESC;","WITH ValidPayments AS (
+    SELECT 
+        InsuranceType,
+        COUNT(*) AS RecordCount
+    FROM 
+        Payments
+    WHERE 
+        PaymentStatus = 'Valid'
+    GROUP BY 
+        InsuranceType
+)
+SELECT 
+    InsuranceType, 
+    RecordCount
+FROM 
+    ValidPayments
+WHERE 
+    RecordCount > 100
+ORDER BY 
+    RecordCount DESC",True,False,False,False,False,8851.909500001057,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payments' doesn't exist"")
+[SQL: EXPLAIN WITH ValidPayments AS (
+    SELECT 
+        InsuranceType,
+        COUNT(*) AS RecordCount
+    FROM 
+        Payments
+    WHERE 
+        PaymentStatus = 'Valid'
+    GROUP BY 
+        InsuranceType
+)
+SELECT 
+    InsuranceType, 
+    RecordCount
+FROM 
+    ValidPayments
+WHERE 
+    RecordCount > 100
+ORDER BY 
+    RecordCount DESC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:11,sum_test,缴费基数低于3957元的记录有多少条？,SELECT COUNT(*) AS low_base_count FROM social_insurance_payment WHERE pay_base < 3957;,SELECT COUNT(*) FROM 表名 WHERE 缴费基数 < 3957,True,False,False,False,False,2701.7855000012787,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.表名' doesn't exist"")
+[SQL: EXPLAIN SELECT COUNT(*) FROM 表名 WHERE 缴费基数 < 3957]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:12,sum_test,企业'COMP101'在2023年11月的有效缴费记录中，缴费基数在5000到10000之间的记录有多少条？,SELECT COUNT(*) AS record_count FROM social_insurance_payment WHERE company_id = 'COMP101' AND pay_month = '202311' AND is_valid = '1' AND pay_base BETWEEN 5000 AND 10000;,"SELECT COUNT(*) 
+FROM payment_records 
+WHERE company_id = 'COMP101' 
+AND payment_date BETWEEN '2023-11-01' AND '2023-11-30' 
+AND payment_base BETWEEN 5000 AND 10000;",True,False,False,False,False,11102.260500003467,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payment_records' doesn't exist"")
+[SQL: EXPLAIN SELECT COUNT(*) 
+FROM payment_records 
+WHERE company_id = 'COMP101' 
+AND payment_date BETWEEN '2023-11-01' AND '2023-11-30' 
+AND payment_base BETWEEN 5000 AND 10000]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:13,sum_test,2024年度，个人灵活就业与单位缴费两种身份各自的有效缴费总人数（按身份证去重）是多少？,"SELECT insurer_status, COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment WHERE pay_month BETWEEN '202401' AND '202412' AND is_valid = '1' AND insurer_status IN ('101', '102') GROUP BY insurer_status;","WITH PersonalEmployment AS (
+    SELECT COUNT(DISTINCT ID_Number) AS PersonalCount
+    FROM EmploymentRecords
+    WHERE EmploymentType = '个人灵活就业' AND Year = 2024
+),
+CompanyEmployment AS (
+    SELECT COUNT(DISTINCT ID_Number) AS CompanyCount
+    FROM EmploymentRecords
+    WHERE EmploymentType = '单位缴费' AND Year = 2024
+)
+SELECT (SELECT PersonalCount FROM PersonalEmployment) AS PersonalFlexCount, (SELECT CompanyCount FROM CompanyEmployment) AS CompanyPaymentCount",True,False,False,False,False,8194.469499998377,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.employmentrecords' doesn't exist"")
+[SQL: EXPLAIN WITH PersonalEmployment AS (
+    SELECT COUNT(DISTINCT ID_Number) AS PersonalCount
+    FROM EmploymentRecords
+    WHERE EmploymentType = '个人灵活就业' AND Year = 2024
+),
+CompanyEmployment AS (
+    SELECT COUNT(DISTINCT ID_Number) AS CompanyCount
+    FROM EmploymentRecords
+    WHERE EmploymentType = '单位缴费' AND Year = 2024
+)
+SELECT (SELECT PersonalCount FROM PersonalEmployment) AS PersonalFlexCount, (SELECT CompanyCount FROM CompanyEmployment) AS CompanyPaymentCount]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:14,sum_test,有效缴费记录中，哪些企业的最高缴费基数排在前5名？,"SELECT company_id, MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id ORDER BY max_pay_base DESC LIMIT 5;","WITH RankedCompanies AS (
+    SELECT 
+        CompanyID, 
+        MAX(PaymentBase) AS MaxPaymentBase
+    FROM 
+        PaymentRecords
+    WHERE 
+        IsEffective = 1
+    GROUP BY 
+        CompanyID
+    ORDER BY 
+        MaxPaymentBase DESC
+    LIMIT 5
+)
+SELECT CompanyID, MaxPaymentBase FROM RankedCompanies",True,False,False,False,False,5300.651699995797,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.paymentrecords' doesn't exist"")
+[SQL: EXPLAIN WITH RankedCompanies AS (
+    SELECT 
+        CompanyID, 
+        MAX(PaymentBase) AS MaxPaymentBase
+    FROM 
+        PaymentRecords
+    WHERE 
+        IsEffective = 1
+    GROUP BY 
+        CompanyID
+    ORDER BY 
+        MaxPaymentBase DESC
+    LIMIT 5
+)
+SELECT CompanyID, MaxPaymentBase FROM RankedCompanies]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:15,sum_test,统计2023年各月养老保险的有效缴费记录数，按月份升序排列。,"SELECT pay_month, COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '110' AND pay_month BETWEEN '202301' AND '202312' AND is_valid = '1' GROUP BY pay_month ORDER BY pay_month ASC;","WITH monthly_pension AS (
+    SELECT 
+        EXTRACT(MONTH FROM payment_date) AS month,
+        COUNT(*) AS valid_payment_count
+    FROM 
+        pension_payments
+    WHERE 
+        EXTRACT(YEAR FROM payment_date) = 2023
+        AND is_valid = true
+    GROUP BY 
+        month
+)
+SELECT * FROM monthly_pension ORDER BY month ASC",True,False,False,False,False,6836.8439999976545,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.pension_payments' doesn't exist"")
+[SQL: EXPLAIN WITH monthly_pension AS (
+    SELECT 
+        EXTRACT(MONTH FROM payment_date) AS month,
+        COUNT(*) AS valid_payment_count
+    FROM 
+        pension_payments
+    WHERE 
+        EXTRACT(YEAR FROM payment_date) = 2023
+        AND is_valid = true
+    GROUP BY 
+        month
+)
+SELECT * FROM monthly_pension ORDER BY month ASC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:16,sum_test,哪些身份证号的有效缴费记录超过5条？列出身份证号和对应的记录数。,"SELECT id_card, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY id_card HAVING COUNT(*) > 5;","SELECT 身份证号, COUNT(*) AS 记录数
+FROM 缴费记录表
+GROUP BY 身份证号
+HAVING COUNT(*) > 5",True,False,False,False,False,2644.5730999985244,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.缴费记录表' doesn't exist"")
+[SQL: EXPLAIN SELECT 身份证号, COUNT(*) AS 记录数
+FROM 缴费记录表
+GROUP BY 身份证号
+HAVING COUNT(*) > 5]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:17,sum_test,在所有无效缴费记录中，各企业的记录数分别是多少？按企业分组统计。,"SELECT company_id, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '0' AND company_id IS NOT NULL GROUP BY company_id;","SELECT 企业, COUNT(*) AS 记录数
+FROM 缴费记录
+WHERE 状态 = '无效'
+GROUP BY 企业",True,False,False,False,False,3124.512499998673,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.缴费记录' doesn't exist"")
+[SQL: EXPLAIN SELECT 企业, COUNT(*) AS 记录数
+FROM 缴费记录
+WHERE 状态 = '无效'
+GROUP BY 企业]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:18,sum_test,2024年前三个月里，单位缴费中缴费基数大于6000的有效记录的平均缴费基数是多少？,"SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE pay_month IN ('202401', '202402', '202403') AND insurer_status = '101' AND pay_base > 6000 AND is_valid = '1';","WITH filtered_records AS (
+  SELECT *
+  FROM payments
+  WHERE payment_base > 6000
+  AND is_valid = 1
+  AND payment_date BETWEEN '2024-01-01' AND '2024-03-31'
+)
+SELECT AVG(payment_base) AS average_payment_base
+FROM filtered_records;",True,False,False,False,False,6750.110399996629,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payments' doesn't exist"")
+[SQL: EXPLAIN WITH filtered_records AS (
+  SELECT *
+  FROM payments
+  WHERE payment_base > 6000
+  AND is_valid = 1
+  AND payment_date BETWEEN '2024-01-01' AND '2024-03-31'
+)
+SELECT AVG(payment_base) AS average_payment_base
+FROM filtered_records]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:19,sum_test,参加医疗保险的缴费记录中，最低的10个缴费基数分别对应多少条记录？按缴费基数升序排列。,"SELECT pay_base, COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '310' GROUP BY pay_base ORDER BY pay_base ASC LIMIT 10;","WITH RankedRecords AS (
+    SELECT 
+        缴费基数,
+        COUNT(*) AS 记录数,
+        DENSE_RANK() OVER (ORDER BY 缴费基数) AS rank
+    FROM 
+        医疗保险缴费记录
+    GROUP BY 
+        缴费基数
+)
+SELECT 
+    缴费基数, 
+    记录数
+FROM 
+    RankedRecords
+WHERE 
+    rank <= 10
+ORDER BY 
+    缴费基数 ASC",True,False,False,False,False,5195.939500001259,syntax_error,"(pymysql.err.ProgrammingError) (1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'rank\n    FROM \n        医疗保险缴费记录\n    GROUP BY \n        缴费基æ' at line 5"")
+[SQL: EXPLAIN WITH RankedRecords AS (
+    SELECT 
+        缴费基数,
+        COUNT(*) AS 记录数,
+        DENSE_RANK() OVER (ORDER BY 缴费基数) AS rank
+    FROM 
+        医疗保险缴费记录
+    GROUP BY 
+        缴费基数
+)
+SELECT 
+    缴费基数, 
+    记录数
+FROM 
+    RankedRecords
+WHERE 
+    rank <= 10
+ORDER BY 
+    缴费基数 ASC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json
+sum_test:20,sum_test,统计各企业各险种的有效缴费总金额（缴费基数求和），并找出总金额超过50万的组合，按总金额从高到低排序。,"SELECT company_id, insurance_type, SUM(pay_base) AS total_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id, insurance_type HAVING SUM(pay_base) > 500000 ORDER BY total_pay_base DESC;","WITH EffectivePayments AS (
+    SELECT 
+        EnterpriseID, 
+        InsuranceType, 
+        SUM(PaymentBase) AS TotalAmount
+    FROM 
+        Payments
+    WHERE 
+        PaymentStatus = '有效'
+    GROUP BY 
+        EnterpriseID, 
+        InsuranceType
+    HAVING 
+        SUM(PaymentBase) > 500000
+)
+SELECT 
+    EnterpriseID, 
+    InsuranceType, 
+    TotalAmount
+FROM 
+    EffectivePayments
+ORDER BY 
+    TotalAmount DESC",True,False,False,False,False,6087.869800001499,syntax_error,"(pymysql.err.ProgrammingError) (1146, ""Table 'bysj_t2s.payments' doesn't exist"")
+[SQL: EXPLAIN WITH EffectivePayments AS (
+    SELECT 
+        EnterpriseID, 
+        InsuranceType, 
+        SUM(PaymentBase) AS TotalAmount
+    FROM 
+        Payments
+    WHERE 
+        PaymentStatus = '有效'
+    GROUP BY 
+        EnterpriseID, 
+        InsuranceType
+    HAVING 
+        SUM(PaymentBase) > 500000
+)
+SELECT 
+    EnterpriseID, 
+    InsuranceType, 
+    TotalAmount
+FROM 
+    EffectivePayments
+ORDER BY 
+    TotalAmount DESC]
+(Background on this error at: https://sqlalche.me/e/20/f405)",D:\AI\bysj_t2s-master\tests\sql_test\sum_test\sum_example.json

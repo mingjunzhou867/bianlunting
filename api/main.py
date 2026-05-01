@@ -8,7 +8,7 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 # Allow running `python api/main.py` from repo root on Windows/Python.
@@ -20,12 +20,14 @@ if __package__ in (None, ""):
 from agents.debate_orchestrator import DebateOrchestrator
 from agents.debate_persistence import (
     DebateSessionNotFoundError,
+    confirm_manual_review,
     get_saved_session_detail,
     list_saved_sessions,
 )
 from evidence.evidence_model import EvidenceBundle, EvidenceItem, classify_evidence_diagnostic
 from intent.intent_understanding_agent import IntentUnderstandingAgent
 from policy.policy_router import get_policy
+from reports.official_report_generator import ensure_official_report
 
 
 DEFAULT_POLICY_ID = "POLICY_001"
@@ -55,6 +57,10 @@ class DebateRequest(BaseModel):
 
 class IntentRequest(BaseModel):
     user_query: str = Field(..., min_length=1)
+
+
+class ManualReviewConfirmRequest(BaseModel):
+    manual_supplements: list[dict[str, Any]] | None = None
 
 
 def _normalize_confidence(value: Any, default: float = 1.0) -> float:
@@ -275,6 +281,43 @@ def get_debate_detail(session_id: str) -> dict[str, Any]:
     except DebateSessionNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return {"status": "success", "data": detail}
+
+
+@app.post("/api/debates/{session_id}/manual_review/confirm")
+def confirm_debate_manual_review(session_id: str, request: ManualReviewConfirmRequest) -> dict[str, Any]:
+    """Confirm that manual evidence review is complete and make the PDF downloadable."""
+    try:
+        detail = confirm_manual_review(session_id, manual_supplements=request.manual_supplements)
+        ensure_official_report(detail, force=True)
+    except DebateSessionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"补证复核确认失败: {exc}") from exc
+    return {"status": "success", "data": detail}
+
+
+@app.get("/api/debates/{session_id}/official_report.pdf")
+def download_official_report(session_id: str) -> FileResponse:
+    """Download the official-style PDF generated for a completed debate session."""
+    try:
+        detail = get_saved_session_detail(session_id)
+        review = detail.get("manual_review") if isinstance(detail.get("manual_review"), dict) else {}
+        if not (detail.get("manual_review_confirmed") or review.get("confirmed")):
+            raise HTTPException(status_code=409, detail="请先在前端点击“确认补证复核完成”，确认后才允许下载 PDF 裁决报告。")
+        pdf_path = ensure_official_report(detail)
+    except DebateSessionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"PDF 裁决报告生成失败: {exc}") from exc
+
+    filename = f"政务数据辅助审核裁决书_{session_id}.pdf"
+    return FileResponse(
+        path=str(pdf_path),
+        media_type="application/pdf",
+        filename=filename,
+    )
 
 
 if __name__ == "__main__":

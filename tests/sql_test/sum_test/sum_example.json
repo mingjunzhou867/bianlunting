@@ -1,0 +1,143 @@
+[
+  {
+    "example_id": "01",
+    "ai_annotation": "AI辅助生成-DeepSeek-V4-Pro-2026年4月27日",
+    "table": "social_insurance_payment",
+    "question": "系统里总共有多少条社保缴费记录？",
+    "sql": "SELECT COUNT(*) AS total_count FROM social_insurance_payment;",
+    "intent": "统计表内总记录条数"
+  },
+  {
+    "example_id": "02",
+    "table": "social_insurance_payment",
+    "question": "有多少名不同的参保人至少有过一次缴费记录？按身份证号去重统计。",
+    "sql": "SELECT COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment;",
+    "intent": "去重统计参保人数"
+  },
+  {
+    "example_id": "03",
+    "table": "social_insurance_payment",
+    "question": "2023年11月医保的有效缴费总金额（缴费基数求和）是多少？",
+    "sql": "SELECT SUM(pay_base) AS total_pay_base FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month = '202311' AND is_valid = '1';",
+    "intent": "带多重筛选条件的求和统计"
+  },
+  {
+    "example_id": "04",
+    "table": "social_insurance_payment",
+    "question": "所有缴费记录中，个人灵活就业身份的平均缴费基数是多少？",
+    "sql": "SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE insurer_status = '102';",
+    "intent": "带筛选条件的平均值计算"
+  },
+  {
+    "example_id": "05",
+    "table": "social_insurance_payment",
+    "question": "单位缴费记录里缴费基数的最高值和最低值分别是多少？",
+    "sql": "SELECT MAX(pay_base) AS max_pay_base, MIN(pay_base) AS min_pay_base FROM social_insurance_payment WHERE insurer_status = '101';",
+    "intent": "带筛选条件的极值统计"
+  },
+  {
+    "example_id": "06",
+    "table": "social_insurance_payment",
+    "question": "各个险种的缴费人数是多少？按险种分组统计，只统计有效记录。",
+    "sql": "SELECT insurance_type, COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY insurance_type;",
+    "intent": "分组去重计数，有效记录筛选"
+  },
+  {
+    "example_id": "07",
+    "table": "social_insurance_payment",
+    "question": "2024年各月的缴费记录数有多少？按月份分组，并按月份升序排列。",
+    "sql": "SELECT pay_month, COUNT(*) AS record_count FROM social_insurance_payment WHERE pay_month BETWEEN '202401' AND '202412' GROUP BY pay_month ORDER BY pay_month ASC;",
+    "intent": "按时间范围分组计数并排序"
+  },
+  {
+    "example_id": "08",
+    "table": "social_insurance_payment",
+    "question": "哪些企业的有效缴费平均基数超过了8000元？只显示企业编号和平均基数。",
+    "sql": "SELECT company_id, AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id HAVING AVG(pay_base) > 8000;",
+    "intent": "分组后使用HAVING过滤聚合结果"
+  },
+  {
+    "example_id": "09",
+    "table": "social_insurance_payment",
+    "question": "身份证号'420900199001010001'的这个人，在2023年所有有效缴费月份中，最高缴费基数是多少？",
+    "sql": "SELECT MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND is_valid = '1';",
+    "intent": "针对特定个人的带条件极值统计"
+  },
+  {
+    "example_id": "10",
+    "table": "social_insurance_payment",
+    "question": "统计各险种的有效缴费记录数，只显示记录数大于100的险种，并按记录数从高到低排序。",
+    "sql": "SELECT insurance_type, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY insurance_type HAVING COUNT(*) > 100 ORDER BY record_count DESC;",
+    "intent": "分组统计、HAVING过滤、排序组合"
+  },
+  {
+    "example_id": "11",
+    "table": "social_insurance_payment",
+    "question": "缴费基数低于3957元的记录有多少条？",
+    "sql": "SELECT COUNT(*) AS low_base_count FROM social_insurance_payment WHERE pay_base < 3957;",
+    "intent": "基于缴费基数范围的计数统计"
+  },
+  {
+    "example_id": "12",
+    "table": "social_insurance_payment",
+    "question": "企业'COMP101'在2023年11月的有效缴费记录中，缴费基数在5000到10000之间的记录有多少条？",
+    "sql": "SELECT COUNT(*) AS record_count FROM social_insurance_payment WHERE company_id = 'COMP101' AND pay_month = '202311' AND is_valid = '1' AND pay_base BETWEEN 5000 AND 10000;",
+    "intent": "多条件组合范围筛选下的计数"
+  },
+  {
+    "example_id": "13",
+    "table": "social_insurance_payment",
+    "question": "2024年度，个人灵活就业与单位缴费两种身份各自的有效缴费总人数（按身份证去重）是多少？",
+    "sql": "SELECT insurer_status, COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment WHERE pay_month BETWEEN '202401' AND '202412' AND is_valid = '1' AND insurer_status IN ('101', '102') GROUP BY insurer_status;",
+    "intent": "按参保身份分组去重统计人数"
+  },
+  {
+    "example_id": "14",
+    "table": "social_insurance_payment",
+    "question": "有效缴费记录中，哪些企业的最高缴费基数排在前5名？",
+    "sql": "SELECT company_id, MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id ORDER BY max_pay_base DESC LIMIT 5;",
+    "intent": "按企业分组统计最高缴费基数，并排序取前5名"
+  },
+  {
+    "example_id": "15",
+    "table": "social_insurance_payment",
+    "question": "统计2023年各月养老保险的有效缴费记录数，按月份升序排列。",
+    "sql": "SELECT pay_month, COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '110' AND pay_month BETWEEN '202301' AND '202312' AND is_valid = '1' GROUP BY pay_month ORDER BY pay_month ASC;",
+    "intent": "按险种和时间筛选后，分组按月统计并排序"
+  },
+  {
+    "example_id": "16",
+    "table": "social_insurance_payment",
+    "question": "哪些身份证号的有效缴费记录超过5条？列出身份证号和对应的记录数。",
+    "sql": "SELECT id_card, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY id_card HAVING COUNT(*) > 5;",
+    "intent": "按个人分组统计，并过滤出高频缴费者"
+  },
+  {
+    "example_id": "17",
+    "table": "social_insurance_payment",
+    "question": "在所有无效缴费记录中，各企业的记录数分别是多少？按企业分组统计。",
+    "sql": "SELECT company_id, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '0' AND company_id IS NOT NULL GROUP BY company_id;",
+    "intent": "按无效状态筛选后分组统计企业分布"
+  },
+  {
+    "example_id": "18",
+    "table": "social_insurance_payment",
+    "question": "2024年前三个月里，单位缴费中缴费基数大于6000的有效记录的平均缴费基数是多少？",
+    "sql": "SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE pay_month IN ('202401', '202402', '202403') AND insurer_status = '101' AND pay_base > 6000 AND is_valid = '1';",
+    "intent": "多重条件组合下的平均值计算"
+  },
+  {
+    "example_id": "19",
+    "table": "social_insurance_payment",
+    "question": "参加医疗保险的缴费记录中，最低的10个缴费基数分别对应多少条记录？按缴费基数升序排列。",
+    "sql": "SELECT pay_base, COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '310' GROUP BY pay_base ORDER BY pay_base ASC LIMIT 10;",
+    "intent": "按缴费基数分组计数，并排序限制返回数量"
+  },
+  {
+    "example_id": "20",
+    "table": "social_insurance_payment",
+    "question": "统计各企业各险种的有效缴费总金额（缴费基数求和），并找出总金额超过50万的组合，按总金额从高到低排序。",
+    "sql": "SELECT company_id, insurance_type, SUM(pay_base) AS total_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id, insurance_type HAVING SUM(pay_base) > 500000 ORDER BY total_pay_base DESC;",
+    "intent": "多维度分组聚合、HAVING过滤与排序"
+  }
+]

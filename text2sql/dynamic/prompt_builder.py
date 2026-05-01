@@ -55,33 +55,48 @@ class DictManager:
     """Manages loading dictionary JSON excerpts based on field names."""
 
     def __init__(self, dicts_dir: str | Path | None = None):
+        base_dir = Path(__file__).resolve().parent.parent.parent
         if dicts_dir is None:
-            self.dicts_dir = Path(__file__).resolve().parent.parent.parent / "scripts" / "dicts"
+            self.dict_dirs = [
+                base_dir / "dicts",
+                base_dir / "scripts" / "dicts",
+            ]
         else:
-            self.dicts_dir = Path(dicts_dir)
+            self.dict_dirs = [Path(dicts_dir)]
 
     def get_dict_excerpt(self, field_name: str) -> str:
-        if not self.dicts_dir.exists():
-            return ""
-
-        for file in self.dicts_dir.glob("*.json"):
-            try:
-                content = file.read_text(encoding="utf-8")
-                data = json.loads(content)
-                name = data.get("name", "").lower()
-                aliases = [a.lower() for a in data.get("aliases", [])]
-
-                f_lower = field_name.lower()
-                if f_lower in file.stem.lower() or f_lower in name or f_lower in aliases:
-                    excerpt = {
-                        "field": field_name,
-                        "dict_name": data.get("name"),
-                        "description": data.get("description", ""),
-                        "values": data.get("values", {}),
-                    }
-                    return json.dumps(excerpt, ensure_ascii=False)
-            except Exception:
+        for dict_dir in self.dict_dirs:
+            if not dict_dir.exists():
                 continue
+
+            for file in dict_dir.glob("*.json"):
+                try:
+                    content = file.read_text(encoding="utf-8")
+                    data = json.loads(content)
+                    name = data.get("name", "").lower()
+                    aliases = [a.lower() for a in data.get("aliases", [])]
+                    source_fields = [
+                        str(source.get("field", "")).lower()
+                        for source in data.get("source_refs", [])
+                        if isinstance(source, dict)
+                    ]
+
+                    f_lower = field_name.lower()
+                    if (
+                        f_lower in file.stem.lower()
+                        or f_lower in name
+                        or f_lower in aliases
+                        or f_lower in source_fields
+                    ):
+                        excerpt = {
+                            "field": field_name,
+                            "dict_name": data.get("name"),
+                            "description": data.get("description", ""),
+                            "values": data.get("values", {}),
+                        }
+                        return json.dumps(excerpt, ensure_ascii=False)
+                except Exception:
+                    continue
         return ""
 
 
@@ -146,6 +161,16 @@ class QueryPromptBuilder:
     def _rule_specific_notes(self, plan_item: EvidencePlanItem) -> str:
         notes: list[str] = []
 
+        notes.extend(plan_item.notes_for_query_generation or [])
+        notes.extend(
+            [
+                "枚举字段必须使用数据库中存储的编码值，不得把中文含义拼接进字段值。",
+                "social_insurance_payment.insurer_status: 单位缴费 -> '101'；个人灵活就业/灵活就业人员缴纳 -> '102'。禁止生成 '101单位缴费' 或 '102个人灵活就业'。",
+                "social_insurance_payment.insurance_type: 养老保险 -> '110'；医疗保险/医保 -> '310'。",
+                "只有问题明确出现“有效、正常、未作废、当前有效、只算有效”等要求时，才允许追加 is_valid = '1' 或 data_status = '1'；问题要求“所有记录”时禁止默认追加有效状态过滤。",
+            ]
+        )
+
         if plan_item.allowed_fields:
             notes.append(
                 "Allowed fields (schema-backed only): " + ", ".join(plan_item.allowed_fields)
@@ -183,10 +208,19 @@ class QueryPromptBuilder:
         ddl_contexts = [self.ddl_manager.get_table_ddl(table) for table in target_tables]
         ddl_str = "\n\n".join(ddl_contexts) if ddl_contexts else "（无特定表结构约束）"
 
-        dict_str = "（本次查询无特定枚举字典约束，请直接选用原始值）"
+        dict_excerpts = [
+            excerpt
+            for field_name in ("insurer_status", "insurance_type", "is_valid")
+            if (excerpt := self.dict_manager.get_dict_excerpt(field_name))
+        ]
+        dict_str = "\n".join(dict_excerpts) if dict_excerpts else "（本次查询无外部字典摘录，使用下方内置枚举约束。）"
+        enum_constraints_str = """- social_insurance_payment.insurer_status 只能使用编码值：'101'=单位缴费，'102'=个人灵活就业/灵活就业人员缴纳。禁止把中文含义拼进值里，例如禁止 '101单位缴费'、'102个人灵活就业'。
+- social_insurance_payment.insurance_type 只能使用编码值：'110'=养老保险，'310'=医疗保险/医保。
+- is_valid/data_status 是有效状态字段：只有问题明确要求“有效、正常、未作废、当前有效、只算有效”等语义时才过滤为 '1'；问题说“所有记录”或未提有效状态时，不要默认追加有效状态过滤。"""
         relations_str = (
-            "如果目标涉及多张表，通常使用 `id_card` 或 `company_name` 进行 JOIN。"
-            "优先过滤 `is_valid` = '1' 或 `data_status` = '1' 的有效记录。"
+            "只有当问题或规则明确需要跨表字段时才使用 JOIN；不要仅为了补充姓名、企业名等展示信息而额外 JOIN。"
+            "只有当问题或规则明确要求有效记录时，才过滤 `is_valid` = '1' 或 `data_status` = '1'。"
+            "当问题要求查询所有记录时，不要默认追加有效状态过滤。"
         )
         fields_str = self._build_allowed_field_clause(plan_item)
         notes_str = self._rule_specific_notes(plan_item)
@@ -254,6 +288,9 @@ class QueryPromptBuilder:
 【字典摘要】
 {dict_str}
 
+【枚举与有效状态硬约束】
+{enum_constraints_str}
+
 【重点关注字段】
 {fields_str}
 
@@ -286,10 +323,15 @@ class QueryPromptBuilder:
         如果是 AutoDebugger 重试，会附带 error_msg。
         """
         if error_msg:
-            extra_hint = ""
+            extra_hint = (
+                "\n修复提示：如果错误表现为结果为空、行数不一致或值不一致，请优先检查枚举编码和值域。"
+                "insurer_status 只能使用 '101' 或 '102'，不要生成 '101单位缴费'、'102个人灵活就业'；"
+                "insurance_type 只能使用 '110' 或 '310'；"
+                "除非问题明确要求有效记录，不要额外追加 is_valid = '1' 或 data_status = '1'。\n"
+            )
             lowered = error_msg.lower()
             if "window function" in lowered or "prev_pay_base" in lowered or "next_pay_base" in lowered:
-                extra_hint = (
+                extra_hint += (
                     "\n修复提示：这类报错通常意味着你在同一层 WHERE/HAVING 里直接使用了窗口函数别名。"
                     "请改成子查询或 CTE：先计算窗口列，再在外层 WHERE 过滤。"
                 )

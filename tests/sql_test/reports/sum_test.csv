@@ -1,0 +1,340 @@
+﻿case_id,category,question,gold_sql,first_generated_sql,final_generated_sql,first_generation_success,first_syntax_pass,first_execution_success,first_result_match,retry_triggered,retry_count,retry_success,final_success,final_syntax_pass,final_execution_success,final_result_match,first_latency_ms,total_latency_ms,failure_reason,error_message,has_structural_warnings,structural_warnings
+sum_test:01,sum_test,系统里总共有多少条社保缴费记录？,SELECT COUNT(*) AS total_count FROM social_insurance_payment;,"SELECT COUNT(*) AS total_records
+FROM social_insurance_payment;","SELECT COUNT(*) AS total_count
+FROM social_insurance_payment;",True,True,True,False,True,1,True,True,True,True,True,11637.785499999154,14332.459000001109,,,False,[]
+sum_test:02,sum_test,有多少名不同的参保人至少有过一次缴费记录？按身份证号去重统计。,SELECT COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment;,"SELECT COUNT(DISTINCT id_card) AS distinct_participants
+FROM social_insurance_payment
+WHERE is_valid = '1';","SELECT COUNT(DISTINCT id_card) AS person_count
+FROM social_insurance_payment
+WHERE is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,4294.4888999991235,8306.983799997397,,,True,['extra_is_valid_filter']
+sum_test:03,sum_test,2023年11月医保的有效缴费总金额（缴费基数求和）是多少？,SELECT SUM(pay_base) AS total_pay_base FROM social_insurance_payment WHERE insurance_type = '310' AND pay_month = '202311' AND is_valid = '1';,"SELECT 
+  SUM(pay_base) AS total_payment_base
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month = '202311' 
+  AND insurance_type = '310' 
+  AND is_valid = '1';","SELECT 
+  SUM(pay_base) AS total_pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month = '202311' 
+  AND insurance_type = '310' 
+  AND is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,7263.37280000007,13223.08780000094,,,False,[]
+sum_test:04,sum_test,所有缴费记录中，个人灵活就业身份的平均缴费基数是多少？,SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE insurer_status = '102';,"SELECT 
+  AVG(pay_base) AS average_pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status = '102个人灵活就业';","SELECT 
+  AVG(pay_base) AS avg_pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status = '102个人灵活就业';",True,True,True,False,True,2,False,False,True,True,False,5458.219800002553,15562.193099998694,result_mismatch,"value_mismatch: gold_rows=1, generated_rows=1",False,[]
+sum_test:05,sum_test,单位缴费记录里缴费基数的最高值和最低值分别是多少？,"SELECT MAX(pay_base) AS max_pay_base, MIN(pay_base) AS min_pay_base FROM social_insurance_payment WHERE insurer_status = '101';","SELECT 
+  MAX(pay_base) AS max_pay_base, 
+  MIN(pay_base) AS min_pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status = '101单位缴费';","SELECT 
+  MAX(pay_base) AS max_pay_base, 
+  MIN(pay_base) AS min_pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  insurer_status = '101单位缴费';",True,True,True,False,True,2,False,False,True,True,False,7442.667499999516,18939.727500001027,result_mismatch,"value_mismatch: gold_rows=1, generated_rows=1",False,[]
+sum_test:06,sum_test,各个险种的缴费人数是多少？按险种分组统计，只统计有效记录。,"SELECT insurance_type, COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY insurance_type;","SELECT 
+  insurance_type, 
+  COUNT(DISTINCT id_card) AS payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1'
+GROUP BY 
+  insurance_type;","SELECT 
+  insurance_type, 
+  COUNT(DISTINCT id_card) AS person_count
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1'
+GROUP BY 
+  insurance_type;",True,True,True,False,True,1,True,True,True,True,True,6186.092699997971,11470.613199999207,,,False,[]
+sum_test:07,sum_test,2024年各月的缴费记录数有多少？按月份分组，并按月份升序排列。,"SELECT pay_month, COUNT(*) AS record_count FROM social_insurance_payment WHERE pay_month BETWEEN '202401' AND '202412' GROUP BY pay_month ORDER BY pay_month ASC;","SELECT 
+  pay_month, 
+  COUNT(*) AS payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month LIKE '2024%'
+GROUP BY 
+  pay_month
+ORDER BY 
+  pay_month ASC;","SELECT 
+  pay_month, 
+  COUNT(*) AS payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month LIKE '2024%'
+GROUP BY 
+  pay_month
+ORDER BY 
+  pay_month ASC;",True,True,True,True,False,0,False,True,True,True,True,5413.649699999951,5415.217300000222,,,False,[]
+sum_test:08,sum_test,哪些企业的有效缴费平均基数超过了8000元？只显示企业编号和平均基数。,"SELECT company_id, AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id HAVING AVG(pay_base) > 8000;","SELECT 
+  company_id, 
+  AVG(pay_base) AS avg_pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1'
+GROUP BY 
+  company_id
+HAVING 
+  AVG(pay_base) > 8000;","SELECT 
+  company_id, 
+  AVG(pay_base) AS avg_pay_base
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1'
+GROUP BY 
+  company_id
+HAVING 
+  AVG(pay_base) > 8000;",True,True,True,True,False,0,False,True,True,True,True,5406.809600000997,5408.32539999974,,,False,[]
+sum_test:09,sum_test,身份证号'420900199001010001'的这个人，在2023年所有有效缴费月份中，最高缴费基数是多少？,SELECT MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE id_card = '420900199001010001' AND pay_month BETWEEN '202301' AND '202312' AND is_valid = '1';,"SELECT MAX(pay_base) AS max_pay_base
+FROM social_insurance_payment
+WHERE id_card = '420900199001010001'
+  AND pay_month LIKE '2023%'
+  AND is_valid = '1';","SELECT MAX(pay_base) AS max_pay_base
+FROM social_insurance_payment
+WHERE id_card = '420900199001010001'
+  AND pay_month LIKE '2023%'
+  AND is_valid = '1';",True,True,True,True,False,0,False,True,True,True,True,4265.046299999085,4268.384900002275,,,False,[]
+sum_test:10,sum_test,统计各险种的有效缴费记录数，只显示记录数大于100的险种，并按记录数从高到低排序。,"SELECT insurance_type, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY insurance_type HAVING COUNT(*) > 100 ORDER BY record_count DESC;","SELECT 
+  insurance_type, 
+  COUNT(*) AS valid_payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1'
+GROUP BY 
+  insurance_type
+HAVING 
+  COUNT(*) > 100
+ORDER BY 
+  valid_payment_count DESC;","SELECT 
+  insurance_type, 
+  COUNT(*) AS valid_payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1'
+GROUP BY 
+  insurance_type
+HAVING 
+  COUNT(*) > 100
+ORDER BY 
+  valid_payment_count DESC;",True,True,True,True,False,0,False,True,True,True,True,8321.309899998596,8323.96620000145,,,False,[]
+sum_test:11,sum_test,缴费基数低于3957元的记录有多少条？,SELECT COUNT(*) AS low_base_count FROM social_insurance_payment WHERE pay_base < 3957;,"SELECT COUNT(*) 
+FROM social_insurance_payment 
+WHERE pay_base < 3957;","SELECT COUNT(*) AS low_base_count
+FROM social_insurance_payment 
+WHERE pay_base < 3957;",True,True,True,False,True,1,True,True,True,True,True,3933.219200000167,9307.161799999449,,,False,[]
+sum_test:12,sum_test,企业'COMP101'在2023年11月的有效缴费记录中，缴费基数在5000到10000之间的记录有多少条？,SELECT COUNT(*) AS record_count FROM social_insurance_payment WHERE company_id = 'COMP101' AND pay_month = '202311' AND is_valid = '1' AND pay_base BETWEEN 5000 AND 10000;,"SELECT COUNT(*) 
+FROM social_insurance_payment 
+WHERE company_id = 'COMP101' 
+  AND pay_month BETWEEN '202311' AND '202311' 
+  AND pay_base BETWEEN 5000 AND 10000 
+  AND is_valid = '1';","SELECT COUNT(*) AS record_count
+FROM social_insurance_payment 
+WHERE company_id = 'COMP101' 
+  AND pay_month = '202311' 
+  AND pay_base BETWEEN 5000 AND 10000 
+  AND is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,6667.763199999172,14474.814800003514,,,False,[]
+sum_test:13,sum_test,2024年度，个人灵活就业与单位缴费两种身份各自的有效缴费总人数（按身份证去重）是多少？,"SELECT insurer_status, COUNT(DISTINCT id_card) AS person_count FROM social_insurance_payment WHERE pay_month BETWEEN '202401' AND '202412' AND is_valid = '1' AND insurer_status IN ('101', '102') GROUP BY insurer_status;","SELECT 
+  insurer_status,
+  COUNT(DISTINCT id_card) AS valid_payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month LIKE '2024%' 
+  AND is_valid = '1'
+GROUP BY 
+  insurer_status;","SELECT 
+  insurer_status,
+  COUNT(DISTINCT id_card) AS valid_payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  pay_month LIKE '2024%' 
+  AND is_valid = '1'
+GROUP BY 
+  insurer_status;",True,True,True,True,False,0,False,True,True,True,True,5542.655299999751,5544.31090000071,,,False,[]
+sum_test:14,sum_test,有效缴费记录中，哪些企业的最高缴费基数排在前5名？,"SELECT company_id, MAX(pay_base) AS max_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id ORDER BY max_pay_base DESC LIMIT 5;","SELECT 
+  c.company_id,
+  c.company_name,
+  MAX(s.pay_base) AS max_pay_base
+FROM 
+  social_insurance_payment s
+JOIN 
+  company_info c ON s.company_id = c.company_id
+WHERE 
+  s.is_valid = '1'
+GROUP BY 
+  c.company_id, c.company_name
+ORDER BY 
+  max_pay_base DESC
+LIMIT 5;","SELECT 
+  c.company_id,
+  MAX(s.pay_base) AS max_pay_base
+FROM 
+  social_insurance_payment s
+JOIN 
+  company_info c ON s.company_id = c.company_id
+WHERE 
+  s.is_valid = '1'
+GROUP BY 
+  c.company_id
+ORDER BY 
+  max_pay_base DESC
+LIMIT 5;",True,True,True,False,True,1,True,True,True,True,True,8574.23639999979,15006.654099997832,,,True,['extra_join']
+sum_test:15,sum_test,统计2023年各月养老保险的有效缴费记录数，按月份升序排列。,"SELECT pay_month, COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '110' AND pay_month BETWEEN '202301' AND '202312' AND is_valid = '1' GROUP BY pay_month ORDER BY pay_month ASC;","SELECT 
+  pay_month,
+  COUNT(*) AS valid_payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '110' 
+  AND pay_month LIKE '2023%'
+  AND is_valid = '1'
+GROUP BY 
+  pay_month
+ORDER BY 
+  pay_month ASC;","SELECT 
+  pay_month,
+  COUNT(*) AS valid_payment_count
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '110' 
+  AND pay_month LIKE '2023%'
+  AND is_valid = '1'
+GROUP BY 
+  pay_month
+ORDER BY 
+  pay_month ASC;",True,True,True,True,False,0,False,True,True,True,True,10406.986100002541,10408.90820000277,,,False,[]
+sum_test:16,sum_test,哪些身份证号的有效缴费记录超过5条？列出身份证号和对应的记录数。,"SELECT id_card, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '1' GROUP BY id_card HAVING COUNT(*) > 5;","SELECT 
+  id_card, 
+  COUNT(*) AS record_count
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1'
+GROUP BY 
+  id_card
+HAVING 
+  record_count > 5;","SELECT 
+  id_card, 
+  COUNT(*) AS record_count
+FROM 
+  social_insurance_payment
+WHERE 
+  is_valid = '1'
+GROUP BY 
+  id_card
+HAVING 
+  record_count > 5;",True,True,True,True,False,0,False,True,True,True,True,4394.135099999403,4396.147399998881,,,False,[]
+sum_test:17,sum_test,在所有无效缴费记录中，各企业的记录数分别是多少？按企业分组统计。,"SELECT company_id, COUNT(*) AS record_count FROM social_insurance_payment WHERE is_valid = '0' AND company_id IS NOT NULL GROUP BY company_id;","SELECT 
+  c.company_name, 
+  COUNT(s.payment_id) AS invalid_payment_count
+FROM 
+  social_insurance_payment s
+JOIN 
+  company_info c ON s.company_id = c.company_id
+WHERE 
+  s.is_valid = '0'
+GROUP BY 
+  c.company_name;","SELECT 
+  c.company_name, 
+  COUNT(s.payment_id) AS invalid_payment_count
+FROM 
+  social_insurance_payment s
+JOIN 
+  company_info c ON s.company_id = c.company_id
+WHERE 
+  s.is_valid = '0'
+GROUP BY 
+  c.company_name;",True,True,True,True,False,0,False,True,True,True,True,7233.6729999988165,7235.548799999378,,,True,['extra_join']
+sum_test:18,sum_test,2024年前三个月里，单位缴费中缴费基数大于6000的有效记录的平均缴费基数是多少？,"SELECT AVG(pay_base) AS avg_pay_base FROM social_insurance_payment WHERE pay_month IN ('202401', '202402', '202403') AND insurer_status = '101' AND pay_base > 6000 AND is_valid = '1';","SELECT AVG(pay_base) AS average_pay_base
+FROM social_insurance_payment
+WHERE insurer_status = '101'
+  AND pay_month BETWEEN '202401' AND '202403'
+  AND pay_base > 6000
+  AND is_valid = '1';","SELECT AVG(pay_base) AS avg_pay_base
+FROM social_insurance_payment
+WHERE insurer_status = '101'
+  AND pay_month BETWEEN '202401' AND '202403'
+  AND pay_base > 6000
+  AND is_valid = '1';",True,True,True,False,True,1,True,True,True,True,True,5861.888200000976,13423.490699999093,,,False,[]
+sum_test:19,sum_test,参加医疗保险的缴费记录中，最低的10个缴费基数分别对应多少条记录？按缴费基数升序排列。,"SELECT pay_base, COUNT(*) AS record_count FROM social_insurance_payment WHERE insurance_type = '310' GROUP BY pay_base ORDER BY pay_base ASC LIMIT 10;","SELECT 
+  pay_base, 
+  COUNT(*) AS record_count
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '310'  -- 医疗保险
+  AND is_valid = '1'  -- 有效记录
+GROUP BY 
+  pay_base
+ORDER BY 
+  pay_base ASC
+LIMIT 10;","SELECT 
+  pay_base, 
+  COUNT(*) AS record_count
+FROM 
+  social_insurance_payment
+WHERE 
+  insurance_type = '310'  -- 医疗保险
+  AND is_valid = '1'  -- 有效记录
+GROUP BY 
+  pay_base
+ORDER BY 
+  pay_base ASC
+LIMIT 10;",True,True,True,True,False,0,False,True,True,True,True,8672.447199998714,8674.189400000614,,,True,['extra_is_valid_filter']
+sum_test:20,sum_test,统计各企业各险种的有效缴费总金额（缴费基数求和），并找出总金额超过50万的组合，按总金额从高到低排序。,"SELECT company_id, insurance_type, SUM(pay_base) AS total_pay_base FROM social_insurance_payment WHERE is_valid = '1' AND company_id IS NOT NULL GROUP BY company_id, insurance_type HAVING SUM(pay_base) > 500000 ORDER BY total_pay_base DESC;","SELECT 
+  c.company_id,
+  c.company_name,
+  s.insurance_type,
+  SUM(s.pay_base) AS total_payment
+FROM 
+  social_insurance_payment s
+JOIN 
+  company_info c ON s.company_id = c.company_id
+WHERE 
+  s.is_valid = '1'
+GROUP BY 
+  c.company_id, c.company_name, s.insurance_type
+HAVING 
+  total_payment > 500000
+ORDER BY 
+  total_payment DESC;","SELECT 
+  c.company_id,
+  c.company_name,
+  s.insurance_type,
+  SUM(s.pay_base) AS total_payment
+FROM 
+  social_insurance_payment s
+JOIN 
+  company_info c ON s.company_id = c.company_id
+WHERE 
+  s.is_valid = '1'
+GROUP BY 
+  c.company_id, c.company_name, s.insurance_type
+HAVING 
+  total_payment > 500000
+ORDER BY 
+  total_payment DESC;",True,True,True,True,False,0,False,True,True,True,True,8363.098199999513,8371.066399999108,,,True,['extra_join']

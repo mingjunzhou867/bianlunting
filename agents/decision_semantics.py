@@ -141,8 +141,21 @@ def aggregate_final_conclusion_from_judgments(judgments: list[Any]) -> str:
             return STANCE_PENDING
         return str(getattr(judgment, "stance", STANCE_PENDING) or STANCE_PENDING)
 
-    if any(effective_stance(j) == STANCE_OPPOSE for j in judgments):
+    stance_counts = {
+        STANCE_SUPPORT: 0,
+        STANCE_OPPOSE: 0,
+        STANCE_PENDING: 0,
+    }
+    for judgment in judgments:
+        stance = effective_stance(judgment)
+        stance_counts[stance] = stance_counts.get(stance, 0) + 1
+
+    total = sum(stance_counts.values())
+    if total == 0:
+        return CONCLUSION_MISSING
+
+    if stance_counts[STANCE_OPPOSE] > total / 2:
         return CONCLUSION_FAIL
-    if any(effective_stance(j) == STANCE_SUPPORT for j in judgments):
+    if stance_counts[STANCE_SUPPORT] > total / 2:
         return CONCLUSION_PASS
     return CONCLUSION_MISSING

@@ -1,0 +1,1248 @@
+{
+  "suite_id": "multi_agent_policy_eval_v1",
+  "description": "多智能体链路评测样本：简单单条件、中等多条件、复杂冲突条件。",
+  "cases": [
+    {
+      "case_id": "simple_001",
+      "difficulty": "simple",
+      "ai_annotation": "AI辅助生成-DeepSeek-V4-Pro-2026年4月27日",
+      "id_card": "42090219800101000A",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_001",
+        "policy_name": "灵活就业参保记录核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "有效灵活就业参保记录",
+            "rule_description": "申请人须有有效的灵活就业参保记录",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_MUST_001"
+        ],
+        "reason_keywords": [
+          "灵活就业",
+          "参保记录",
+          "有效"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_002",
+      "difficulty": "simple",
+      "id_card": "42090219850505000B",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_002",
+        "policy_name": "困难人员认定核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "有效困难人员认定",
+            "rule_description": "申请人须持有有效的困难人员认定",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_MUST_002"
+        ],
+        "reason_keywords": [
+          "困难人员",
+          "认定",
+          "有效"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_003",
+      "difficulty": "simple",
+      "id_card": "42090219760310000D",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_003",
+        "policy_name": "单位就业登记核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_MUST_003",
+            "rule_type": "必须满足",
+            "rule_name": "有效单位就业登记",
+            "rule_description": "申请人须有有效的单位就业登记记录",
+            "sql_template": "SELECT record_id, id_card, company_id, employment_form, employment_date, contract_start_date, contract_end_date, is_valid FROM employment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY employment_date DESC LIMIT 5",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_MUST_003"
+        ],
+        "reason_keywords": [
+          "就业登记",
+          "单位",
+          "有效"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_004",
+      "difficulty": "simple",
+      "id_card": "42090219780815000E",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_004",
+        "policy_name": "历史补贴领取记录核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_EXCLUDE_004",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在历史补贴领取记录",
+            "rule_description": "申请人不得存在有效历史补贴领取记录",
+            "sql_template": "SELECT payment_id, id_card, policy_code, apply_start_month, apply_end_month, grant_months, grant_amount, grant_date, is_valid FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY grant_date DESC LIMIT 10",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_EXCLUDE_004"
+        ],
+        "reason_keywords": [
+          "补贴",
+          "历史记录",
+          "未命中"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_005",
+      "difficulty": "simple",
+      "id_card": "42090219820620000G",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_005",
+        "policy_name": "单位缴费记录核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_MUST_005",
+            "rule_type": "必须满足",
+            "rule_name": "有单位缴费记录",
+            "rule_description": "申请人须有单位缴费记录",
+            "sql_template": "SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '101' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_MUST_005"
+        ],
+        "reason_keywords": [
+          "单位缴费",
+          "缴费记录"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_006",
+      "difficulty": "simple",
+      "id_card": "42090219800101000A",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_006",
+        "policy_name": "企业法人身份核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_EXCLUDE_006",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在企业法人身份",
+            "rule_description": "申请人不得为有效企业法人",
+            "sql_template": "SELECT company_id, company_name, company_type, legal_person_id_card, is_valid FROM company_info WHERE legal_person_id_card = 'id_card_replace' AND is_valid = '1' ORDER BY company_id ASC LIMIT 10",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_EXCLUDE_006"
+        ],
+        "reason_keywords": [
+          "企业法人",
+          "法人身份",
+          "未命中"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_007",
+      "difficulty": "simple",
+      "id_card": "42090219850505000B",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_007",
+        "policy_name": "股东身份核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_EXCLUDE_007",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在企业股东身份",
+            "rule_description": "申请人不得为有效企业股东",
+            "sql_template": "SELECT relation_id, company_id, id_card, share_ratio, is_valid FROM company_shareholder WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY share_ratio DESC LIMIT 10",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "fail",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_EXCLUDE_007"
+        ],
+        "reason_keywords": [
+          "股东",
+          "股东身份",
+          "命中"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_008",
+      "difficulty": "simple",
+      "id_card": "42090219800101000A",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_008",
+        "policy_name": "失业登记状态核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_MUST_008",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效失业登记",
+            "rule_description": "申请人须存在有效失业登记记录",
+            "sql_template": "SELECT record_id, id_card, unemployment_date, unemployment_reason, register_date, cancel_date, is_valid FROM unemployment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY register_date DESC LIMIT 5",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_MUST_008"
+        ],
+        "reason_keywords": [
+          "失业登记",
+          "有效"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_009",
+      "difficulty": "simple",
+      "id_card": "42090219780815000E",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_009",
+        "policy_name": "养老保险参保状态核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_MUST_009",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效养老保险缴费记录",
+            "rule_description": "申请人须存在有效养老保险缴费记录",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurance_type = '110' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_MUST_009"
+        ],
+        "reason_keywords": [
+          "养老保险",
+          "参保",
+          "有效"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "simple_010",
+      "difficulty": "simple",
+      "id_card": "42090219800101000A",
+      "policy": {
+        "policy_id": "EVAL_SIMPLE_010",
+        "policy_name": "困难人员认定核验",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_SIMPLE_MUST_010",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效困难人员认定",
+            "rule_description": "申请人须存在有效困难人员认定记录",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 5",
+            "priority": 1
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_SIMPLE_MUST_010"
+        ],
+        "reason_keywords": [
+          "困难人员",
+          "认定",
+          "有效"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "medium_001",
+      "difficulty": "medium",
+      "ai_annotation": "AI辅助生成-DeepSeek-V4-Pro-2026年4月27日",
+      "id_card": "42090219800101000A",
+      "policy": {
+        "policy_id": "EVAL_MEDIUM_001",
+        "policy_name": "灵活就业参保困难人员补贴资格认定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "困难人员认定有效",
+            "rule_description": "申请人须持有有效的困难人员认定记录",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "灵活就业参保状态",
+            "rule_description": "申请人须以灵活就业身份正常参保",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "近期补贴申领次数限制",
+            "rule_description": "近一年内补贴申领次数不超过2次为佳",
+            "sql_template": "SELECT payment_id, id_card, policy_code, apply_start_month, apply_end_month, grant_months, grant_amount, grant_date, is_valid FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' AND grant_date >= DATE_SUB(CURRENT_DATE, INTERVAL 1 YEAR) ORDER BY grant_date DESC LIMIT 10",
+            "priority": 3
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_MEDIUM_MUST_001",
+          "EVAL_MEDIUM_MUST_002",
+          "EVAL_MEDIUM_FLEX_001"
+        ],
+        "reason_keywords": [
+          "困难人员",
+          "灵活就业",
+          "补贴"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.7
+      }
+    },
+    {
+      "case_id": "medium_002",
+      "difficulty": "medium",
+      "id_card": "42090219850505000B",
+      "policy": {
+        "policy_id": "EVAL_MEDIUM_002",
+        "policy_name": "失业转灵活就业人员补贴资格",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_003",
+            "rule_type": "必须满足",
+            "rule_name": "存在失业登记记录",
+            "rule_description": "申请人须有有效失业登记记录",
+            "sql_template": "SELECT record_id, id_card, unemployment_date, unemployment_reason, register_date, cancel_date, is_valid FROM unemployment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY register_date DESC LIMIT 5",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_EXCLUDE_002",
+            "rule_type": "必须排除",
+            "rule_name": "无单位就业登记",
+            "rule_description": "申请人当前不得有有效单位就业登记",
+            "sql_template": "SELECT record_id, id_card, company_id, employment_form, employment_date, contract_start_date, contract_end_date, is_valid FROM employment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' AND employment_form = '全日制用工' ORDER BY employment_date DESC LIMIT 5",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_FLEX_002",
+            "rule_type": "灵活评判",
+            "rule_name": "参保连续性",
+            "rule_description": "灵活就业参保近6个月存在有效缴费记录",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 6",
+            "priority": 3
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_MEDIUM_MUST_003",
+          "EVAL_MEDIUM_EXCLUDE_002",
+          "EVAL_MEDIUM_FLEX_002"
+        ],
+        "reason_keywords": [
+          "失业登记",
+          "单位就业",
+          "参保"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.7
+      }
+    },
+    {
+      "case_id": "medium_003",
+      "difficulty": "medium",
+      "id_card": "42090219800101000A",
+      "policy": {
+        "policy_id": "EVAL_MEDIUM_003",
+        "policy_name": "非企业主灵活就业补贴资格",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_005",
+            "rule_type": "必须满足",
+            "rule_name": "灵活就业参保",
+            "rule_description": "申请人须以灵活就业身份参保",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_EXCLUDE_003",
+            "rule_type": "必须排除",
+            "rule_name": "非企业法定代表人",
+            "rule_description": "申请人不得担任有效企业法定代表人",
+            "sql_template": "SELECT company_id, company_name, company_type, legal_person_id_card, is_valid FROM company_info WHERE legal_person_id_card = 'id_card_replace' AND is_valid = '1' ORDER BY company_id ASC LIMIT 10",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_EXCLUDE_004",
+            "rule_type": "必须排除",
+            "rule_name": "非企业股东",
+            "rule_description": "申请人不得为有效企业股东",
+            "sql_template": "SELECT relation_id, company_id, id_card, share_ratio, is_valid FROM company_shareholder WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY share_ratio DESC LIMIT 10",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_FLEX_003",
+            "rule_type": "灵活评判",
+            "rule_name": "参保稳定性评估",
+            "rule_description": "近半年未出现从灵活就业转为单位缴费的变更记录",
+            "sql_template": "SELECT change_id, id_card, insurance_type, old_status, new_status, event_date, related_company_id, is_valid FROM insurance_change_log WHERE id_card = 'id_card_replace' AND old_status = '102' AND new_status = '101' AND is_valid = '1' AND event_date >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH) ORDER BY event_date DESC LIMIT 10",
+            "priority": 4
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_MEDIUM_MUST_005",
+          "EVAL_MEDIUM_EXCLUDE_003",
+          "EVAL_MEDIUM_EXCLUDE_004",
+          "EVAL_MEDIUM_FLEX_003"
+        ],
+        "reason_keywords": [
+          "灵活就业",
+          "法人",
+          "股东",
+          "参保稳定"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.7
+      }
+    },
+    {
+      "case_id": "medium_004",
+      "difficulty": "medium",
+      "id_card": "42090219710321000F",
+      "policy": {
+        "policy_id": "EVAL_MEDIUM_004",
+        "policy_name": "历史补贴困难人员续领资格",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_008",
+            "rule_type": "必须满足",
+            "rule_name": "有效困难认定",
+            "rule_description": "困难人员认定须有效",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, cancel_date, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_009",
+            "rule_type": "必须满足",
+            "rule_name": "存在历史补贴记录",
+            "rule_description": "须有至少一次有效历史补贴申领记录",
+            "sql_template": "SELECT payment_id, id_card, policy_code, apply_start_month, apply_end_month, grant_months, grant_amount, grant_date, is_valid FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY grant_date DESC LIMIT 10",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_FLEX_004",
+            "rule_type": "灵活评判",
+            "rule_name": "当前参保状态检查",
+            "rule_description": "当前须存在有效参保缴费记录",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 3
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "pass",
+        "must_reference_rules": [
+          "EVAL_MEDIUM_MUST_008",
+          "EVAL_MEDIUM_MUST_009",
+          "EVAL_MEDIUM_FLEX_004"
+        ],
+        "reason_keywords": [
+          "困难认定",
+          "历史补贴",
+          "参保"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.7
+      }
+    },
+    {
+      "case_id": "medium_005",
+      "difficulty": "medium",
+      "id_card": "42090219700505000I",
+      "policy": {
+        "policy_id": "EVAL_MEDIUM_005",
+        "policy_name": "困难人员失业转灵活就业综合认定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_010",
+            "rule_type": "必须满足",
+            "rule_name": "困难人员认定",
+            "rule_description": "申请人须通过有效困难人员认定",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_EXCLUDE_005",
+            "rule_type": "必须排除",
+            "rule_name": "无单位就业登记记录",
+            "rule_description": "当前不得存在有效单位就业登记",
+            "sql_template": "SELECT record_id, id_card, company_id, employment_form, employment_date, contract_start_date, contract_end_date, is_valid FROM employment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' AND employment_form = '全日制用工' ORDER BY employment_date DESC LIMIT 5",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_FLEX_005",
+            "rule_type": "灵活评判",
+            "rule_name": "近期参保记录评估",
+            "rule_description": "近3个月内有有效参保记录视为积极",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 6",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_FLEX_006",
+            "rule_type": "灵活评判",
+            "rule_name": "补贴间隔合理评估",
+            "rule_description": "核查最近6个月是否已有补贴发放记录",
+            "sql_template": "SELECT payment_id, id_card, policy_code, apply_start_month, apply_end_month, grant_months, grant_amount, grant_date, is_valid FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' AND grant_date >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH) ORDER BY grant_date DESC LIMIT 10",
+            "priority": 4
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "fail",
+        "must_reference_rules": [
+          "EVAL_MEDIUM_MUST_010",
+          "EVAL_MEDIUM_EXCLUDE_005",
+          "EVAL_MEDIUM_FLEX_005",
+          "EVAL_MEDIUM_FLEX_006"
+        ],
+        "reason_keywords": [
+          "困难人员",
+          "单位就业",
+          "参保",
+          "补贴"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.7
+      }
+    },
+    {
+      "case_id": "medium_006",
+      "difficulty": "medium",
+      "id_card": "42090219850505000B",
+      "policy": {
+        "policy_id": "EVAL_MEDIUM_006",
+        "policy_name": "灵活就业参保记录缺失资格评估",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_012",
+            "rule_type": "必须满足",
+            "rule_name": "有效困难认定记录",
+            "rule_description": "须有有效困难认定记录",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_MUST_013",
+            "rule_type": "必须满足",
+            "rule_name": "灵活就业参保记录",
+            "rule_description": "须存在灵活就业参保记录",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_MEDIUM_FLEX_007",
+            "rule_type": "灵活评判",
+            "rule_name": "参保状态补充评估",
+            "rule_description": "补充查看最近社保缴费身份和险种状态",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 5",
+            "priority": 3
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "missing",
+        "must_reference_rules": [
+          "EVAL_MEDIUM_MUST_012",
+          "EVAL_MEDIUM_MUST_013",
+          "EVAL_MEDIUM_FLEX_007"
+        ],
+        "reason_keywords": [
+          "困难认定",
+          "灵活就业",
+          "参保"
+        ],
+        "should_identify_conflict": false,
+        "min_evidence_reference_rate": 0.7
+      }
+    },
+    {
+      "case_id": "complex_001",
+      "difficulty": "complex",
+      "id_card": "42090219760310000D",
+      "policy": {
+        "policy_id": "EVAL_COMPLEX_001",
+        "policy_name": "冲突条件复核测试政策",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_COMPLEX_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效困难人员认定",
+            "rule_description": "申请人具备就业困难人员认定是正向资格证据。",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效灵活就业参保记录",
+            "rule_description": "申请人存在灵活就业身份缴费记录是正向资格证据。",
+            "sql_template": "SELECT payment_id, id_card, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_EXCLUDE_001",
+            "rule_type": "必须排除",
+            "rule_name": "存在有效单位就业或参保身份切换风险",
+            "rule_description": "若申请人同时存在单位就业登记或单位缴费身份，应识别为与灵活就业补贴资格相冲突的风险。",
+            "sql_template": "SELECT e.record_id, e.id_card, e.company_id, e.employment_form, e.employment_date, e.is_valid FROM employment_registration e WHERE e.id_card = 'id_card_replace' AND e.is_valid = '1' UNION ALL SELECT s.payment_id AS record_id, s.id_card, s.company_id, s.insurer_status AS employment_form, STR_TO_DATE(CONCAT(s.pay_month, '01'), '%Y%m%d') AS employment_date, s.is_valid FROM social_insurance_payment s WHERE s.id_card = 'id_card_replace' AND s.insurer_status = '101' AND s.is_valid = '1' ORDER BY employment_date DESC LIMIT 10",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "历史补贴领取记录复核",
+            "rule_description": "若已有历史补贴领取记录，需要评估是否达到上限或需要人工复核。",
+            "sql_template": "SELECT payment_id, id_card, policy_code, apply_start_month, apply_end_month, grant_months, grant_amount, grant_date, is_valid FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY grant_date DESC LIMIT 10",
+            "priority": 4
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "fail",
+        "must_reference_rules": [
+          "EVAL_COMPLEX_MUST_001",
+          "EVAL_COMPLEX_MUST_002",
+          "EVAL_COMPLEX_EXCLUDE_001"
+        ],
+        "reason_keywords": [
+          "困难",
+          "灵活就业",
+          "单位",
+          "冲突"
+        ],
+        "conflict_keywords": [
+          "冲突",
+          "矛盾",
+          "不一致",
+          "单位",
+          "排除",
+          "复核"
+        ],
+        "should_identify_conflict": true,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "complex_002",
+      "difficulty": "complex",
+      "id_card": "42090219781123002X",
+      "policy": {
+        "policy_id": "EVAL_COMPLEX_002",
+        "policy_name": "复杂灵活就业社保补贴身份冲突判定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_COMPLEX_002_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效就业困难人员认定",
+            "rule_description": "申请人必须具备有效就业困难人员认定记录，作为灵活就业社保补贴资格的基础条件。",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_002_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "存在灵活就业参保缴费记录",
+            "rule_description": "申请人近期应存在以灵活就业人员身份参保缴费的有效记录。",
+            "sql_template": "SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_002_EXCLUDE_001",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在有效单位就业登记",
+            "rule_description": "若申请人同时存在有效全日制单位就业登记，应识别为与灵活就业补贴资格冲突的排除风险。",
+            "sql_template": "SELECT record_id, id_card, company_id, employment_form, employment_date, contract_start_date, contract_end_date, sync_date, is_valid FROM employment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' AND employment_form = '全日制用工' ORDER BY employment_date DESC LIMIT 5",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_002_EXCLUDE_002",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在单位参保身份",
+            "rule_description": "若申请人近期存在单位缴费身份记录或从灵活就业切换为单位参保的变更记录，应作为身份冲突处理。",
+            "sql_template": "SELECT s.payment_id AS record_id, s.id_card, s.company_id, s.insurance_type, s.pay_month, s.insurer_status, s.is_valid FROM social_insurance_payment s WHERE s.id_card = 'id_card_replace' AND s.insurer_status = '101' AND s.is_valid = '1' UNION ALL SELECT c.change_id AS record_id, c.id_card, c.related_company_id AS company_id, c.insurance_type, DATE_FORMAT(c.event_date, '%Y%m') AS pay_month, c.new_status AS insurer_status, c.is_valid FROM insurance_change_log c WHERE c.id_card = 'id_card_replace' AND c.new_status = '101' AND c.is_valid = '1' ORDER BY pay_month DESC LIMIT 10",
+            "priority": 4
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_002_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "历史补贴领取记录复核",
+            "rule_description": "核查历史补贴领取月数和近期发放记录，判断是否存在重复享受、超期享受或需要人工复核的风险。",
+            "sql_template": "SELECT payment_id, id_card, policy_code, apply_start_month, apply_end_month, first_enjoy_month, grant_months, grant_amount, grant_date, is_valid FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY grant_date DESC LIMIT 10",
+            "priority": 5
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "fail",
+        "must_reference_rules": [
+          "EVAL_COMPLEX_002_MUST_001",
+          "EVAL_COMPLEX_002_MUST_002",
+          "EVAL_COMPLEX_002_EXCLUDE_001",
+          "EVAL_COMPLEX_002_EXCLUDE_002"
+        ],
+        "reason_keywords": [
+          "就业困难",
+          "灵活就业",
+          "单位就业",
+          "单位参保",
+          "冲突"
+        ],
+        "conflict_keywords": [
+          "冲突",
+          "不一致",
+          "单位就业",
+          "单位参保",
+          "排除",
+          "复核"
+        ],
+        "should_identify_conflict": true,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "complex_003",
+      "difficulty": "complex",
+      "id_card": "42090219890909003X",
+      "policy": {
+        "policy_id": "EVAL_COMPLEX_003",
+        "policy_name": "复杂灵活就业社保补贴参保证据缺失判定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_COMPLEX_003_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效就业困难人员认定",
+            "rule_description": "申请人必须具备有效就业困难人员认定记录。",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_003_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "存在近期灵活就业参保缴费记录",
+            "rule_description": "申请人应存在近期以灵活就业人员身份参保缴费的有效记录；若缺失，不能直接通过。",
+            "sql_template": "SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 6",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_003_EXCLUDE_001",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在有效单位就业登记",
+            "rule_description": "申请人不得存在当前有效的全日制单位就业登记。",
+            "sql_template": "SELECT record_id, id_card, company_id, employment_form, employment_date, is_valid FROM employment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' AND employment_form = '全日制用工' ORDER BY employment_date DESC LIMIT 5",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_003_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "灵活就业登记与缴费证据一致性复核",
+            "rule_description": "若存在灵活就业登记但缺少参保缴费，应识别为证据链不完整，需要补充缴费凭证或等待社保数据同步。",
+            "sql_template": "SELECT record_id, id_card, employment_form, employment_date, sync_date, is_valid FROM employment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY employment_date DESC LIMIT 5",
+            "priority": 4
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "missing",
+        "must_reference_rules": [
+          "EVAL_COMPLEX_003_MUST_001",
+          "EVAL_COMPLEX_003_MUST_002",
+          "EVAL_COMPLEX_003_FLEX_001"
+        ],
+        "reason_keywords": [
+          "就业困难",
+          "灵活就业",
+          "参保",
+          "缺失",
+          "补充"
+        ],
+        "conflict_keywords": [
+          "缺失",
+          "证据不足",
+          "补充",
+          "缴费",
+          "复核"
+        ],
+        "should_identify_conflict": true,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "complex_004",
+      "difficulty": "complex",
+      "id_card": "42090219691212004X",
+      "policy": {
+        "policy_id": "EVAL_COMPLEX_004",
+        "policy_name": "复杂灵活就业社保补贴历史享受超期判定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_COMPLEX_004_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效就业困难人员认定",
+            "rule_description": "申请人必须具备有效就业困难人员认定记录。",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_004_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "存在灵活就业参保缴费记录",
+            "rule_description": "申请人近期应存在以灵活就业人员身份参保缴费的有效记录。",
+            "sql_template": "SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_004_EXCLUDE_001",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在有效单位就业或单位参保",
+            "rule_description": "申请人不得存在当前有效的单位就业登记或单位参保身份。",
+            "sql_template": "SELECT e.record_id, e.id_card, e.company_id, e.employment_form, e.employment_date, e.is_valid FROM employment_registration e WHERE e.id_card = 'id_card_replace' AND e.is_valid = '1' AND e.employment_form = '全日制用工' UNION ALL SELECT s.payment_id AS record_id, s.id_card, s.company_id, s.insurer_status AS employment_form, STR_TO_DATE(CONCAT(s.pay_month, '01'), '%Y%m%d') AS employment_date, s.is_valid FROM social_insurance_payment s WHERE s.id_card = 'id_card_replace' AND s.insurer_status = '101' AND s.is_valid = '1' ORDER BY employment_date DESC LIMIT 10",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_004_EXCLUDE_002",
+            "rule_type": "必须排除",
+            "rule_name": "历史补贴累计不得超过上限",
+            "rule_description": "灵活就业社保补贴历史累计享受月数超过 36 个月时，应判定为不符合或不得继续享受。",
+            "sql_template": "SELECT id_card, SUM(grant_months) AS total_grant_months, MIN(first_enjoy_month) AS first_enjoy_month, MAX(apply_end_month) AS latest_apply_end_month, COUNT(*) AS grant_record_count FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' GROUP BY id_card HAVING SUM(grant_months) > 36",
+            "priority": 4
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_004_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "历史补贴明细复核",
+            "rule_description": "列出历史补贴明细，用于核验累计月数、首次享受时间和是否存在重复发放。",
+            "sql_template": "SELECT payment_id, id_card, policy_code, apply_start_month, apply_end_month, first_enjoy_month, grant_months, grant_amount, grant_date, is_valid FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY grant_date DESC LIMIT 20",
+            "priority": 5
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "fail",
+        "must_reference_rules": [
+          "EVAL_COMPLEX_004_MUST_001",
+          "EVAL_COMPLEX_004_MUST_002",
+          "EVAL_COMPLEX_004_EXCLUDE_002",
+          "EVAL_COMPLEX_004_FLEX_001"
+        ],
+        "reason_keywords": [
+          "就业困难",
+          "灵活就业",
+          "历史补贴",
+          "累计",
+          "超过"
+        ],
+        "conflict_keywords": [
+          "超过",
+          "上限",
+          "累计",
+          "不得继续",
+          "复核"
+        ],
+        "should_identify_conflict": true,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "complex_005",
+      "difficulty": "complex",
+      "id_card": "42090219820315005X",
+      "policy": {
+        "policy_id": "EVAL_COMPLEX_005",
+        "policy_name": "复杂灵活就业社保补贴经营身份边界判定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_COMPLEX_005_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效就业困难人员认定",
+            "rule_description": "申请人必须具备有效就业困难人员认定记录。",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_005_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "存在灵活就业参保缴费记录",
+            "rule_description": "申请人近期应存在以灵活就业人员身份参保缴费的有效记录。",
+            "sql_template": "SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_005_EXCLUDE_001",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在当前有效经营主体身份",
+            "rule_description": "申请人若为当前有效的个体工商户、企业法人或企业股东，应作为排除风险；只要人员主表仍保留个体工商户、企业法人或股东等经营身份标记，即使工商主体或股东关系显示已注销/失效，也不得直接通过，应判定为数据缺失并进入人工复核。",
+            "sql_template": "SELECT p.id_card, p.business_role, c.company_id, c.company_name, c.company_type, c.is_valid AS company_valid, sh.share_ratio, sh.is_valid AS shareholder_valid FROM person p LEFT JOIN company_info c ON c.legal_person_id_card = p.id_card LEFT JOIN company_shareholder sh ON sh.id_card = p.id_card WHERE p.id_card = 'id_card_replace'",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_005_EXCLUDE_002",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在有效单位就业或单位参保",
+            "rule_description": "申请人不得存在当前有效的单位就业登记或单位参保身份。",
+            "sql_template": "SELECT e.record_id, e.id_card, e.company_id, e.employment_form, e.employment_date, e.is_valid FROM employment_registration e WHERE e.id_card = 'id_card_replace' AND e.is_valid = '1' AND e.employment_form = '全日制用工' UNION ALL SELECT s.payment_id AS record_id, s.id_card, s.company_id, s.insurer_status AS employment_form, STR_TO_DATE(CONCAT(s.pay_month, '01'), '%Y%m%d') AS employment_date, s.is_valid FROM social_insurance_payment s WHERE s.id_card = 'id_card_replace' AND s.insurer_status = '101' AND s.is_valid = '1' ORDER BY employment_date DESC LIMIT 10",
+            "priority": 4
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_005_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "经营身份历史残留人工复核",
+            "rule_description": "申请人主表仍标记个体工商户，但工商主体和股东关系均为失效时，应识别为历史残留、数据未同步或当前经营状态不明；该情形必须输出数据缺失/待复核，不得仅因外部工商记录失效而直接认定符合。",
+            "sql_template": "SELECT p.id_card, p.name, p.business_role, c.company_id, c.company_name, c.company_type, c.is_valid AS company_valid, sh.share_ratio, sh.is_valid AS shareholder_valid FROM person p LEFT JOIN company_info c ON c.legal_person_id_card = p.id_card LEFT JOIN company_shareholder sh ON sh.id_card = p.id_card WHERE p.id_card = 'id_card_replace'",
+            "priority": 5
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "fail",
+        "must_reference_rules": [
+          "EVAL_COMPLEX_005_MUST_001",
+          "EVAL_COMPLEX_005_MUST_002",
+          "EVAL_COMPLEX_005_EXCLUDE_001",
+          "EVAL_COMPLEX_005_FLEX_001"
+        ],
+        "reason_keywords": [
+          "个体工商户",
+          "经营身份",
+          "风险",
+          "失效"
+        ],
+        "conflict_keywords": [
+          "历史残留",
+          "经营身份",
+          "风险",
+          "复核"
+        ],
+        "should_identify_conflict": true,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "complex_006",
+      "difficulty": "complex",
+      "id_card": "42090219860106006X",
+      "policy": {
+        "policy_id": "EVAL_COMPLEX_006",
+        "policy_name": "复杂灵活就业社保补贴单位入职窗口期判定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_COMPLEX_006_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效就业困难人员认定",
+            "rule_description": "申请人必须具备有效就业困难人员认定记录。",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_006_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "存在申请所属期灵活就业参保缴费",
+            "rule_description": "申请人在申请所属期内应存在灵活就业人员参保缴费记录。",
+            "sql_template": "SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_006_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "单位入职窗口期复核",
+            "rule_description": "申请人若在申请所属期后出现单位就业登记，且补贴所属期、入职生效日、单位参保切换时间存在交叉或紧邻关系，应判定为数据缺失/待复核，核实本次申请是否覆盖入职月份；在所属期边界未核清前，不得直接通过，也不宜直接按全年资格失败处理。",
+            "sql_template": "SELECT record_id, id_card, company_id, employment_form, employment_date, contract_start_date, contract_end_date, sync_date, is_valid FROM employment_registration WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY employment_date DESC LIMIT 10",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_006_FLEX_002",
+            "rule_type": "灵活评判",
+            "rule_name": "参保身份切换日志复核",
+            "rule_description": "存在从灵活就业参保切换为单位参保的变更事件时，应核查变更日期是否影响本次申请所属期；若切换发生在补贴申请期末或申请期后紧邻月份，应输出数据缺失/待复核，而不是直接按普通单位就业排除处理。",
+            "sql_template": "SELECT change_id, id_card, insurance_type, old_status, new_status, event_date, related_company_id, is_valid FROM insurance_change_log WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY event_date DESC LIMIT 10",
+            "priority": 4
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_006_FLEX_003",
+            "rule_type": "灵活评判",
+            "rule_name": "历史补贴所属期复核",
+            "rule_description": "核查历史补贴所属期是否与新入职窗口期重叠；若历史补贴截止月与入职登记、参保切换时间相邻，应作为窗口期疑点，要求人工复核是否存在重复或超范围享受。",
+            "sql_template": "SELECT payment_id, id_card, policy_code, apply_start_month, apply_end_month, first_enjoy_month, grant_months, grant_amount, grant_date, is_valid FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY grant_date DESC LIMIT 10",
+            "priority": 5
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "fail",
+        "must_reference_rules": [
+          "EVAL_COMPLEX_006_MUST_001",
+          "EVAL_COMPLEX_006_MUST_002",
+          "EVAL_COMPLEX_006_FLEX_001",
+          "EVAL_COMPLEX_006_FLEX_002"
+        ],
+        "reason_keywords": [
+          "灵活就业",
+          "单位",
+          "入职",
+          "不符合"
+        ],
+        "conflict_keywords": [
+          "入职",
+          "切换",
+          "单位参保",
+          "不符合"
+        ],
+        "should_identify_conflict": true,
+        "min_evidence_reference_rate": 0.5
+      }
+    },
+    {
+      "case_id": "complex_007",
+      "difficulty": "complex",
+      "id_card": "42090219770707007X",
+      "policy": {
+        "policy_id": "EVAL_COMPLEX_007",
+        "policy_name": "复杂灵活就业社保补贴人员状态异常判定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_COMPLEX_007_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "人员基础状态必须有效且生存",
+            "rule_description": "申请人的人员主表状态必须有效，且生存状态应为生存；死亡或无效人员不得继续享受补贴。",
+            "sql_template": "SELECT id_card, name, gender, birth_date, hukou_region, life_status, system_status, business_role FROM person WHERE id_card = 'id_card_replace' AND system_status = '1' LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_007_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效就业困难人员认定",
+            "rule_description": "申请人必须具备有效就业困难人员认定记录。",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_007_MUST_003",
+            "rule_type": "必须满足",
+            "rule_name": "存在灵活就业参保缴费记录",
+            "rule_description": "申请人近期应存在以灵活就业人员身份参保缴费的有效记录。",
+            "sql_template": "SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_007_EXCLUDE_001",
+            "rule_type": "必须排除",
+            "rule_name": "不得存在死亡或人员状态异常",
+            "rule_description": "若人员主表显示死亡、无效或其他基础状态异常，应优先作为排除原因，即使存在其他正向资格证据。",
+            "sql_template": "SELECT id_card, name, life_status, system_status FROM person WHERE id_card = 'id_card_replace' AND (life_status <> '生存' OR system_status <> '1') LIMIT 1",
+            "priority": 4
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_007_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "业务证据与人员状态冲突复核",
+            "rule_description": "当死亡状态与困难认定、参保缴费、历史补贴仍有效并存时，应识别为基础身份与业务记录冲突。",
+            "sql_template": "SELECT p.id_card, p.life_status, p.system_status, h.is_valid AS hardship_valid, COUNT(s.payment_id) AS valid_flex_payment_count FROM person p LEFT JOIN hardship_certification h ON h.id_card = p.id_card AND h.is_valid = '1' LEFT JOIN social_insurance_payment s ON s.id_card = p.id_card AND s.insurer_status = '102' AND s.is_valid = '1' WHERE p.id_card = 'id_card_replace' GROUP BY p.id_card, p.life_status, p.system_status, h.is_valid",
+            "priority": 5
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "fail",
+        "must_reference_rules": [
+          "EVAL_COMPLEX_007_EXCLUDE_001"
+        ],
+        "reason_keywords": [
+          "死亡",
+          "不符合"
+        ],
+        "conflict_keywords": [
+          "死亡",
+          "排除"
+        ],
+        "should_identify_conflict": true,
+        "min_evidence_reference_rate": 0.3
+      }
+    },
+    {
+      "case_id": "complex_008",
+      "difficulty": "complex",
+      "id_card": "42090219710321008X",
+      "policy": {
+        "policy_id": "EVAL_COMPLEX_008",
+        "policy_name": "复杂灵活就业社保补贴退休年龄临界判定",
+        "policy_type": "资格认定",
+        "rules": [
+          {
+            "rule_id": "EVAL_COMPLEX_008_MUST_001",
+            "rule_type": "必须满足",
+            "rule_name": "存在有效就业困难人员认定",
+            "rule_description": "申请人必须具备有效就业困难人员认定记录。",
+            "sql_template": "SELECT cert_id, id_card, hardship_category, apply_date, certify_org, is_valid FROM hardship_certification WHERE id_card = 'id_card_replace' AND is_valid = '1' ORDER BY apply_date DESC LIMIT 1",
+            "priority": 1
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_008_MUST_002",
+            "rule_type": "必须满足",
+            "rule_name": "存在灵活就业参保缴费记录",
+            "rule_description": "申请人近期应存在以灵活就业人员身份参保缴费的有效记录。",
+            "sql_template": "SELECT payment_id, id_card, company_id, insurance_type, pay_month, insurer_status, pay_base, is_valid FROM social_insurance_payment WHERE id_card = 'id_card_replace' AND insurer_status = '102' AND is_valid = '1' ORDER BY pay_month DESC LIMIT 12",
+            "priority": 2
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_008_FLEX_001",
+            "rule_type": "灵活评判",
+            "rule_name": "退休年龄临界复核",
+            "rule_description": "女性申请人达到 55 周岁临界点时，应结合岗位身份、退休口径、补贴所属期和政策执行日期进行人工复核。",
+            "sql_template": "SELECT id_card, name, gender, birth_date, TIMESTAMPDIFF(YEAR, birth_date, DATE('2026-03-21')) AS age_on_system_date, life_status, system_status FROM person WHERE id_card = 'id_card_replace' LIMIT 1",
+            "priority": 3
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_008_FLEX_002",
+            "rule_type": "灵活评判",
+            "rule_name": "历史岗位身份复核",
+            "rule_description": "退休年龄口径可能与历史岗位性质有关，应核查历史单位就业记录和当前灵活就业状态。",
+            "sql_template": "SELECT record_id, id_card, company_id, employment_form, employment_date, contract_start_date, contract_end_date, is_valid FROM employment_registration WHERE id_card = 'id_card_replace' ORDER BY employment_date DESC LIMIT 10",
+            "priority": 4
+          },
+          {
+            "rule_id": "EVAL_COMPLEX_008_FLEX_003",
+            "rule_type": "灵活评判",
+            "rule_name": "补贴剩余期限复核",
+            "rule_description": "退休临界人员还应结合历史补贴享受月数和剩余可享受期限进行复核。",
+            "sql_template": "SELECT id_card, SUM(grant_months) AS total_grant_months, MIN(first_enjoy_month) AS first_enjoy_month, MAX(apply_end_month) AS latest_apply_end_month, COUNT(*) AS grant_record_count FROM subsidy_payment_history WHERE id_card = 'id_card_replace' AND is_valid = '1' GROUP BY id_card",
+            "priority": 5
+          }
+        ]
+      },
+      "expected": {
+        "final_conclusion": "missing",
+        "must_reference_rules": [
+          "EVAL_COMPLEX_008_MUST_001",
+          "EVAL_COMPLEX_008_MUST_002",
+          "EVAL_COMPLEX_008_FLEX_001",
+          "EVAL_COMPLEX_008_FLEX_002"
+        ],
+        "reason_keywords": [
+          "女性",
+          "55",
+          "退休",
+          "临界",
+          "复核"
+        ],
+        "conflict_keywords": [
+          "退休",
+          "年龄",
+          "临界",
+          "岗位",
+          "复核"
+        ],
+        "should_identify_conflict": true,
+        "min_evidence_reference_rate": 0.5
+      }
+    }
+  ]
+}

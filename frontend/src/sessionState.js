@@ -14,6 +14,9 @@ export const buildEmptySession = (idCard) => ({
   arbiter_result: {},
   adjudication_report: {},
   manual_supplements: [],
+  manual_review_confirmed: false,
+  manual_review: { confirmed: false, confirmed_at: null, supplement_count: 0, updated_clause_count: 0, has_manual_supplement: false },
+  official_report: {},
   consensus_rate: 0,
   is_consensus_reached: false,
   rounds_taken: 0,
@@ -78,6 +81,11 @@ export const normalizeSession = (payload, fallbackIdCard = '') => ({
     ? payload.adjudication_report
     : {},
   manual_supplements: Array.isArray(payload?.manual_supplements) ? payload.manual_supplements : [],
+  manual_review_confirmed: Boolean(payload?.manual_review_confirmed || payload?.manual_review?.confirmed),
+  manual_review: payload?.manual_review && typeof payload.manual_review === 'object'
+    ? payload.manual_review
+    : { confirmed: Boolean(payload?.manual_review_confirmed), confirmed_at: null, supplement_count: 0, updated_clause_count: 0, has_manual_supplement: false },
+  official_report: payload?.official_report && typeof payload.official_report === 'object' ? payload.official_report : {},
   consensus_rate: Number(payload?.consensus_rate ?? 0),
   is_consensus_reached: Boolean(payload?.is_consensus_reached),
   rounds_taken: Number(payload?.rounds_taken ?? 0),
@@ -180,6 +188,13 @@ export const applyStreamEventToSession = (session, payload, activeIdCard = '') =
     finalSession.manual_supplements = Array.isArray(data?.manual_supplements)
       ? data.manual_supplements
       : (Array.isArray(session.manual_supplements) ? session.manual_supplements : [])
+    finalSession.manual_review_confirmed = Boolean(data?.manual_review_confirmed || data?.manual_review?.confirmed)
+    finalSession.manual_review = data?.manual_review && typeof data.manual_review === 'object'
+      ? data.manual_review
+      : { confirmed: finalSession.manual_review_confirmed, confirmed_at: null, supplement_count: finalSession.manual_supplements.length, updated_clause_count: 0, has_manual_supplement: finalSession.manual_supplements.length > 0 }
+    finalSession.official_report = data?.official_report && typeof data.official_report === 'object'
+      ? data.official_report
+      : (session.official_report || {})
 
     return finalSession
   }
