@@ -1,19 +1,41 @@
 :root {
-  --bg-base: #F8F9FA;
+  --bg-base: #F5F7FA;
   --bg-card: #ffffff;
-  --bg-card-alt: #f8fafc;
-  --border-color: #e2e8f0;
-  --text-primary: #333333;
-  --text-muted: #666666;
-  --text-dim: #94a3b8;
-  --accent-blue: #3b82f6;
-  --accent-green: #52C41A;
-  --accent-red: #F5222D;
-  --accent-amber: #FAAD14;
-  --accent-indigo: #6366f1;
-  --cn-red: #C41E3A;
-  --cn-red-deep: #8B1A1A;
-  --cn-red-soft: #FFF5F5;
+  --bg-card-alt: #F5F7FA;
+  --border-color: #E2E8F0;
+  --text-primary: #334155;
+  --text-muted: #64748B;
+  --text-dim: rgba(100, 116, 139, 0.68);
+  --accent-blue: #1E5AA8;
+  --accent-green: #2E7D5B;
+  --accent-red: #9F1D22;
+  --accent-amber: #C58B2B;
+  --accent-indigo: #173B73;
+  --cn-red: #9F1D22;
+  --cn-red-deep: #7A161A;
+  --cn-red-soft: #FDF2F2;
+  --ai-blue: #1E5AA8;
+  --ai-blue-deep: #173B73;
+  --ai-blue-soft: #EFF6FF;
+  --authority-gold: #C58B2B;
+  --blue-grey: #64748B;
+
+  --el-color-primary: #9F1D22;
+  --el-color-primary-light-3: #7A161A;
+  --el-color-primary-light-5: #9F1D22;
+  --el-color-primary-light-7: #FDF2F2;
+  --el-color-primary-light-8: #FDF2F2;
+  --el-color-primary-light-9: #FDF2F2;
+  --el-color-primary-dark-2: #7A161A;
+  --el-color-success: #2E7D5B;
+  --el-color-warning: #A06A2A;
+  --el-color-danger: #9F1D22;
+  --el-color-info: #64748B;
+  --el-text-color-primary: #334155;
+  --el-text-color-regular: #334155;
+  --el-text-color-secondary: #64748B;
+  --el-border-color: #E2E8F0;
+  --el-fill-color-light: #F5F7FA;
 }
 
 html,
@@ -103,15 +125,30 @@ body {
 
 .el-message {
   top: 20px !important;
-  border-color: #C41E3A !important;
 }
 
-.el-message--success,
-.el-message--warning,
-.el-message--error,
 .el-message--info {
-  background: #fff5f5 !important;
-  color: #C41E3A !important;
+  background: #EFF6FF !important;
+  border-color: rgba(30, 90, 168, 0.28) !important;
+  color: #1E5AA8 !important;
+}
+
+.el-message--success {
+  background: rgba(46, 125, 91, 0.12) !important;
+  border-color: rgba(46, 125, 91, 0.34) !important;
+  color: #2E7D5B !important;
+}
+
+.el-message--warning {
+  background: rgba(160, 106, 42, 0.14) !important;
+  border-color: rgba(160, 106, 42, 0.34) !important;
+  color: #A06A2A !important;
+}
+
+.el-message--error {
+  background: #FDF2F2 !important;
+  border-color: rgba(159, 29, 34, 0.28) !important;
+  color: #9F1D22 !important;
 }
 
 .el-scrollbar__thumb {

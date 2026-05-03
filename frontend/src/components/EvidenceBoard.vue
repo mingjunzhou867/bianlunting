@@ -195,23 +195,23 @@ const resolveEmptyText = (item) => {
 }
 
 .cat-must {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #EFF6FF;
+  color: #1E5AA8;
 }
 
 .cat-excl {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: #FDF2F2;
+  color: #9F1D22;
 }
 
 .cat-flex {
-  background: #fef9c3;
-  color: #92400e;
+  background: rgba(160, 106, 42, 0.14);
+  color: #A06A2A;
 }
 
 .cat-default {
-  background: #f1f5f9;
-  color: #475569;
+  background: #F5F7FA;
+  color: #64748B;
 }
 
 .evidence-title {
@@ -259,23 +259,23 @@ const resolveEmptyText = (item) => {
 }
 
 .step-1 {
-  background: #ede9fe;
-  color: #7c3aed;
+  background: #EFF6FF;
+  color: #1E5AA8;
 }
 
 .step-2 {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #EFF6FF;
+  color: #1E5AA8;
 }
 
 .step-3 {
-  background: #dcfce7;
-  color: #16a34a;
+  background: #EFF6FF;
+  color: #1E5AA8;
 }
 
 .step-4 {
-  background: #fef3c7;
-  color: #d97706;
+  background: rgba(160, 106, 42, 0.14);
+  color: #A06A2A;
 }
 
 .step-body {
@@ -305,8 +305,8 @@ const resolveEmptyText = (item) => {
 
 .row-count {
   font-size: 10px;
-  color: #16a34a;
-  background: #dcfce7;
+  color: #1E5AA8;
+  background: #EFF6FF;
   padding: 1px 6px;
   border-radius: 4px;
   font-weight: 600;
@@ -322,69 +322,76 @@ const resolveEmptyText = (item) => {
 .step-text {
   color: var(--text-primary);
   padding: 8px 12px;
-  background: rgba(148, 163, 184, 0.08);
-  border-left: 3px solid #7c3aed;
+  background: rgba(100, 116, 139, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-left: 3px solid rgba(100, 116, 139, 0.38);
 }
 
 .step-sql {
   font-family: Consolas, Monaco, 'Courier New', monospace;
   font-size: 12px;
-  background: #0f172a;
-  color: #7dd3fc;
+  background: rgba(100, 116, 139, 0.06);
+  color: #243447;
   padding: 10px 14px;
   margin: 0;
   white-space: pre-wrap;
-  border-left: 3px solid #2563eb;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-left: 3px solid rgba(100, 116, 139, 0.42);
   overflow-x: auto;
 }
 
 .step-table-wrap {
   overflow-x: auto;
+  background: rgba(100, 116, 139, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-left: 3px solid rgba(100, 116, 139, 0.34);
 }
 
 .result-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
-  background: #fff;
+  background: transparent;
 }
 
 .result-table th,
 .result-table td {
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.14);
   padding: 6px 8px;
   text-align: left;
   vertical-align: top;
 }
 
 .result-table th {
-  background: #f8fafc;
+  background: rgba(100, 116, 139, 0.07);
   font-weight: 700;
   color: #334155;
 }
 
 .step-empty {
   padding: 10px 12px;
-  background: #fff7ed;
-  border-left: 3px solid #f97316;
-  color: #9a3412;
+  background: rgba(100, 116, 139, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-left: 3px solid rgba(100, 116, 139, 0.38);
+  color: #64748B;
 }
 
 .step-hint {
   margin-top: 8px;
   font-size: 12px;
-  color: #92400e;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
+  color: #A06A2A;
+  background: rgba(160, 106, 42, 0.12);
+  border: 1px solid rgba(160, 106, 42, 0.34);
   border-radius: 8px;
   padding: 8px 10px;
 }
 
 .step-summary {
   padding: 10px 12px;
-  background: #f8fafc;
-  border-left: 3px solid #d97706;
-  color: #1e293b;
+  background: rgba(100, 116, 139, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-left: 3px solid rgba(100, 116, 139, 0.38);
+  color: #334155;
 }
 
 @keyframes fadeInUp {

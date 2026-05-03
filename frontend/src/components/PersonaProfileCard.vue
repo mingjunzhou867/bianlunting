@@ -202,7 +202,7 @@ const buildAttentionItems = (profile) => {
 <style scoped>
 .persona-card {
   border: 1px solid var(--border-color);
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.04), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(180deg, rgba(30, 90, 168, 0.04), rgba(255, 255, 255, 0.02));
 }
 
 .persona-head {
@@ -288,7 +288,7 @@ const buildAttentionItems = (profile) => {
 }
 
 .focus-panel {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(248, 250, 252, 0.9));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(245, 247, 250, 0.9));
 }
 
 .focus-list,
@@ -364,8 +364,8 @@ const buildAttentionItems = (profile) => {
 .dispute-chip {
   padding: 8px 10px;
   border-radius: 999px;
-  background: rgba(245, 158, 11, 0.12);
-  color: #92400e;
+  background: rgba(197, 139, 43, 0.12);
+  color: #C58B2B;
   font-size: 12px;
   line-height: 1.5;
 }

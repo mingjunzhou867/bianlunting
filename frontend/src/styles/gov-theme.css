@@ -1,12 +1,20 @@
 :root {
-  --gov-red: #c4101c;
-  --gov-red-deep: #8a0c14;
-  --gov-gold: #c9a227;
-  --gov-bg: #f6f7fb;
+  --gov-red: #A83A36;
+  --gov-red-deep: #8F2E2B;
+  --gov-red-soft: #F8EDEA;
+  --gov-gold: #C58B2B;
+  --gov-green: #2E7D5B;
+  --gov-green-soft: rgba(46, 125, 91, 0.12);
+  --gov-brown: #A06A2A;
+  --gov-brown-soft: rgba(160, 106, 42, 0.14);
+  --gov-blue: #2F5F9F;
+  --gov-blue-deep: #244B80;
+  --gov-blue-soft: #EFF6FF;
+  --gov-bg: #FAF6F3;
   --gov-card: #ffffff;
-  --gov-line: #e7e8ec;
-  --gov-text: #1f2937;
-  --gov-muted: #5b616b;
+  --gov-line: #E6E8EC;
+  --gov-text: #243447;
+  --gov-muted: #64748B;
 
   /* If your image filenames differ, only update these six vars. */
   --gov-img-hero: url("/image/gov/hero-bg.png");
@@ -24,9 +32,8 @@ body,
   max-width: 100%;
   overflow-x: hidden;
   background:
-    linear-gradient(145deg, rgba(63, 0, 6, 0.2), rgba(110, 4, 16, 0.16)),
-    #f8ecec,
-    linear-gradient(180deg, #fff, var(--gov-bg) 20%, var(--gov-bg)) !important;
+    linear-gradient(145deg, rgba(168, 58, 54, 0.055), rgba(47, 95, 159, 0.035)),
+    linear-gradient(180deg, #ffffff, var(--gov-bg) 24%, var(--gov-bg)) !important;
   color: var(--gov-text);
 }
 
@@ -42,10 +49,12 @@ body,
   inset: 0;
   pointer-events: none;
   z-index: -2;
-  opacity: 0.95;
+  opacity: 0.82;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.18)),
+    linear-gradient(180deg, rgba(250, 246, 243, 0.9), rgba(250, 246, 243, 0.84)),
+    linear-gradient(90deg, rgba(168, 58, 54, 0.035), rgba(47, 95, 159, 0.025)),
     var(--gov-img-hero) center top / cover no-repeat;
+  background-blend-mode: normal, multiply, normal;
 }
 
 .gov-app-shell::after {
@@ -54,46 +63,51 @@ body,
   inset: 0;
   pointer-events: none;
   z-index: -1;
-  opacity: 0.18;
+  opacity: 0.08;
   background:
-    radial-gradient(circle at 12% 14%, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 30%),
-    radial-gradient(circle at 86% 16%, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 22%),
+    linear-gradient(rgba(168, 58, 54, 0.04), rgba(168, 58, 54, 0.04)),
+    radial-gradient(circle at 12% 14%, rgba(47, 95, 159, 0.08), rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle at 86% 16%, rgba(168, 58, 54, 0.08), rgba(255, 255, 255, 0) 22%),
     var(--gov-img-emblem) right 120px top 55% / 170px auto no-repeat,
     var(--gov-img-gavel) left 60px bottom 120px / 220px auto no-repeat;
+  background-blend-mode: multiply, normal, normal, normal, normal;
 }
 
 .gov-app-shell .app-header {
-  border-bottom: 1px solid rgba(192, 20, 26, 0.18);
+  border-bottom: 1px solid rgba(168, 58, 54, 0.16);
   background:
-    linear-gradient(180deg, rgba(110, 0, 0, 0.65), rgba(110, 0, 0, 0.35) 45%, rgba(110, 0, 0, 0.55)),
+    linear-gradient(120deg, rgba(250, 246, 243, 0.96), rgba(255, 255, 255, 0.9) 64%, rgba(239, 246, 255, 0.62)),
+    linear-gradient(180deg, rgba(168, 58, 54, 0.06), rgba(143, 46, 43, 0.035) 45%, rgba(47, 95, 159, 0.055)),
     var(--gov-img-hero) center/cover no-repeat,
-    linear-gradient(135deg, var(--gov-red), var(--gov-red-deep)) !important;
-  box-shadow: 0 10px 26px rgba(79, 10, 17, 0.35);
+    linear-gradient(135deg, #ffffff, var(--gov-bg)) !important;
+  box-shadow: 0 3px 10px rgba(100, 116, 139, 0.08);
 }
 
 .gov-app-shell .header-inner {
-  padding: 22px 30px;
+  padding: 0 24px;
 }
 
 .gov-app-shell .header-title {
-  color: #fff;
-  letter-spacing: 0.8px;
-  font-size: 28px !important;
+  color: var(--gov-red-deep);
+  letter-spacing: 1.2px;
+  font-size: 42px !important;
   font-weight: 900 !important;
-  line-height: 1.16;
-  text-shadow: 0 3px 12px rgba(40, 0, 5, 0.45);
+  line-height: 1;
+  transform: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.86);
+  -webkit-text-stroke: 0;
 }
 
 .gov-app-shell .header-subtitle {
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 14px !important;
-  margin-top: 8px;
-  letter-spacing: 0.2px;
+  color: var(--gov-muted);
+  font-size: 12px !important;
+  margin-top: 4px;
+  letter-spacing: 0;
 }
 
 .gov-app-shell .gov-emblem {
   border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 10px 22px rgba(100, 116, 139, 0.24);
   background:
     var(--gov-img-emblem) center/80% no-repeat,
     rgba(255, 255, 255, 0.14);
@@ -101,7 +115,7 @@ body,
 
 .gov-main-workspace {
   position: relative;
-  background: rgba(245, 238, 238, 0.5) !important;
+  background: rgba(250, 246, 243, 0.88) !important;
   backdrop-filter: blur(0.5px);
   overflow: hidden;
 }
@@ -116,7 +130,7 @@ body,
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0)),
     var(--gov-img-emblem) center/contain no-repeat;
-  opacity: 0.11;
+  opacity: 0.035;
   pointer-events: none;
   z-index: 0;
 }
@@ -131,7 +145,7 @@ body,
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.74) 34%, rgba(255, 255, 255, 0.9)),
     var(--gov-img-gavel) right 18px bottom 10px/180px no-repeat;
-  opacity: 0.56;
+  opacity: 0.18;
   pointer-events: none;
   z-index: 0;
 }
@@ -146,8 +160,8 @@ body,
 }
 
 .gov-app-shell .dashboard-tabs .el-tabs__item.is-active {
-  color: var(--gov-red) !important;
-  background: #fff0f1;
+  color: var(--gov-red-deep) !important;
+  background: #ffffff;
 }
 
 .gov-app-shell .input-section,
@@ -161,9 +175,9 @@ body,
 .gov-app-shell .evidence-highlight-card,
 .gov-app-shell .history-item {
   border-color: var(--gov-line) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-radius: 14px !important;
+  box-shadow: 0 10px 28px rgba(100, 116, 139, 0.07);
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-radius: 8px !important;
   transition: all 0.2s ease-in-out;
 }
 
@@ -171,7 +185,7 @@ body,
 .gov-app-shell .policy-section:hover,
 .gov-app-shell .condition-card:hover,
 .gov-app-shell .history-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.12);
 }
 
 .gov-app-shell .section-title,
@@ -191,38 +205,49 @@ body,
 .gov-app-shell .condition-card:hover,
 .gov-app-shell .history-item:hover:not(:disabled),
 .gov-app-shell .history-item--active {
-  border-color: rgba(192, 20, 26, 0.32) !important;
+  border-color: rgba(159, 29, 34, 0.32) !important;
 }
 
 .gov-app-shell .history-item--active {
-  background: rgba(196, 16, 28, 0.1);
+  background: rgba(159, 29, 34, 0.1);
 }
 
 .gov-app-shell .trace-console {
   background:
-    linear-gradient(180deg, rgba(10, 15, 20, 0.94), rgba(10, 15, 20, 0.98)),
-    var(--gov-img-gavel) right bottom/170px no-repeat,
-    var(--gov-img-emblem) left 14px top 14px/84px no-repeat;
+    linear-gradient(180deg, rgba(239, 246, 255, 0.86), rgba(248, 250, 252, 0.92)),
+    linear-gradient(rgba(47, 95, 159, 0.06), rgba(47, 95, 159, 0.06)),
+    var(--gov-img-gavel) right bottom/150px no-repeat,
+    var(--gov-img-emblem) left 14px top 14px/74px no-repeat;
+  background-blend-mode: normal, normal, soft-light, soft-light;
+  border-color: rgba(47, 95, 159, 0.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55) !important;
 }
 
 .gov-app-shell .final-card {
-  border: 2px solid rgba(192, 20, 26, 0.2);
+  border: 2px solid rgba(197, 139, 43, 0.34);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.9)),
     var(--gov-img-verdict) center/cover no-repeat;
 }
 
 .gov-app-shell .final-conclusion {
-  color: #111827;
+  color: var(--gov-red-deep);
 }
 
 .gov-app-shell .dashboard-tabs .el-button--primary {
   --el-button-bg-color: var(--gov-red);
   --el-button-border-color: var(--gov-red);
-  --el-button-hover-bg-color: #d01724;
-  --el-button-hover-border-color: #d01724;
+  --el-button-hover-bg-color: var(--gov-red-deep);
+  --el-button-hover-border-color: var(--gov-red-deep);
   --el-button-active-bg-color: var(--gov-red-deep);
   --el-button-active-border-color: var(--gov-red-deep);
+}
+
+.gov-app-shell .phase-pill {
+  background: var(--gov-blue-soft) !important;
+  color: var(--gov-blue-deep) !important;
+  border-color: rgba(30, 90, 168, 0.28) !important;
+  box-shadow: 0 2px 6px rgba(100, 116, 139, 0.24);
 }
 
 .gov-app-shell .el-button {
@@ -232,7 +257,7 @@ body,
 }
 
 .gov-app-shell .el-button--primary {
-  box-shadow: 0 6px 16px rgba(154, 24, 37, 0.22);
+  box-shadow: 0 6px 16px rgba(159, 29, 34, 0.18);
 }
 
 .gov-app-shell .el-button--primary:hover {
@@ -244,34 +269,34 @@ body,
 }
 
 .gov-app-shell .el-button.is-plain {
-  color: #7d1018 !important;
-  border-color: rgba(196, 16, 28, 0.3) !important;
-  background: rgba(255, 251, 251, 0.78) !important;
+  color: #334155 !important;
+  border-color: rgba(148, 163, 184, 0.48) !important;
+  background: rgba(255, 255, 255, 0.84) !important;
 }
 
 .gov-app-shell .el-button.is-plain:hover {
-  color: #8a0c14 !important;
-  border-color: rgba(196, 16, 28, 0.55) !important;
-  background: rgba(255, 242, 242, 0.95) !important;
+  color: var(--gov-red-deep) !important;
+  border-color: rgba(159, 29, 34, 0.55) !important;
+  background: rgba(253, 242, 242, 0.95) !important;
 }
 
-/* red-gold tabs */
+/* restrained red tabs */
 .gov-app-shell .dashboard-tabs .el-tabs__item {
-  color: #7a2a2d !important;
-  padding: 0 16px !important;
+  color: rgba(255, 255, 255, 0.74) !important;
+  padding: 0 14px !important;
   font-size: 12px !important;
 }
 
 .gov-app-shell .dashboard-tabs .el-tabs__item:hover:not(.is-active) {
-  color: var(--gov-red) !important;
-  background: rgba(196, 16, 28, 0.08) !important;
+  color: #ffffff !important;
+  background: rgba(143, 46, 43, 0.36) !important;
 }
 
 .gov-app-shell .dashboard-tabs .el-tabs__item.is-active {
-  color: #8a0c14 !important;
-  background: linear-gradient(135deg, rgba(255, 248, 226, 0.92), rgba(255, 239, 241, 0.95)) !important;
-  border: 1px solid rgba(201, 162, 39, 0.5) !important;
-  box-shadow: 0 4px 12px rgba(145, 21, 35, 0.16);
+  color: var(--gov-red-deep) !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.56) !important;
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.12);
 }
 
 /* Ensure long tab labels are fully visible */
@@ -297,24 +322,46 @@ body,
   background: transparent !important;
 }
 
-/* red-gold tag system */
+/* Semantic review tags: green=pass, brown=pending/review, red=reject/error, blue=process. */
 .gov-app-shell .el-tag {
-  border-color: rgba(201, 162, 39, 0.52) !important;
-  color: #8a0c14 !important;
-  background: linear-gradient(135deg, rgba(255, 252, 244, 0.96), rgba(255, 239, 242, 0.96)) !important;
+  border-color: rgba(148, 163, 184, 0.42) !important;
+  color: #334155 !important;
+  background: rgba(248, 250, 252, 0.96) !important;
 }
 
 .gov-app-shell .el-tag.el-tag--danger {
-  border-color: rgba(196, 16, 28, 0.5) !important;
-  color: #8a0c14 !important;
-  background: rgba(255, 235, 238, 0.95) !important;
+  border-color: rgba(168, 58, 54, 0.5) !important;
+  color: var(--gov-red-deep) !important;
+  background: var(--gov-red-soft) !important;
 }
 
-.gov-app-shell .el-tag.el-tag--success,
-.gov-app-shell .el-tag.el-tag--warning,
-.gov-app-shell .el-tag.el-tag--info,
+.gov-app-shell .el-tag.el-tag--success {
+  border-color: rgba(46, 125, 91, 0.42) !important;
+  color: var(--gov-green) !important;
+  background: var(--gov-green-soft) !important;
+}
+
+.gov-app-shell .el-tag.el-tag--warning {
+  border-color: rgba(160, 106, 42, 0.44) !important;
+  color: var(--gov-brown) !important;
+  background: var(--gov-brown-soft) !important;
+}
+
+.gov-app-shell .el-tag.el-tag--info {
+  border-color: rgba(100, 116, 139, 0.28) !important;
+  color: #64748B !important;
+  background: rgba(100, 116, 139, 0.10) !important;
+}
+
 .gov-app-shell .el-tag.el-tag--primary {
-  border-color: rgba(201, 162, 39, 0.62) !important;
-  color: #7b5a02 !important;
-  background: rgba(255, 250, 233, 0.96) !important;
+  border-color: rgba(30, 90, 168, 0.28) !important;
+  color: var(--gov-blue) !important;
+  background: var(--gov-blue-soft) !important;
+}
+
+.gov-app-shell .phase-pill.el-tag {
+  background: var(--gov-blue-soft) !important;
+  color: var(--gov-blue-deep) !important;
+  border-color: rgba(47, 95, 159, 0.28) !important;
+  box-shadow: none !important;
 }

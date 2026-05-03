@@ -32,9 +32,9 @@ const resolveConclusionTagType = (item) => {
 }
 
 const POLICY_DISPLAY = {
-  POLICY_001: { name: '灵活就业社保补贴', color: '#409eff' },
-  POLICY_002: { name: '失业补贴', color: '#e6a23c' },
-  POLICY_003: { name: '主动服务', color: '#67c23a' },
+  POLICY_001: { name: '灵活就业社保补贴', color: '#1E5AA8' },
+  POLICY_002: { name: '失业补贴', color: '#C58B2B' },
+  POLICY_003: { name: '主动服务', color: '#1E5AA8' },
 }
 
 const policyLabel = (policyId) => {
@@ -197,7 +197,7 @@ const policyTagType = (policyId) => {
 
 .history-item--active {
   border-color: var(--accent-blue);
-  background: rgba(88, 166, 255, 0.08);
+  background: rgba(30, 90, 168, 0.08);
 }
 
 .history-item-head {

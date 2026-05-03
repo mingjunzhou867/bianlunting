@@ -143,12 +143,30 @@ const conditionStateClass = (cond) => {
   return 'state-dot--pending'
 }
 
+const conditionStatusMeta = (cond) => {
+  const tag = String(cond?.tag_type || '')
+  if (tag === 'success') return { type: 'info', label: '待取证' }
+  if (tag === 'danger') return { type: 'warning', label: '重点核查' }
+  if (tag === 'warning') return { type: 'warning', label: '需评议' }
+  return { type: 'info', label: '待取证' }
+}
+
+const conditionCategoryTagType = (cond) => {
+  const category = String(cond?.category || '')
+  if (category.includes('排除')) return 'danger'
+  if (category.includes('推断') || category.includes('灵活') || category.includes('额度')) return 'warning'
+  return 'info'
+}
+
+const conditionBasisText = (cond) =>
+  cond?.pass_condition || cond?.check_logic || cond?.description || '以政策结构化规则为准'
+
 const currentViewLabel = computed(() => {
-  if (activeTab.value === 'input') return '视图零：用户输入'
-  if (activeTab.value === 'cognition') return '视图一：取证规划中心'
-  if (activeTab.value === 'tribunal') return '视图二：多智能体辩论庭'
-  if (activeTab.value === 'verdict') return '视图三：裁决结果与补证复核'
-  return '视图四：历史会话'
+  if (activeTab.value === 'input') return '视图一：用户输入'
+  if (activeTab.value === 'cognition') return '视图二：取证规划中心'
+  if (activeTab.value === 'tribunal') return '视图三：多智能体辩论庭'
+  if (activeTab.value === 'verdict') return '视图四：裁决结果与补证复核'
+  return '历史会话'
 })
 
 const flowCompleted = computed(() => {
@@ -168,7 +186,7 @@ const overallFlowStep = computed(() => {
   const traceCount = Array.isArray(session?.system_traces) ? session.system_traces.length : 0
   const evidenceCount = Array.isArray(session?.evidence) ? session.evidence.length : 0
   const hasRetrievalAssets = traceCount > 0 || evidenceCount > 0
-  if (activeTab.value === 'cognition' || hasRetrievalAssets || liveLoading.value) return 2
+  if (hasRetrievalAssets || liveLoading.value) return 2
 
   return 1
 })
@@ -222,6 +240,22 @@ const currentDebateRound = computed(() => {
     }
   })
   return Math.max(1, maxRound)
+})
+
+const globalViewSteps = [
+  { key: 'input' },
+  { key: 'cognition' },
+  { key: 'tribunal' },
+  { key: 'verdict' },
+]
+
+const globalViewIndex = computed(() => {
+  return Math.min(globalViewSteps.length - 1, Math.max(0, overallFlowStep.value - 1))
+})
+
+const globalProgressPct = computed(() => {
+  if (globalViewSteps.length <= 1) return 0
+  return (globalViewIndex.value / (globalViewSteps.length - 1)) * 100
 })
 
 const faqStage = ref('input')
@@ -728,10 +762,15 @@ onUnmounted(() => {
         <div class="header-inner">
           <div class="header-row">
             <div class="gov-title-wrap">
+              <img
+                class="brand-round-logo"
+                src="./assets/zhicetong-logo-new.png"
+                alt="智策通"
+              />
               <div class="brand-block">
-                <div class="header-title">多 Agent 辩论判定台</div>
+                <div class="header-title">智策通</div>
                 <div class="brand-divider"></div>
-                <div class="header-subtitle">政策识别·条件核验·多智能体审理·裁决留痕</div>
+                <div class="header-subtitle">基于大模型的多Agent辩论与T2SQL取证的政策研判系统</div>
               </div>
             </div>
             <div class="header-right">
@@ -741,6 +780,22 @@ onUnmounted(() => {
               <el-button v-if="liveLoading" type="danger" plain size="small" @click="stopAnalysis">
                 <el-icon><CircleCloseFilled /></el-icon> 停止分析
               </el-button>
+              <div class="global-audit-progress" aria-label="全局审核进度">
+                <div class="global-progress-track">
+                  <div class="global-progress-fill" :style="{ width: `${globalProgressPct}%` }"></div>
+                  <div
+                    v-for="(step, index) in globalViewSteps"
+                    :key="step.key"
+                    class="global-progress-node"
+                    :class="{
+                      'global-progress-node--done': index < globalViewIndex,
+                      'global-progress-node--active': index === globalViewIndex,
+                    }"
+                  >
+                    <span class="global-progress-dot">{{ index + 1 }}</span>
+                  </div>
+                </div>
+              </div>
               <img class="module-gavel" :src="moduleGavelUrl" alt="module gavel" />
             </div>
           </div>
@@ -751,8 +806,8 @@ onUnmounted(() => {
     <el-main class="main-workspace gov-main-workspace">
       <el-tabs v-model="activeTab" class="dashboard-tabs">
 
-        <!-- ========== 视图零 ========== -->
-        <el-tab-pane label="🟦 视图零：用户输入 (Intent Input)" name="input">
+        <!-- ========== 视图一 ========== -->
+        <el-tab-pane label="🟦 视图一：用户输入 (Intent Input)" name="input">
           <el-scrollbar height="100%">
             <div class="input-view">
               <div class="flow-strip">
@@ -805,7 +860,7 @@ onUnmounted(() => {
                         :percentage="retrievalProgressPct"
                         :stroke-width="6"
                         :show-text="false"
-                        color="#C41E3A"
+                        color="#9F1D22"
                       />
                       <div class="flow-inline-progress-meta">
                         <span>检索进度</span>
@@ -883,8 +938,15 @@ onUnmounted(() => {
               <div class="input-view-left">
                 <!-- 左上：输入区 -->
                 <div class="input-section">
-                  <div class="section-title">
-                    <el-icon><EditPen /></el-icon> 需求输入
+                  <div class="section-head input-section-head">
+                    <div>
+                      <div class="section-title">
+                        <el-icon><EditPen /></el-icon> 需求输入
+                      </div>
+                      <div class="section-helper">
+                        系统将基于政策条款、业务数据与智能体评议生成可追溯结论。
+                      </div>
+                    </div>
                   </div>
                   <el-input v-model="idCardInput" :disabled="liveLoading" clearable placeholder="身份证号" class="idcard-field">
                     <template #prepend>身份证号</template>
@@ -958,26 +1020,19 @@ onUnmounted(() => {
                         :value="policy.policy_id"
                         border
                         class="policy-radio-card"
-                        :class="{ 'policy-radio-card--top': idx === 0 }"
+                        :class="{ 'policy-radio-card--top': idx === 0, 'policy-radio-card--selected': selectedPolicyId === policy.policy_id }"
                       >
                         <div class="policy-radio-inner">
                           <div class="policy-radio-header">
-                            <span class="policy-radio-rank">#{{ idx + 1 }}</span>
+                            <span class="policy-radio-rank">{{ idx === 0 ? 'Top 1' : `Top ${idx + 1}` }}</span>
                             <span class="policy-radio-name">{{ policy.policy_name }}</span>
                             <span class="policy-score-badge">{{ (policy.match_score * 100).toFixed(0) }}%</span>
-                            <el-tag
-                              :type="policy.match_score >= 0.8 ? 'success' : policy.match_score >= 0.5 ? 'warning' : 'info'"
-                              size="small"
-                              effect="plain"
-                            >
-                              {{ (policy.match_score * 100).toFixed(0) }}%
-                            </el-tag>
                           </div>
                           <el-progress
                             :percentage="Number((policy.match_score * 100).toFixed(0))"
                             :stroke-width="6"
                             :show-text="false"
-                            color="#C23531"
+                            color="#9F1D22"
                           />
                           <div class="policy-radio-reason">{{ policySummary(policy.match_reason)[0] }}</div>
                           <div class="policy-radio-reason">{{ policySummary(policy.match_reason)[1] }}</div>
@@ -999,8 +1054,13 @@ onUnmounted(() => {
                   <div class="conditions-section">
                     <div class="conditions-panel conditions-panel--embedded">
                       <div class="conditions-head">
-                        <div class="section-title">
-                          <el-icon><Document /></el-icon> 条件清单
+                        <div>
+                          <div class="section-title">
+                            <el-icon><Document /></el-icon> 审核规则清单
+                          </div>
+                          <div class="conditions-current-policy">
+                            当前政策：{{ policyConditionsMeta?.policy_name || '待选择政策' }}
+                          </div>
                         </div>
                       </div>
 
@@ -1015,9 +1075,6 @@ onUnmounted(() => {
                         </div>
 
                         <div v-else class="conditions-content">
-                          <div v-if="policyConditionsMeta?.policy_name" class="conditions-policy-pill">
-                            {{ policyConditionsMeta.policy_name }}
-                          </div>
                           <div v-if="policyConditionsMeta" class="conditions-meta">
                             <h3>{{ policyConditionsMeta.policy_name }}</h3>
                             <el-tag size="small" effect="plain">{{ policyConditionsMeta.policy_type }}</el-tag>
@@ -1037,11 +1094,22 @@ onUnmounted(() => {
                                 class="condition-card"
                               >
                                 <div class="condition-header">
-                                  <span class="state-dot" :class="conditionStateClass(cond)"></span>
-                                  <el-tag :type="cond.tag_type" size="small">{{ cond.category }}</el-tag>
+                                  <el-tag :type="conditionCategoryTagType(cond)" size="small">{{ cond.category }}</el-tag>
                                   <span class="condition-id">{{ cond.rule_id }}</span>
+                                  <el-tag
+                                    class="condition-status-tag"
+                                    :type="conditionStatusMeta(cond).type"
+                                    effect="plain"
+                                    size="small"
+                                  >
+                                    {{ conditionStatusMeta(cond).label }}
+                                  </el-tag>
                                 </div>
                                 <div class="condition-desc">{{ cond.description }}</div>
+                                <div class="condition-basis">
+                                  <span>判断依据</span>
+                                  <p>{{ conditionBasisText(cond) }}</p>
+                                </div>
                               </div>
                             </div>
                             <div class="condition-group" v-if="groupedConditions.sufficient.length">
@@ -1052,11 +1120,22 @@ onUnmounted(() => {
                                 class="condition-card"
                               >
                                 <div class="condition-header">
-                                  <span class="state-dot" :class="conditionStateClass(cond)"></span>
-                                  <el-tag :type="cond.tag_type" size="small">{{ cond.category }}</el-tag>
+                                  <el-tag :type="conditionCategoryTagType(cond)" size="small">{{ cond.category }}</el-tag>
                                   <span class="condition-id">{{ cond.rule_id }}</span>
+                                  <el-tag
+                                    class="condition-status-tag"
+                                    :type="conditionStatusMeta(cond).type"
+                                    effect="plain"
+                                    size="small"
+                                  >
+                                    {{ conditionStatusMeta(cond).label }}
+                                  </el-tag>
                                 </div>
                                 <div class="condition-desc">{{ cond.description }}</div>
+                                <div class="condition-basis">
+                                  <span>判断依据</span>
+                                  <p>{{ conditionBasisText(cond) }}</p>
+                                </div>
                               </div>
                             </div>
                             <div class="condition-group" v-if="groupedConditions.exclusion.length">
@@ -1067,11 +1146,22 @@ onUnmounted(() => {
                                 class="condition-card"
                               >
                                 <div class="condition-header">
-                                  <span class="state-dot" :class="conditionStateClass(cond)"></span>
-                                  <el-tag :type="cond.tag_type" size="small">{{ cond.category }}</el-tag>
+                                  <el-tag :type="conditionCategoryTagType(cond)" size="small">{{ cond.category }}</el-tag>
                                   <span class="condition-id">{{ cond.rule_id }}</span>
+                                  <el-tag
+                                    class="condition-status-tag"
+                                    :type="conditionStatusMeta(cond).type"
+                                    effect="plain"
+                                    size="small"
+                                  >
+                                    {{ conditionStatusMeta(cond).label }}
+                                  </el-tag>
                                 </div>
                                 <div class="condition-desc">{{ cond.description }}</div>
+                                <div class="condition-basis">
+                                  <span>判断依据</span>
+                                  <p>{{ conditionBasisText(cond) }}</p>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1083,7 +1173,7 @@ onUnmounted(() => {
 
                 <div class="confirm-footer confirm-footer--embedded">
                   <div class="confirm-hint">
-                    完成政策匹配与条件核对后，点击按钮启动分析
+                    分析过程将保留命中政策、取证 SQL、证据来源、智能体意见与最终裁决依据。
                   </div>
                   <el-button
                     type="primary"
@@ -1092,7 +1182,7 @@ onUnmounted(() => {
                     :loading="liveLoading"
                     @click="handleConfirmAndStart"
                   >
-                    <el-icon><Right /></el-icon> 确认并开始分析
+                    <el-icon><Right /></el-icon> 确认并启动取证分析
                   </el-button>
                 </div>
               </div>
@@ -1101,8 +1191,8 @@ onUnmounted(() => {
           </el-scrollbar>
         </el-tab-pane>
 
-        <!-- ========== 视图一 ========== -->
-        <el-tab-pane label="🧠 视图一：取证规划中心 (Cognition Center)" name="cognition">
+        <!-- ========== 视图二 ========== -->
+        <el-tab-pane label="🧠 视图二：取证规划中心 (Cognition Center)" name="cognition">
           <el-scrollbar height="100%">
             <div class="session-pane-inner">
               <el-alert v-if="liveError" type="error" :closable="false" show-icon class="session-alert">
@@ -1119,8 +1209,8 @@ onUnmounted(() => {
           </el-scrollbar>
         </el-tab-pane>
 
-        <!-- ========== 视图二 ========== -->
-        <el-tab-pane label="🏛️ 视图二：多智能体辩论庭 (Multi-Agent Tribunal)" name="tribunal">
+        <!-- ========== 视图三 ========== -->
+        <el-tab-pane label="🏛️ 视图三：多智能体辩论庭 (Multi-Agent Tribunal)" name="tribunal">
           <el-scrollbar height="100%">
             <div class="session-pane-inner">
               <el-alert v-if="sessionError" type="warning" :closable="false" show-icon class="session-alert">
@@ -1137,8 +1227,8 @@ onUnmounted(() => {
           </el-scrollbar>
         </el-tab-pane>
 
-        <!-- ========== 视图三 ========== -->
-        <el-tab-pane label="⚖️ 视图三：裁决结果与补证复核 (Final Verdict)" name="verdict">
+        <!-- ========== 视图四 ========== -->
+        <el-tab-pane label="⚖️ 视图四：裁决结果与补证复核 (Final Verdict)" name="verdict">
           <el-scrollbar height="100%">
             <div class="session-pane-inner">
               <el-alert v-if="sessionError" type="warning" :closable="false" show-icon class="session-alert">
@@ -1161,7 +1251,7 @@ onUnmounted(() => {
           </el-scrollbar>
         </el-tab-pane>
 
-        <el-tab-pane label="📚 视图四：历史会话 (History)" name="audit">
+        <el-tab-pane label="📚 历史会话 (History)" name="audit">
           <div class="audit-pane-inner">
             <HistorySessionList
               :items="historyItems"
@@ -1183,8 +1273,17 @@ onUnmounted(() => {
 <style scoped>
 .app-shell {
   height: 100vh;
-  color: #333333;
+  color: var(--color-text-main);
   --ui-transition: all 0.2s ease-in-out;
+  --color-primary-red: #A83A36;
+  --color-primary-red-dark: #8F2E2B;
+  --color-red-light-bg: #F8EDEA;
+  --color-gov-blue: #2F5F9F;
+  --color-text-main: #243447;
+  --color-text-secondary: #64748B;
+  --color-border: #E6E8EC;
+  --color-card-bg: #FFFFFF;
+  --color-page-bg: #FAF6F3;
 }
 
 .app-header {
@@ -1195,10 +1294,12 @@ onUnmounted(() => {
 }
 
 .header-top {
-  height: 144px;
+  height: 104px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(251, 251, 253, 0.9)),
+    linear-gradient(180deg, rgba(250, 246, 243, 0.94), rgba(248, 250, 252, 0.96)),
+    linear-gradient(90deg, rgba(168, 58, 54, 0.045), rgba(47, 95, 159, 0.035)),
     url('/image/gov/try1.png') center center / cover no-repeat;
+  background-blend-mode: normal, multiply, normal;
   border-bottom: none;
   position: relative;
 }
@@ -1209,14 +1310,14 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #C41E3A, rgba(196, 30, 58, 0.15), transparent);
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-primary-red), rgba(168, 58, 54, 0.12), transparent);
 }
 
 .header-bottom {
   height: 48px;
-  background: #8B1A1A;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  background: #7A161A;
+  box-shadow: inset 0 2px 4px rgba(100, 116, 139, 0.1);
 }
 
 .header-inner {
@@ -1246,7 +1347,7 @@ onUnmounted(() => {
 .gov-title-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
 }
 
 .gov-emblem {
@@ -1257,42 +1358,53 @@ onUnmounted(() => {
 }
 
 .module-gavel {
-  width: 320px;
-  height: 320px;
+  width: 260px;
+  height: 260px;
   object-fit: contain;
-  opacity: 0.95;
+  opacity: 0.24;
   position: absolute;
-  right: -66px;
-  bottom: 0;
+  right: -54px;
+  bottom: -36px;
   z-index: 2;
   pointer-events: none;
+  filter: sepia(0.18) saturate(0.9) hue-rotate(330deg);
 }
 
 .header-right :deep(.el-button) {
-  height: 44px;
+  height: 34px;
 }
 
 .brand-block {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+}
+
+.brand-round-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  filter: saturate(0.88) contrast(1.04);
+  mix-blend-mode: multiply;
 }
 
 .brand-divider {
-  width: 40px;
+  width: 34px;
   height: 1px;
-  background: rgba(196, 30, 58, 0.25);
+  background: rgba(168, 58, 54, 0.28);
 }
 
 .header-subtitle {
-  font-size: 13px;
-  color: #C41E3A;
-  letter-spacing: 0.22em;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0;
 }
 
 .top-action-btn {
   font-size: 15px;
-  color: #111827;
+  color: #334155;
   padding: 0 10px;
   border-radius: 10px;
   transition: var(--ui-transition);
@@ -1300,36 +1412,127 @@ onUnmounted(() => {
 
 .top-action-btn :deep(.el-icon) {
   font-size: 20px;
-  color: #6B7280;
+  color: #64748B;
 }
 
 .top-action-btn span {
-  color: #6B7280;
+  color: #64748B;
   font-size: 15px;
 }
 
 .top-action-btn:hover {
-  color: #C41E3A;
-  background: #FEF2F2;
+  color: #9F1D22;
+  background: #FDF2F2;
 }
 
 .top-action-btn:hover :deep(.el-icon),
 .top-action-btn:hover span {
-  color: #C41E3A;
+  color: #9F1D22;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+}
+
+.global-audit-progress {
+  position: absolute;
+  z-index: 3;
+  width: 340px;
+  min-width: 300px;
+  top: 42px;
+  right: 108px;
+  border: 1px solid rgba(168, 58, 54, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 4px 10px rgba(100, 116, 139, 0.08);
+  padding: 8px 14px;
+  backdrop-filter: blur(4px);
+}
+
+.global-progress-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+}
+
+.global-progress-track::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: #E2E8F0;
+}
+
+.global-progress-fill {
+  position: absolute;
+  left: 8%;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  max-width: 84%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-primary-red), var(--color-gov-blue));
+  transition: width 0.2s ease-in-out;
+}
+
+.global-progress-node {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.global-progress-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  background: #F5F7FA;
+  border: 1px solid #E2E8F0;
+  font-size: 10px;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(100, 116, 139, 0.12);
+}
+
+.global-progress-node--done .global-progress-dot {
+  color: #fff;
+  background: var(--color-gov-blue);
+  border-color: var(--color-gov-blue);
+}
+
+.global-progress-node--active .global-progress-dot {
+  color: #fff;
+  background: var(--color-primary-red);
+  border-color: var(--color-primary-red);
+  box-shadow:
+    0 0 0 2px rgba(168, 58, 54, 0.14),
+    0 4px 10px rgba(100, 116, 139, 0.12);
 }
 
 .header-title {
-  font-size: 42px;
+  font-size: 48px;
+  font-family: "Source Han Serif SC", "Noto Serif CJK SC", "SimSun", "Songti SC", "Microsoft YaHei", sans-serif;
   font-weight: 900;
-  color: #111;
-  letter-spacing: 0.4px;
-  line-height: 1.05;
+  color: var(--color-primary-red-dark);
+  letter-spacing: 0;
+  line-height: 1;
+  transform: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.84);
+  -webkit-text-stroke: 0;
+  font-variant-east-asian: traditional;
 }
 
 .gov-title-wrap {
@@ -1338,13 +1541,17 @@ onUnmounted(() => {
 
 .phase-pill {
   border-radius: 999px !important;
-  background: #C41E3A !important;
-  color: #fff !important;
-  border-color: #C41E3A !important;
+  background: #EFF6FF !important;
+  color: #173B73 !important;
+  border-color: rgba(30, 90, 168, 0.28) !important;
   font-size: 12px;
   font-weight: 800;
-  padding: 6px 12px;
-  box-shadow: 0 2px 6px rgba(196, 30, 58, 0.24);
+  padding: 4px 10px;
+  box-shadow: none;
+  position: absolute;
+  top: 14px;
+  right: 108px;
+  z-index: 4;
 }
 
 .online-dot {
@@ -1352,9 +1559,9 @@ onUnmounted(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #10B981;
+  background: #173B73;
   margin-left: 6px;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18);
+  box-shadow: 0 0 0 2px rgba(30, 90, 168, 0.18);
 }
 
 .header-location {
@@ -1368,7 +1575,7 @@ onUnmounted(() => {
   margin-left: 0;
   padding: 6px 10px;
   border-radius: 12px;
-  background: rgba(196, 30, 58, 0.18);
+  background: rgba(159, 29, 34, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
@@ -1390,20 +1597,20 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: rgba(156, 163, 175, 0.3);
+  background: rgba(100, 116, 139, 0.3);
   font-size: 10px;
   font-weight: 700;
   color: #fff;
 }
 
 .top-step--active {
-  background: #C41E3A;
+  background: #9F1D22;
   color: #fff;
   font-weight: 800;
   border-color: rgba(255, 255, 255, 0.55);
   box-shadow:
-    0 0 0 2px rgba(196, 30, 58, 0.25),
-    0 6px 16px rgba(0,0,0,0.28);
+    0 0 0 2px rgba(159, 29, 34, 0.25),
+    0 6px 16px rgba(100, 116, 139, 0.28);
 }
 
 .top-step--active span {
@@ -1431,7 +1638,7 @@ onUnmounted(() => {
 
 .top-step-line--done {
   border-top-style: solid;
-  border-top-color: rgba(196, 30, 58, 0.95);
+  border-top-color: rgba(159, 29, 34, 0.95);
 }
 
 .toolbar-label {
@@ -1440,7 +1647,7 @@ onUnmounted(() => {
 }
 
 .top-action-btn {
-  color: #333;
+  color: #334155;
 }
 
 .avatar-entry {
@@ -1452,14 +1659,14 @@ onUnmounted(() => {
 /* ===== 用户输入视图 ===== */
 .input-view {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: 296px minmax(0, 1fr);
   grid-template-areas: "flow left";
-  gap: 0 20px;
+  gap: 0 18px;
   width: min(100%, 1440px);
   max-width: 1440px;
   margin: 0 auto;
-  padding: 24px clamp(20px, 3vw, 32px) 32px;
-  min-height: calc(100vh - 196px);
+  padding: 18px clamp(18px, 3vw, 28px) 28px;
+  min-height: calc(100vh - 158px);
   align-items: stretch;
   box-sizing: border-box;
 }
@@ -1468,14 +1675,14 @@ onUnmounted(() => {
   grid-area: flow;
   width: 100%;
   box-sizing: border-box;
-  padding: 16px;
-  background: #ffffff;
-  border: 2px solid #5b1b24;
-  border-radius: 12px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
   position: static;
-  min-height: calc(100vh - 220px);
+  min-height: calc(100vh - 184px);
   overflow: visible;
-  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+  box-shadow: 0 3px 12px rgba(36, 52, 71, 0.05);
 }
 
 .flow-rail-title {
@@ -1487,44 +1694,45 @@ onUnmounted(() => {
 
 /* ==== Flow sidebar v2 (card-based) ==== */
 .flow-sidebar-head {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .flow-sidebar-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
-  color: #111827;
+  color: var(--color-text-main);
 }
 
 .flow-sidebar-subtitle {
   margin-top: 6px;
   font-size: 12px;
-  color: #6B7280;
+  color: #64748B;
 }
 
 .flow-cards {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .flow-card {
   position: relative;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-  padding: 12px;
+  border: 1px solid var(--color-border);
+  box-shadow: none;
+  padding: 11px;
   transition: var(--ui-transition);
   cursor: pointer;
 }
 
 .flow-card--step {
-  min-height: 96px;
+  min-height: 88px;
 }
 
 .flow-card:hover:not(.flow-card--disabled) {
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(36, 52, 71, 0.08);
+  transform: translateY(-1px);
 }
 
 .flow-card--disabled {
@@ -1536,9 +1744,11 @@ onUnmounted(() => {
 }
 
 .flow-card--active {
-  border-left: 3px solid #F59E0B;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.22), 0 8px 20px rgba(245, 158, 11, 0.16);
-  animation: flowPulse 1.6s ease-in-out infinite;
+  border-color: rgba(168, 58, 54, 0.28);
+  border-left: 3px solid var(--color-primary-red);
+  background: linear-gradient(180deg, #fff, rgba(248, 237, 234, 0.42));
+  box-shadow: 0 4px 14px rgba(36, 52, 71, 0.07);
+  animation: none;
 }
 
 .flow-card-bar {
@@ -1548,7 +1758,7 @@ onUnmounted(() => {
   width: 4px;
   height: 28px;
   border-radius: 3px;
-  background: #F59E0B;
+  background: var(--color-primary-red);
 }
 
 .flow-card-header {
@@ -1567,16 +1777,16 @@ onUnmounted(() => {
   font-weight: 800;
   font-size: 12px;
   color: #fff;
-  background: #C41E3A;
+  background: var(--color-primary-red);
   flex: 0 0 auto;
 }
 
 .flow-num--done {
-  background: #10B981;
+  background: var(--color-gov-blue);
 }
 
 .flow-num--pending {
-  background: #D1D5DB;
+  background: #64748B;
 }
 
 .flow-card-titles {
@@ -1586,42 +1796,42 @@ onUnmounted(() => {
 .flow-card-title {
   font-size: 13px;
   font-weight: 800;
-  color: #111827;
+  color: #334155;
 }
 
 .flow-card-title--muted {
-  color: #374151;
+  color: #334155;
 }
 
 .flow-card-title--disabled {
-  color: #9CA3AF;
+  color: #64748B;
 }
 
 .flow-card-desc {
   margin-top: 4px;
   font-size: 11px;
-  color: #6B7280;
+  color: #64748B;
   line-height: 1.45;
 }
 
 .flow-card-desc--disabled {
-  color: #9CA3AF;
+  color: #64748B;
 }
 
 .flow-check {
   margin-left: auto;
-  color: #16A34A;
+  color: #2E7D5B;
   margin-top: 4px;
   font-size: 16px;
 }
 
 .flow-card-tip {
   margin-top: 10px;
-  background: #FFFBEB;
-  border-left: 3px solid #F59E0B;
+  background: rgba(160, 106, 42, 0.14);
+  border-left: 3px solid #A06A2A;
   padding: 8px 12px;
   border-radius: 4px;
-  color: #92400E;
+  color: #A06A2A;
   font-size: 12px;
   display: flex;
   align-items: flex-start;
@@ -1629,7 +1839,7 @@ onUnmounted(() => {
 }
 
 .flow-card-tip :deep(.el-icon) {
-  color: #F59E0B;
+  color: #A06A2A;
   margin-top: 1px;
 }
 
@@ -1643,34 +1853,34 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #D1D5DB;
+  background: #64748B;
 }
 
 .mini-dot--active {
-  background: #C41E3A;
+  background: #9F1D22;
   transform: scale(1.2);
 }
 
 .mini-dot--ok {
-  background: #10B981;
+  background: #2E7D5B;
 }
 
 .flow-connector {
-  height: 12px;
+  height: 10px;
   margin-left: 14px;
-  border-left: 1px dashed #D1D5DB;
+  border-left: 1px dashed #CBD5E1;
 }
 
 .flow-connector--next {
   border-left-style: solid;
-  border-left-color: #C41E3A;
+  border-left-color: var(--color-primary-red);
 }
 
 .flow-result-pill {
   margin-top: 10px;
   font-size: 11px;
-  color: #10B981;
-  background: rgba(16, 185, 129, 0.12);
+  color: #2E7D5B;
+  background: rgba(46, 125, 91, 0.12);
   border-radius: 999px;
   padding: 3px 10px;
   display: inline-flex;
@@ -1682,7 +1892,7 @@ onUnmounted(() => {
 }
 
 .flow-inline-progress :deep(.el-progress-bar__outer) {
-  background: rgba(209, 213, 219, 0.6);
+  background: rgba(100, 116, 139, 0.24);
 }
 
 .flow-inline-progress-meta {
@@ -1691,20 +1901,20 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   font-size: 11px;
-  color: #6B7280;
+  color: #64748B;
 }
 
 .flow-inline-progress-val {
-  color: #8a0c14;
+  color: #7A161A;
   font-weight: 800;
 }
 
 .flow-round-pill {
   font-size: 11px;
   font-weight: 900;
-  color: #8a0c14;
+  color: #7A161A;
   background: rgba(255, 235, 238, 0.95);
-  border: 1px solid rgba(196, 30, 58, 0.28);
+  border: 1px solid rgba(159, 29, 34, 0.28);
   padding: 2px 8px;
   border-radius: 999px;
   white-space: nowrap;
@@ -1727,15 +1937,15 @@ onUnmounted(() => {
 }
 
 .flow-verdict--pass {
-  color: #0f5132;
-  background: rgba(40, 167, 69, 0.18);
-  border: 1px solid rgba(40, 167, 69, 0.5);
+  color: #2E7D5B;
+  background: rgba(46, 125, 91, 0.12);
+  border: 1px solid rgba(46, 125, 91, 0.42);
 }
 
 .flow-verdict--fail {
-  color: #9f1239;
-  background: rgba(239, 68, 68, 0.18);
-  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #9F1D22;
+  background: rgba(159, 29, 34, 0.18);
+  border: 1px solid rgba(159, 29, 34, 0.5);
 }
 
 .flow-cards--completed .flow-card:nth-child(1),
@@ -1747,7 +1957,7 @@ onUnmounted(() => {
 .flow-prehint {
   margin-top: 10px;
   font-size: 11px;
-  color: #6B7280;
+  color: #64748B;
   font-style: italic;
 }
 
@@ -1760,15 +1970,15 @@ onUnmounted(() => {
 }
 
 .flow-status-inline--ok {
-  color: #10B981;
+  color: #2E7D5B;
 }
 
 .flow-status-inline--wait {
-  color: #FAAD14;
+  color: #A06A2A;
 }
 
 .flow-foot {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .flow-duration {
@@ -1777,21 +1987,24 @@ onUnmounted(() => {
   justify-content: center;
   gap: 6px;
   font-size: 12px;
-  color: #6B7280;
+  color: #64748B;
   margin-bottom: 10px;
 }
 
 .flow-faq {
-  padding-left: 8px;
-  padding-right: 4px;
+  padding: 10px;
+  border: 1px dashed rgba(100, 116, 139, 0.24);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.72);
   overflow: visible;
+  opacity: 0.72;
 }
 
 .flow-faq-title {
-  font-size: 14px;
-  font-weight: 900;
-  color: #111827;
-  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
 }
 
 .faq-stage-select {
@@ -1817,28 +2030,29 @@ onUnmounted(() => {
 }
 
 .faq-item {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 8px 10px;
-  background: #fff;
+  border: 0;
+  border-top: 1px solid #E6E8EC;
+  border-radius: 0;
+  padding: 8px 0 0;
+  background: transparent;
 }
 
 .faq-q {
   font-size: 12px;
   font-weight: 800;
-  color: #374151;
+  color: #334155;
   margin-bottom: 4px;
 }
 
 .faq-a {
   font-size: 12px;
-  color: #6b7280;
+  color: #64748B;
   line-height: 1.6;
 }
 
 @keyframes flowPulse {
-  0%, 100% { box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
-  50% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+  0%, 100% { box-shadow: 0 1px 2px rgba(100, 116, 139, 0.08); }
+  50% { box-shadow: 0 0 0 3px rgba(197, 139, 43, 0.2); }
 }
 
 .flow-step {
@@ -1852,17 +2066,17 @@ onUnmounted(() => {
 }
 
 .flow-step--active .flow-index {
-  background: #C23531;
+  background: #9F1D22;
   color: #fff;
 }
 
 .flow-step--active .flow-text {
-  color: #333333;
+  color: #334155;
   font-weight: 700;
 }
 
 .flow-step--active {
-  border-left-color: #C23531;
+  border-left-color: #9F1D22;
 }
 
 .flow-step-texts {
@@ -1881,32 +2095,32 @@ onUnmounted(() => {
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
-  background: #f1f5f9;
-  border: 1px solid var(--border-color, #e4e7ed);
+  background: #F5F7FA;
+  border: 1px solid var(--border-color, rgba(100, 116, 139, 0.24));
   margin-top: 1px;
 }
 
 .flow-text {
   font-size: 13px;
-  color: #333333;
+  color: #334155;
   white-space: normal;
 }
 
 .flow-subtext {
   font-size: 11px;
-  color: #555555;
+  color: #64748B;
   line-height: 1.35;
 }
 
 .flow-tip-mini {
   font-size: 11px;
-  color: #666666;
+  color: #64748B;
 }
 
 .flow-rail-line {
   height: 10px;
   width: 1px;
-  background: var(--border-color, #e4e7ed);
+  background: var(--border-color, rgba(100, 116, 139, 0.24));
   margin: 2px 11px;
 }
 
@@ -1927,21 +2141,21 @@ onUnmounted(() => {
 
 .flow-status-tag--ok {
   color: #fff;
-  background: #C23531;
+  background: #2E7D5B;
 }
 
 .flow-status-tag--wait {
-  color: #111;
-  background: #efefef;
+  color: #334155;
+  background: #F5F7FA;
 }
 
 .input-view-left {
   grid-area: left;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
   min-width: 0;
-  min-height: calc(100vh - 220px);
+  min-height: calc(100vh - 184px);
 }
 
 .input-view-right {
@@ -1950,7 +2164,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border: 1px solid var(--border-color, #e4e7ed);
+  border: 1px solid var(--border-color, rgba(100, 116, 139, 0.24));
   border-radius: 12px;
   padding: 20px;
   background: rgba(255, 255, 255, 0.9);
@@ -1962,21 +2176,21 @@ onUnmounted(() => {
   flex-direction: column;
   min-height: 0;
   flex: 1;
-  border: 1px solid var(--border-color, #e4e7ed);
-  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
   padding: 20px;
   background: rgba(255, 255, 255, 0.95);
 }
 
 .conditions-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
 }
 
 .conditions-close {
-  color: #6B7280;
+  color: #64748B;
 }
 
 .conditions-locked {
@@ -1985,17 +2199,17 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   gap: 8px;
-  border: 1px dashed #E5E7EB;
+  border: 1px dashed #F5F7FA;
   border-radius: 12px;
   padding: 18px;
   background: #fff;
-  color: #6B7280;
+  color: #64748B;
 }
 
 .conditions-locked-title {
   font-size: 14px;
   font-weight: 800;
-  color: #111827;
+  color: #334155;
 }
 
 .conditions-locked-text {
@@ -2007,10 +2221,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--text-primary, #303133);
-  margin-bottom: 14px;
+  color: var(--color-text-main);
+  margin-bottom: 10px;
 }
 
 .section-title::before {
@@ -2018,29 +2232,45 @@ onUnmounted(() => {
   width: 4px;
   height: 20px;
   border-radius: 2px;
-  background: #C41E3A;
+  background: var(--color-primary-red);
+}
+
+.section-helper {
+  margin-top: -4px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.input-section-head {
+  align-items: flex-start;
+  margin-bottom: 4px;
 }
 
 .input-section {
-  background: var(--bg-card, #fff);
-  border: 1px solid #e3d7d7;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 3px 12px rgba(36, 52, 71, 0.05);
   transition: var(--ui-transition);
 }
 
 .input-section:focus-within {
-  border-color: #C41E3A;
-  box-shadow: 0 0 0 3px rgba(194, 53, 49, 0.15);
+  border-color: rgba(168, 58, 54, 0.5);
+  box-shadow: 0 0 0 3px rgba(168, 58, 54, 0.1);
 }
 
 .idcard-field {
-  max-width: 240px;
+  width: 100%;
+  max-width: 420px;
 }
 
 .idcard-field :deep(.el-input-group__prepend) {
-  color: #111827 !important;
+  min-width: 96px;
+  justify-content: center;
+  color: #334155 !important;
 }
 
 .query-field {
@@ -2057,8 +2287,8 @@ onUnmounted(() => {
 }
 
 .query-field :deep(.el-textarea__inner:focus) {
-  border-color: #C41E3A !important;
-  box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15) !important;
+  border-color: var(--color-primary-red) !important;
+  box-shadow: 0 0 0 3px rgba(168, 58, 54, 0.1) !important;
 }
 
 .input-field {
@@ -2067,11 +2297,11 @@ onUnmounted(() => {
 }
 
 .idcard-icon--ok {
-  color: #52C41A;
+  color: #2E7D5B;
 }
 
 .idcard-icon--error {
-  color: #F5222D;
+  color: #9F1D22;
 }
 
 .query-meta-row {
@@ -2083,7 +2313,7 @@ onUnmounted(() => {
 
 .query-counter {
   font-size: 12px;
-  color: #666666;
+  color: #64748B;
 }
 
 .input-actions {
@@ -2099,19 +2329,19 @@ onUnmounted(() => {
 }
 
 .policy-section {
-  background: var(--bg-card, #fff);
-  border: 1px solid #e3d7d7;
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 18px;
   flex: 1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 3px 12px rgba(36, 52, 71, 0.05);
   transition: var(--ui-transition);
 }
 
 .match-grid {
   display: grid;
   grid-template-columns: minmax(360px, 0.92fr) minmax(420px, 1.08fr);
-  gap: 20px;
+  gap: 18px;
   align-items: stretch;
   flex: 1;
   min-height: 0;
@@ -2124,7 +2354,7 @@ onUnmounted(() => {
 
 .conditions-panel--embedded {
   padding: 16px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .conditions-scroll {
@@ -2144,19 +2374,21 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: rgba(107, 114, 128, 0.72);
+  color: rgba(100, 116, 139, 0.72);
   font-size: 12px;
-  border: 1px dashed rgba(229, 231, 235, 0.9);
+  border: 1px dashed rgba(100, 116, 139, 0.18);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.7);
 }
 
 .confirm-footer--embedded {
-  margin-top: 4px;
-  border-top: 1px solid var(--border-color, #e4e7ed);
-  background: transparent;
-  padding: 6px 4px 0;
+  margin-top: -2px;
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 12px 14px;
+  border-radius: 10px;
   position: static;
+  box-shadow: 0 3px 12px rgba(36, 52, 71, 0.05);
 }
 
 .section-head {
@@ -2176,7 +2408,7 @@ onUnmounted(() => {
 }
 
 .policy-skeleton {
-  border: 1px solid #f0f0f0;
+  border: 1px solid rgba(100, 116, 139, 0.18);
   border-radius: 8px;
   padding: 12px;
   position: relative;
@@ -2190,7 +2422,7 @@ onUnmounted(() => {
   bottom: 10px;
   width: 3px;
   border-radius: 2px;
-  background: #C23531;
+  background: #9F1D22;
 }
 
 .policy-skeleton + .policy-skeleton {
@@ -2199,7 +2431,7 @@ onUnmounted(() => {
 
 .skeleton-line {
   height: 10px;
-  background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+  background: linear-gradient(90deg, #F5F7FA 25%, #F5F7FA 50%, #F5F7FA 75%);
   background-size: 200% 100%;
   animation: skeletonPulse 1.2s infinite;
   border-radius: 6px;
@@ -2221,7 +2453,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 12px;
+  gap: 10px;
 }
 
 .policy-radio-group :deep(.el-radio) {
@@ -2229,7 +2461,7 @@ onUnmounted(() => {
   height: auto !important;
   margin-right: 0;
   align-items: flex-start;
-  padding: 12px 12px;
+  padding: 11px 12px;
   box-sizing: border-box;
 }
 
@@ -2245,8 +2477,17 @@ onUnmounted(() => {
 }
 
 .policy-radio-card--top :deep(.el-radio.is-bordered) {
-  border-color: #C23531;
-  background: #FFF5F5;
+  border-color: rgba(168, 58, 54, 0.42);
+  background: linear-gradient(180deg, #fff, var(--color-red-light-bg));
+}
+
+.policy-radio-card:not(.policy-radio-card--top) :deep(.el-radio.is-bordered) {
+  border-color: var(--color-border);
+  background: #fff;
+}
+
+.policy-radio-card--selected :deep(.el-radio.is-bordered) {
+  border-color: var(--color-primary-red) !important;
 }
 
 .policy-radio-inner {
@@ -2263,16 +2504,16 @@ onUnmounted(() => {
   margin-left: auto;
   font-size: 11px;
   color: #fff;
-  background: #C23531;
+  background: var(--color-primary-red);
   border-radius: 999px;
   padding: 2px 8px;
 }
 
 .policy-radio-rank {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--el-color-primary);
-  min-width: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-primary-red-dark);
+  min-width: 44px;
 }
 
 .policy-radio-name {
@@ -2286,18 +2527,18 @@ onUnmounted(() => {
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.5;
-  color: #666666;
+  color: #64748B;
 }
 
 .policy-radio-extra {
   margin-top: 4px;
   font-size: 12px;
-  color: #666666;
+  color: #64748B;
 }
 
 .quick-tag-btn {
-  border-color: #C23531 !important;
-  color: #C23531 !important;
+  border-color: rgba(168, 58, 54, 0.32) !important;
+  color: var(--color-primary-red) !important;
   background: #fff !important;
   height: 32px !important;
   line-height: 32px !important;
@@ -2306,7 +2547,7 @@ onUnmounted(() => {
 }
 
 .quick-tag-btn:hover {
-  background: #FFF5F5 !important;
+  background: var(--color-red-light-bg) !important;
 }
 
 .intent-ambiguities {
@@ -2323,7 +2564,7 @@ onUnmounted(() => {
 }
 
 .conditions-empty--red {
-  color: #C23531;
+  color: #9F1D22;
   font-weight: 600;
   flex-direction: column;
   gap: 8px;
@@ -2351,22 +2592,29 @@ onUnmounted(() => {
   min-height: 360px;
 }
 
+.conditions-current-policy {
+  margin-top: -4px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
 .conditions-policy-pill {
   align-self: flex-start;
   margin-bottom: 10px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #C23531;
+  background: var(--color-primary-red);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
 }
 
 .conditions-meta {
-  margin-bottom: 16px;
-  padding: 16px;
-  background: var(--bg-card, #fff);
-  border: 1px solid var(--border-color, #e4e7ed);
+  margin-bottom: 14px;
+  padding: 14px;
+  background: #FAFBFC !important;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
@@ -2375,8 +2623,8 @@ onUnmounted(() => {
 }
 
 .condition-group-title {
-  border-left: 4px solid #C23531;
-  background: #FEF2F2;
+  border-left: 3px solid var(--color-primary-red);
+  background: var(--color-red-light-bg);
   padding: 6px 10px;
   border-radius: 4px;
   font-size: 13px;
@@ -2410,7 +2658,7 @@ onUnmounted(() => {
 .conditions-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   flex: 1;
   overflow-y: auto;
   max-height: calc(100vh - 330px);
@@ -2423,37 +2671,66 @@ onUnmounted(() => {
 }
 
 .condition-card {
-  padding: 14px 16px;
-  background: var(--bg-card, #fff);
-  border: 1px solid #e3d7d7;
-  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
   transition: all 0.2s ease-in-out;
 }
 
 .condition-card:hover {
-  border-color: #C41E3A;
-  background: #fafafa;
+  border-color: rgba(168, 58, 54, 0.36);
+  background: #FAFBFC;
 }
 
 .condition-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .condition-id {
   font-size: 11px;
-  color: var(--el-text-color-placeholder);
+  color: var(--color-text-secondary);
   font-family: monospace;
+  background: #F8FAFC;
+  border: 1px solid #E6E8EC;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.condition-status-tag {
+  margin-left: auto;
 }
 
 .condition-desc {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333333;
-  line-height: 1.6;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  line-height: 1.55;
   word-break: break-word;
+}
+
+.condition-basis {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.condition-basis span {
+  color: var(--color-gov-blue);
+  font-weight: 700;
+}
+
+.condition-basis p {
+  margin: 0;
+  line-height: 1.55;
 }
 
 .state-dot {
@@ -2464,19 +2741,19 @@ onUnmounted(() => {
 }
 
 .state-dot--pending {
-  background: #bfbfbf;
+  background: #64748B;
 }
 
 .state-dot--ok {
-  background: #52C41A;
+  background: #2E7D5B;
 }
 
 .state-dot--error {
-  background: #F5222D;
+  background: #9F1D22;
 }
 
 .state-dot--warn {
-  background: #FAAD14;
+  background: #A06A2A;
 }
 
 .condition-detail {
@@ -2504,7 +2781,7 @@ onUnmounted(() => {
 .confirm-footer {
   margin-top: 24px;
   padding: 12px 4px 4px;
-  border-top: 1px solid var(--border-color, #e4e7ed);
+  border-top: 1px solid var(--border-color, rgba(100, 116, 139, 0.24));
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -2517,34 +2794,38 @@ onUnmounted(() => {
 .confirm-hint {
   margin-right: auto;
   font-size: 12px;
-  color: #666666;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  max-width: 620px;
 }
 
 .confirm-footer :deep(.el-button--primary) {
   border-radius: 8px;
-  background: #C23531;
-  border-color: #C23531;
+  min-width: 210px;
+  height: 42px;
+  background: var(--color-primary-red);
+  border-color: var(--color-primary-red);
   transition: all 0.2s ease-in-out;
 }
 
 .confirm-footer :deep(.el-button--primary:hover) {
-  background: #A52A2A;
-  border-color: #A52A2A;
+  background: var(--color-primary-red-dark);
+  border-color: var(--color-primary-red-dark);
 }
 
 .confirm-footer :deep(.el-button--primary.is-disabled) {
-  background: #bfbfbf;
-  border-color: #bfbfbf;
+  background: #64748B;
+  border-color: #64748B;
 }
 
 .confirm-footer :deep(.el-button--primary.is-disabled:hover) {
-  background: #bfbfbf;
-  border-color: #bfbfbf;
+  background: #64748B;
+  border-color: #64748B;
 }
 
 .confirm-footer :deep(.el-button.is-plain) {
-  color: #C23531;
-  border-color: #C23531;
+  color: #9F1D22;
+  border-color: #9F1D22;
   background: #fff;
 }
 
@@ -2570,8 +2851,8 @@ onUnmounted(() => {
 
 .dashboard-tabs :deep(.el-tabs__header) {
   margin: 0;
-  padding: 12px clamp(20px, 3vw, 32px);
-  background: #8B1A1A;
+  padding: 8px clamp(18px, 3vw, 28px);
+  background: var(--color-primary-red);
   border-bottom: none;
   overflow: visible;
 }
@@ -2589,7 +2870,7 @@ onUnmounted(() => {
 
 .dashboard-tabs :deep(.el-tabs__nav) {
   background: transparent;
-  border-radius: 999px;
+  border-radius: 0;
   padding: 0;
   border: none;
   box-shadow: none;
@@ -2607,15 +2888,16 @@ onUnmounted(() => {
 }
 
 .dashboard-tabs :deep(.el-tabs__item) {
-  height: 38px;
-  line-height: 38px;
-  padding: 0 16px !important;
+  height: 34px;
+  line-height: 34px;
+  padding: 0 14px !important;
   border-radius: 999px;
   font-weight: 600;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(255, 255, 255, 0.74) !important;
   transition: all 0.2s ease-in-out;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid transparent;
+  box-shadow: none;
   max-width: 100%;
   white-space: nowrap;
   flex: 0 1 auto;
@@ -2623,17 +2905,15 @@ onUnmounted(() => {
 
 .dashboard-tabs :deep(.el-tabs__item:hover:not(.is-active)) {
   color: #fff !important;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(143, 46, 43, 0.36);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .dashboard-tabs :deep(.el-tabs__item.is-active) {
-  color: #8B1A1A !important;
+  color: var(--color-primary-red-dark) !important;
   background: #fff;
-  box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.55),
-    0 6px 16px rgba(0, 0, 0, 0.28);
-  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 3px 9px rgba(36, 52, 71, 0.12);
+  border-color: rgba(255, 255, 255, 0.56);
 }
 
 .dashboard-tabs :deep(.el-tabs__item .el-icon) {
@@ -2641,9 +2921,9 @@ onUnmounted(() => {
 }
 
 :deep(.el-backtop) {
-  background: #C41E3A;
+  background: #9F1D22;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(100, 116, 139, 0.2);
 }
 
 .conditions-mobile-drawer :deep(.el-drawer__header) {

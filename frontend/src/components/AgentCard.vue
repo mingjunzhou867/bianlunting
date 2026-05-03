@@ -188,6 +188,12 @@ const sanitizeDisplayText = (value) => {
   line-height: 1.75;
 }
 
+.reasoning-text {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.5);
+}
+
 .ref-list {
   display: flex;
   gap: 6px;

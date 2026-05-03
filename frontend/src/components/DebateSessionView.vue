@@ -133,7 +133,7 @@ const getClausePriorityBadges = (item, focusClauseIds) => {
   }
   if (item?.semantic_decision_effect === 'oppose') badges.push({ type: 'danger', text: '决定性' })
   if (item?.status === '待补充' || item?.status === '待补证' || item?.semantic_is_missing_data) {
-    badges.push({ type: 'info', text: '待补证' })
+    badges.push({ type: 'warning', text: '待补证' })
   }
   return badges
 }
@@ -322,7 +322,7 @@ const openEvidenceDetail = (evidenceRef) => {
         >
           <el-divider content-position="left">
             <el-tag :type="roundRecord.round_num === 0 ? 'primary' : 'danger'" effect="light">
-              {{ roundRecord.round_num === 0 ? 'Round 0 初始判断' : `Round ${roundRecord.round_num} 辩论回合` }}
+              {{ roundRecord.round_num === 0 ? 'Round 1 初始判断' : `Round ${Number(roundRecord.round_num) + 1} 辩论回合` }}
             </el-tag>
           </el-divider>
 
@@ -360,7 +360,7 @@ const openEvidenceDetail = (evidenceRef) => {
           <el-progress
             type="circle"
             :percentage="Math.round((props.session.consensus_rate ?? 0) * 100)"
-            :color="props.session.is_consensus_reached ? '#3fb950' : '#d29922'"
+            :color="props.session.is_consensus_reached ? '#2E7D5B' : '#A06A2A'"
             :width="90"
           />
         </div>
@@ -668,18 +668,20 @@ const openEvidenceDetail = (evidenceRef) => {
 }
 
 .trace-console {
-  background: rgba(10, 15, 20, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(239, 246, 255, 0.86), rgba(248, 250, 252, 0.92)),
+    rgba(47, 95, 159, 0.08);
+  border: 1px solid rgba(47, 95, 159, 0.16);
   border-radius: 12px;
   padding: 16px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(4px);
   font-family: Consolas, Monaco, monospace;
   font-size: 13px;
   line-height: 1.6;
-  color: #a0aec0;
+  color: #243447;
   max-height: 280px;
   overflow-y: auto;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
 }
 
 .trace-line {
@@ -690,7 +692,7 @@ const openEvidenceDetail = (evidenceRef) => {
 }
 
 .trace-prompt {
-  color: #4299e1;
+  color: rgba(47, 95, 159, 0.82);
   font-weight: bold;
   flex-shrink: 0;
 }
@@ -700,20 +702,20 @@ const openEvidenceDetail = (evidenceRef) => {
 }
 
 .trace-success .trace-text {
-  color: #48bb78;
+  color: #2E7D5B;
 }
 
 .trace-warning .trace-text {
-  color: #ecc94b;
+  color: #A06A2A;
 }
 
 .trace-danger .trace-text {
-  color: #f56565;
+  color: #9F1D22;
 }
 
 .cursor-blink {
   animation: blink 1s step-end infinite;
-  color: #4299e1;
+  color: #2F5F9F;
 }
 
 @keyframes fadeIn {
