@@ -301,9 +301,6 @@ def download_official_report(session_id: str) -> FileResponse:
     """Download the official-style PDF generated for a completed debate session."""
     try:
         detail = get_saved_session_detail(session_id)
-        review = detail.get("manual_review") if isinstance(detail.get("manual_review"), dict) else {}
-        if not (detail.get("manual_review_confirmed") or review.get("confirmed")):
-            raise HTTPException(status_code=409, detail="请先在前端点击“确认补证复核完成”，确认后才允许下载 PDF 裁决报告。")
         pdf_path = ensure_official_report(detail)
     except DebateSessionNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
